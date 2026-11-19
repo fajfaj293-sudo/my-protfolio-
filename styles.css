@@ -4000,10 +4000,12 @@ a.channel-item:hover .ci-arrow {
 
   /* Responsive Hero Image, Title & Subtitle on Mobile */
   .hero-main-img {
-    object-position: 58% 22% !important;
+    object-position: 50% 18% !important;
+    transform: scale(0.96) !important;
+    transform-origin: center top !important;
   }
   .tidalia-hero-title {
-    font-size: clamp(2.4rem, 10.5vw, 3.6rem) !important;
+    font-size: clamp(2.2rem, 9.5vw, 3.2rem) !important;
     font-weight: 600 !important;
     letter-spacing: 0.12em !important;
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.95) !important;
@@ -4012,14 +4014,14 @@ a.channel-item:hover .ci-arrow {
     font-weight: 600 !important;
   }
   .hero-title-overlay {
-    margin-bottom: 1.2rem !important;
-    padding: 0 1.2rem !important;
+    margin-bottom: 1.0rem !important;
+    padding: 0 1rem !important;
   }
   .tidalia-hero-sub {
-    font-size: 0.82rem !important;
-    line-height: 1.42 !important;
-    max-width: 330px !important;
-    margin: 0.35rem auto 0 !important;
+    font-size: 0.8rem !important;
+    line-height: 1.4 !important;
+    max-width: 320px !important;
+    margin: 0.3rem auto 0 !important;
     padding: 0 0.5rem !important;
     font-weight: 400 !important;
     color: rgba(255, 255, 255, 0.92) !important;
@@ -4140,13 +4142,12 @@ a.channel-item:hover .ci-arrow {
     font-size: 0.68rem !important;
   }
 
-  /* Window Video Frame Mobile Optimization: Centered 16:9 uncropped double window, zooms smoothly to fullscreen */
+  /* Window Video Frame Mobile Optimization: Centered, smoothly expands into fullscreen */
   .window-arch-wrapper {
-    width: min(92vw, 420px) !important;
-    height: min(calc(92vw * 9 / 16), 240px) !important;
-    aspect-ratio: 16 / 9 !important;
-    border-radius: 18px !important;
-    max-height: 240px !important;
+    width: min(92vw, 440px);
+    height: min(62vh, 480px);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   }
 
   /* Story Scene Overlays on Mobile: Perfectly scaled, high readability, beautiful glass scrim */
@@ -4155,6 +4156,16 @@ a.channel-item:hover .ci-arrow {
     flex-direction: column !important;
     justify-content: flex-end !important;
     align-items: stretch !important;
+  }
+  .story-scene-ui.story-ui-center {
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 1rem !important;
+  }
+  .story-scene-ui.story-ui-top {
+    justify-content: flex-start !important;
+    padding-top: 3.5rem !important;
   }
   .story-text-left {
     max-width: 100% !important;
