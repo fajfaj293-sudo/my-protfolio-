@@ -360,45 +360,24 @@ function initContinuousZoomStory() {
     }
   }
 
+  function requestTick() {
+    if (!isTicking) {
+      isTicking = true;
+      requestAnimationFrame(renderFrame);
+    }
+  }
+
   // Smooth scroll listener
   window.addEventListener('scroll', () => {
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
     targetProgress = maxScroll > 0 ? current / maxScroll : 0;
+    requestTick();
   }, { passive: true });
-
-  let storyInView = false;
-  let storyRafId = null;
-
-  function startStoryLoop() {
-    if (!storyRafId && storyInView) {
-      storyRafId = requestAnimationFrame(renderFrame);
-    }
-  }
-
-  if ('IntersectionObserver' in window) {
-    const storyObs = new IntersectionObserver((entries) => {
-      storyInView = entries[0].isIntersecting;
-      if (storyInView) {
-        startStoryLoop();
-      } else if (storyRafId) {
-        cancelAnimationFrame(storyRafId);
-        storyRafId = null;
-      }
-    }, { threshold: 0.01 });
-    storyObs.observe(runway);
-  } else {
-    storyInView = true;
-    startStoryLoop();
-  }
 
   // 60FPS Render Loop
   function renderFrame() {
-    if (!storyInView) {
-      storyRafId = null;
-      return;
-    }
 
     const isMobile = window.innerWidth <= 768;
     // Responsive lerp: fast tracking with zero drag or stickiness
@@ -468,16 +447,23 @@ function initContinuousZoomStory() {
       scene4.classList.toggle('active', currentTargetTime >= 11.0);
     }
 
-    storyRafId = requestAnimationFrame(renderFrame);
+    // Continue render loop while lerp is still settling or seeking is pending
+    const diff = Math.abs(targetProgress - smoothProgress);
+    if (diff > 0.0006 || isSeeking || pendingTime !== null) {
+      requestAnimationFrame(renderFrame);
+    } else {
+      isTicking = false;
+    }
   }
 
-  video.addEventListener('loadedmetadata', startStoryLoop);
+  video.addEventListener('loadedmetadata', requestTick);
   if (video.readyState >= 1) {
-    startStoryLoop();
+    requestTick();
   } else {
     video.load();
-    startStoryLoop();
+    requestTick();
   }
+  requestTick();
 }
 
 // ============================================================================
