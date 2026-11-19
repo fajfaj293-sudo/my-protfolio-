@@ -165,16 +165,30 @@ function initHeroSpotlight() {
   }, { passive: true });
 
   let heroInView = true;
+  let heroRafId = null;
+
+  function startHeroLoop() {
+    if (!heroRafId && heroInView) {
+      heroRafId = requestAnimationFrame(animateHero);
+    }
+  }
+
   if ('IntersectionObserver' in window) {
     const heroObs = new IntersectionObserver((entries) => {
       heroInView = entries[0].isIntersecting;
-    }, { threshold: 0 });
+      if (heroInView) {
+        startHeroLoop();
+      } else if (heroRafId) {
+        cancelAnimationFrame(heroRafId);
+        heroRafId = null;
+      }
+    }, { threshold: 0.05 });
     heroObs.observe(container);
   }
 
   function animateHero(now) {
     if (!heroInView) {
-      requestAnimationFrame(animateHero);
+      heroRafId = null;
       return;
     }
 
@@ -225,9 +239,9 @@ function initHeroSpotlight() {
       }
     });
 
-    requestAnimationFrame(animateHero);
+    heroRafId = requestAnimationFrame(animateHero);
   }
-  requestAnimationFrame(animateHero);
+  startHeroLoop();
 }
 
 // ============================================================================
@@ -309,11 +323,20 @@ function initContinuousZoomStory() {
     }
   });
 
+  let lastScrubTime = 0;
   function scrubToTime(t) {
     if (!video.duration || isNaN(video.duration)) return;
     const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
-    if (Math.abs(video.currentTime - boundedTime) < 0.025) return;
+    if (Math.abs(video.currentTime - boundedTime) < 0.03) return;
+
+    const now = performance.now();
+    const isMobile = window.innerWidth <= 768;
+    // On mobile, throttle hardware decoder seeks to 45ms to keep main thread completely fluid
+    if (isMobile && now - lastScrubTime < 45) {
+      pendingTime = boundedTime;
+      return;
+    }
 
     if (isSeeking) {
       pendingTime = boundedTime;
@@ -321,6 +344,7 @@ function initContinuousZoomStory() {
     }
 
     isSeeking = true;
+    lastScrubTime = now;
     if (typeof video.fastSeek === 'function') {
       try {
         video.fastSeek(boundedTime);
@@ -340,8 +364,38 @@ function initContinuousZoomStory() {
     targetProgress = maxScroll > 0 ? current / maxScroll : 0;
   }, { passive: true });
 
+  let storyInView = false;
+  let storyRafId = null;
+
+  function startStoryLoop() {
+    if (!storyRafId && storyInView) {
+      storyRafId = requestAnimationFrame(renderFrame);
+    }
+  }
+
+  if ('IntersectionObserver' in window) {
+    const storyObs = new IntersectionObserver((entries) => {
+      storyInView = entries[0].isIntersecting;
+      if (storyInView) {
+        startStoryLoop();
+      } else if (storyRafId) {
+        cancelAnimationFrame(storyRafId);
+        storyRafId = null;
+      }
+    }, { threshold: 0.01 });
+    storyObs.observe(runway);
+  } else {
+    storyInView = true;
+    startStoryLoop();
+  }
+
   // 60FPS Render Loop
   function renderFrame() {
+    if (!storyInView) {
+      storyRafId = null;
+      return;
+    }
+
     // Ultra-smooth lerp
     smoothProgress += (targetProgress - smoothProgress) * 0.16;
 
@@ -408,23 +462,15 @@ function initContinuousZoomStory() {
       scene4.classList.toggle('active', currentTargetTime >= 11.0);
     }
 
-    requestAnimationFrame(renderFrame);
+    storyRafId = requestAnimationFrame(renderFrame);
   }
 
-  // Initial video load (Guaranteed single RAF loop, zero duplicates)
-  let isLoopStarted = false;
-  function startRenderLoop() {
-    if (isLoopStarted) return;
-    isLoopStarted = true;
-    requestAnimationFrame(renderFrame);
-  }
-
-  video.addEventListener('loadedmetadata', startRenderLoop);
+  video.addEventListener('loadedmetadata', startStoryLoop);
   if (video.readyState >= 1) {
-    startRenderLoop();
+    startStoryLoop();
   } else {
     video.load();
-    startRenderLoop();
+    startStoryLoop();
   }
 }
 
@@ -810,9 +856,23 @@ function initStarfields() {
     c.height = 720;
 
     let canvasInView = true;
+    let starRafId = null;
+
+    function startStarLoop() {
+      if (!starRafId && canvasInView) {
+        starRafId = requestAnimationFrame(draw);
+      }
+    }
+
     if ('IntersectionObserver' in window) {
       const obs = new IntersectionObserver((entries) => {
         canvasInView = entries[0].isIntersecting;
+        if (canvasInView) {
+          startStarLoop();
+        } else if (starRafId) {
+          cancelAnimationFrame(starRafId);
+          starRafId = null;
+        }
       }, { threshold: 0 });
       obs.observe(c);
     }
@@ -822,9 +882,10 @@ function initStarfields() {
       y: Math.random() * 720,
       r: Math.random() * 1.6 + 0.4
     }));
+
     function draw(t) {
       if (!canvasInView) {
-        requestAnimationFrame(draw);
+        starRafId = null;
         return;
       }
       ctx.clearRect(0, 0, 1280, 720);
@@ -835,9 +896,9 @@ function initStarfields() {
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fill();
       });
-      requestAnimationFrame(draw);
+      starRafId = requestAnimationFrame(draw);
     }
-    requestAnimationFrame(draw);
+    startStarLoop();
   });
 }
 
@@ -852,9 +913,23 @@ function initFloating3DCube() {
   const H = canvas.height;
 
   let cubeInView = true;
+  let cubeRafId = null;
+
+  function startCubeLoop() {
+    if (!cubeRafId && cubeInView) {
+      cubeRafId = requestAnimationFrame(render);
+    }
+  }
+
   if ('IntersectionObserver' in window) {
     const obs = new IntersectionObserver((entries) => {
       cubeInView = entries[0].isIntersecting;
+      if (cubeInView) {
+        startCubeLoop();
+      } else if (cubeRafId) {
+        cancelAnimationFrame(cubeRafId);
+        cubeRafId = null;
+      }
     }, { threshold: 0 });
     obs.observe(canvas);
   }
@@ -983,7 +1058,7 @@ function initFloating3DCube() {
 
   function render(time) {
     if (!cubeInView) {
-      requestAnimationFrame(render);
+      cubeRafId = null;
       return;
     }
     ctx.clearRect(0, 0, W, H);
@@ -1081,10 +1156,10 @@ function initFloating3DCube() {
       ctx.stroke();
     }
 
-    requestAnimationFrame(render);
+    cubeRafId = requestAnimationFrame(render);
   }
 
-  requestAnimationFrame(render);
+  startCubeLoop();
 }
 
 // Floating Back-to-Top Button
