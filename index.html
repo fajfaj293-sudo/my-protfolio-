@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO Meta Tags -->
+  <title>Fazlul Haque | Full-Stack Web, WordPress &amp; 3D Interactive Developer</title>
+  <meta name="description" content="Fazlul Haque — Full-Stack Web &amp; WordPress Developer creating sub-100ms ultra-fast websites, malware-shielded platforms, WooCommerce stores, and cinematic 3D web experiences." />
+  <meta name="keywords" content="Fazlul Haque, Web Developer, WordPress Developer, WooCommerce, Speed Optimization, Security, 3D Website, Next.js Developer" />
+  <meta name="robots" content="index, follow" />
+
+
+  <!-- Open Graph & Social Sharing Rich Thumbnail Previews (WhatsApp, Facebook, LinkedIn, Twitter) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://fazlulhaque.dev/" />
+  <meta property="og:title" content="Fazlul Haque | Full-Stack Web, WordPress &amp; 3D Interactive Architect" />
+  <meta property="og:description" content="Turn an idea, a slow WordPress site, or a business vision into a sub-100ms digital world. Direct Engineering with Fazlul Haque." />
+  <meta property="og:image" content="assets/hero-fazlul.jpg" />
+  <meta property="og:image:secure_url" content="assets/hero-fazlul.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1600" />
+  <meta property="og:image:height" content="1000" />
+  <meta property="og:image:alt" content="Fazlul Haque — Full-Stack Web and WordPress Architect" />
+
+  <!-- Twitter / X Large Image Card Preview -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Fazlul Haque | Full-Stack Web &amp; WordPress Architect" />
+  <meta name="twitter:description" content="Turn an idea, a slow WordPress site, or a business vision into a sub-100ms digital world. Direct Engineering with Fazlul Haque." />
+  <meta name="twitter:image" content="assets/hero-fazlul.jpg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- =====================================================================
+       TOP FLOATING NAVBAR (EXACT MATCH TO VIDEO 0:02)
+       ===================================================================== -->
+  <header class="top-nav-bar" id="top-nav">
+    <a href="#hero" class="nav-wave-logo" aria-label="Fazlul Haque (FLH) Home">
+      <img src="assets/flh-logo.svg" alt="FLH Logo" class="flh-logo-svg" width="42" height="42" />
+    </a>
+
+    <nav class="nav-center-links" aria-label="Primary Navigation">
+      <a href="index.html" class="active">HOME</a>
+      <a href="about.html">ABOUT &amp; PORTFOLIO</a>
+      <a href="contact.html">CONTACT</a>
+    </nav>
+
+    <div class="nav-right-group">
+      <a href="contact.html" class="btn-shine start-creating-pill">
+        <span>START PROJECT</span>
+        <span class="arrow-ne">↗</span>
+      </a>
+      <button type="button" class="info-circle-btn" id="info-btn" aria-label="Portfolio Info">i</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- =====================================================================
+         1. HERO SECTION: FULLSCREEN CRYSTAL-CLEAR PHOTO OF FAZLUL HAQUE
+            + INTERACTIVE MOUSE CURSOR SPOTLIGHT GLOW (VIDEO 0:01-0:04)
+         ===================================================================== -->
+    <section id="hero" class="hero-fullscreen">
+      <div class="hero-img-container" id="hero-img-container">
+        <img
+          src="assets/hero-fazlul.jpg"
+          alt="Fazlul Haque — Full-Stack Web and WordPress Developer"
+          width="1600"
+          height="1000"
+          fetchpriority="high"
+          loading="eager"
+          class="hero-main-img"
+        />
+
+        <!-- Interactive Mouse Cursor Daylight Spotlight Layer -->
+        <div class="hero-spotlight-layer" id="hero-spotlight-layer">
+          <img
+            src="assets/hero-fazlul.jpg"
+            alt=""
+            width="1600"
+            height="1000"
+            class="hero-main-img hero-bright-img"
+            aria-hidden="true"
+          />
+        </div>
+      </div>
+
+      <!-- Transparent Water Ripple & Liquid Canvas Layer (Overlays Hero & Text) -->
+      <canvas id="hero-water-canvas" class="hero-water-canvas" aria-hidden="true"></canvas>
+
+      <!-- SVG Liquid Water Ripple Displacement Filter for Typography -->
+      <svg class="water-ripple-svg-def" aria-hidden="true" style="position: absolute; width: 0; height: 0; pointer-events: none; opacity: 0;">
+        <defs>
+          <filter id="hero-water-ripple" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence id="water-turb" type="fractalNoise" baseFrequency="0.018 0.025" numOctaves="2" result="noise" seed="1" />
+            <feDisplacementMap id="water-disp" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+
+      <!-- Minimal Sleek Title Positioned So Fazlul's Portrait Is Unobstructed -->
+      <div class="hero-title-overlay" id="hero-title-overlay">
+        <h1 class="tidalia-hero-title" id="hero-title" aria-label="FAZLUL">
+          <span class="hero-letter" data-char="F">F</span><span class="hero-letter" data-char="A">A</span><span class="hero-letter" data-char="Z">Z</span><span class="hero-letter" data-char="L">L</span><span class="hero-letter" data-char="U">U</span><span class="hero-letter" data-char="L">L</span>
+        </h1>
+        <p class="tidalia-hero-sub">
+          Turn an idea, a slow WordPress site, or a business vision into a sub-100ms digital world.
+        </p>
+      </div>
+
+      <div class="hero-bottom-pills">
+        <a href="#scroll-story-runway" class="scroll-discover-btn btn-shine">
+          SCROLL TO DISCOVER
+        </a>
+
+        <button type="button" id="sound-btn" class="sound-on-btn btn-shine" aria-pressed="false">
+          <span class="wave-bars"><i></i><i></i><i></i><i></i></span>
+          <span id="sound-text">SOUND ON</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         2. SCROLL-LINKED WINDOW VIDEO SHOWCASE (WHITE BACKGROUND & CENTERED FRAME)
+         ===================================================================== -->
+    <section id="scroll-story-runway" class="scroll-story-runway white-bg-runway">
+      <div class="story-sticky-viewport white-viewport" id="story-sticky-viewport">
+
+        <!-- Centered Window Stage on White Background that Zooms to Fullscreen (Pure Video Only) -->
+        <div class="video-window-stage" id="video-window-stage">
+          <div class="window-arch-wrapper" id="window-arch-wrapper">
+            <!-- Fullscreen Scroll-Scrubbed Video (protfolio .mp4) -->
+            <video
+              id="portfolio-scroll-video"
+              class="portfolio-scrub-video"
+              src="protfolio .mp4"
+              muted
+              playsinline
+              preload="auto"
+            ></video>
+          </div>
+        </div>
+
+        <!-- Scene Content Overlays (Appear only AFTER the window opens, exactly synced with each scene) -->
+        <div id="story-ui-container" class="story-ui-container">
+          <!-- SCENE 1: ARCHITECTURE & WIREFRAMING -->
+          <div class="story-scene-ui" id="scene-ui-1">
+            <div class="story-text-left from-bottom">
+              <div class="story-step-line"><i></i> 01 • ARCHITECTURE &amp; WIREFRAMING</div>
+              <h2 class="story-serif-h2">Precision UI/UX &amp; Custom Wireframes</h2>
+              <p class="story-sub-p">
+                Every high-converting website begins with strategic wireframing, semantic structure, and bespoke layouts tailored to your brand.
+              </p>
+            </div>
+            <div class="story-pills-right from-right">
+              <div class="frosted-meta-pill"><span>DISCOVERY</span><strong>UX Research</strong></div>
+              <div class="frosted-meta-pill"><span>BLUEPRINT</span><strong>100% Bespoke</strong></div>
+              <div class="frosted-meta-pill"><span>FLOW</span><strong>Conversion-First</strong></div>
+            </div>
+          </div>
+
+          <!-- SCENE 2: WORDPRESS & CUSTOM CODE -->
+          <div class="story-scene-ui story-ui-top" id="scene-ui-2">
+            <div class="story-text-left from-left">
+              <div class="story-step-line"><i></i> 02 • WORDPRESS &amp; CUSTOM CODE</div>
+              <h2 class="story-serif-h2">High-Performance WordPress &amp; Dynamic Engineering</h2>
+              <p class="story-sub-p">
+                Clean ACF Pro schemas, lightning-fast custom themes, and pixel-perfect Elementor builds crafted for zero bloat.
+              </p>
+            </div>
+            <div class="story-pills-right from-right">
+              <div class="frosted-meta-pill"><span>ENGINE</span><strong>PHP 8.3 &amp; Modern JS</strong></div>
+              <div class="frosted-meta-pill"><span>CMS</span><strong>WordPress &amp; Elementor</strong></div>
+              <div class="frosted-meta-pill"><span>INTEGRITY</span><strong>Zero Plugin Bloat</strong></div>
+            </div>
+          </div>
+
+          <!-- SCENE 3: FLUID RESPONSIVENESS -->
+          <div class="story-scene-ui" id="scene-ui-3">
+            <div class="story-text-left from-bottom">
+              <div class="story-step-line"><i></i> 03 • FLUID RESPONSIVENESS</div>
+              <h2 class="story-serif-h2">Flawless Across Every Screen &amp; Device</h2>
+              <p class="story-sub-p">
+                Sub-100ms loading speeds, mobile-first perfection, and 99+ Google PageSpeed Core Web Vitals guaranteed.
+              </p>
+            </div>
+            <div class="story-sliders-right from-right">
+              <div class="frosted-wave-slider">
+                <div class="fws-top"><span>MOBILE-FIRST</span><strong>100% FLUID</strong></div>
+                <svg class="wave-svg" viewBox="0 0 100 20"><path d="M0 10 Q25 0 50 10 T100 10" fill="none" stroke="#38bdf8" stroke-width="2"/></svg>
+              </div>
+              <div class="frosted-wave-slider">
+                <div class="fws-top"><span>CORE WEB VITALS</span><strong>99+ SPEED</strong></div>
+                <svg class="wave-svg" viewBox="0 0 100 20"><path d="M0 15 Q25 5 50 15 T100 5" fill="none" stroke="#a855f7" stroke-width="2"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- SCENE 4: DIGITAL EXCELLENCE & CALL TO ACTION -->
+          <div class="story-scene-ui story-ui-center" id="scene-ui-4">
+            <div class="story-center-box from-bottom">
+              <div class="story-step-line"><i></i> 04 • DIGITAL EXCELLENCE</div>
+              <h2 class="story-serif-h2 center-h2">Ready to Elevate Your Digital Presence?</h2>
+              <p class="story-sub-p" style="margin: 0 auto 2rem; max-width: 580px;">
+                Let's transform your vision into an ultra-fast, high-converting digital world.
+              </p>
+              <div class="story-dual-btns">
+                <a href="#contact" class="pill-btn-purple btn-shine">START A PROJECT ✦</a>
+                <a href="#composer-section" class="pill-btn-frosted btn-shine">EXPLORE SOLUTIONS →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         3. 10 REALMS PINNED SCROLL-CONTROLLED HORIZONTAL CARD CAROUSEL
+            (PRE-RENDERED DIRECTLY IN HTML SO ALL 10 DARK GLASS CARDS ALWAYS SHOW!)
+            (EXACT MATCH TO VIDEO 0:21 - 0:25!)
+         ===================================================================== -->
+    <section id="realms-section" class="realms-pin-runway">
+      <div class="realms-sticky-stage">
+        <canvas id="realms-star-canvas" class="realms-star-canvas" aria-hidden="true"></canvas>
+
+        <!-- Top Header Bar (Exact Video Match 0:22) -->
+        <div class="realms-header-bar">
+          <div class="rh-left">
+            <div class="rh-eyebrow"><span class="dot-purple"></span> EXPLORATION ARCHIVE • 10 REALMS</div>
+            <h2 class="rh-serif-title">
+              EVERY CHALLENGE HAS ITS <span class="rh-italic-accent">OWN SOLUTION.</span>
+            </h2>
+          </div>
+
+          <div class="rh-right">
+            <div class="rh-counter-pill" id="active-realm-pill">01 / 10 • WordPress Mastery</div>
+            <button type="button" class="rh-arrow-btn btn-shine" id="realm-prev-btn" aria-label="Previous Realm">←</button>
+            <button type="button" class="rh-arrow-btn btn-shine" id="realm-next-btn" aria-label="Next Realm">→</button>
+          </div>
+        </div>
+
+        <!-- Center 3D Coverflow / Horizontal Card Track (All 10 Dark Glassmorphic Cards Static in HTML!) -->
+        <div class="realms-viewport" id="realms-viewport">
+          <div class="realms-track" id="realms-track">
+
+            <!-- CARD 01 -->
+            <article class="tidalia-realm-card shine-card active" data-card-idx="0" data-name="WordPress Mastery" data-tags="Custom Theme, Elementor Pro, ACF Pro">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(236,72,153,0.52), rgba(168,85,247,0.58), rgba(88,28,135,0.72)), url('assets/scene1.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">01 / 10</span>
+                <span class="trc-dur">99+ Score</span>
+              </div>
+              <div class="trc-badges"><span>&lt; 85ms</span><span>Elementor Pro</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">WORDPRESS SANCTUARY</h3>
+                <p class="trc-sub">Bespoke WordPress themes, Elementor Pro &amp; bloat-free CMS builds</p>
+                <div class="trc-tags"><span>Custom Theme</span> • <span>Elementor Pro</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 02 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="1" data-name="Zero-Lag Speed" data-tags="WebP Pipeline, Edge Caching, Zero CLS">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(244,63,94,0.54), rgba(217,70,239,0.58), rgba(112,26,117,0.75)), url('assets/scene2.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">02 / 10</span>
+                <span class="trc-dur">Instant</span>
+              </div>
+              <div class="trc-badges"><span>&lt; 100ms</span><span>Core Vitals</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">CRYSTAL VELOCITY</h3>
+                <p class="trc-sub">Pain Point Solved: Eliminate website lag &amp; slow loading forever</p>
+                <div class="trc-tags"><span>WebP Pipeline</span> • <span>Zero Lag</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 03 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="2" data-name="Security Shield" data-tags="Malware Cleanup, SSL Hardened, WAF Guard">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(219,39,119,0.56), rgba(147,51,234,0.58), rgba(76,29,149,0.74)), url('assets/scene3.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">03 / 10</span>
+                <span class="trc-dur">24/7 Shield</span>
+              </div>
+              <div class="trc-badges"><span>100% Safe</span><span>WAF Guard</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">IRONCLAD FORTRESS</h3>
+                <p class="trc-sub">Pain Point Solved: Complete WordPress malware removal &amp; hack protection</p>
+                <div class="trc-tags"><span>Malware Cleanup</span> • <span>Firewall</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 04 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="3" data-name="VIP Service" data-tags="Zero Ghosting, Daily Updates, Monthly Care">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(232,121,249,0.52), rgba(236,72,153,0.58), rgba(131,24,67,0.74)), url('assets/scene1.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">04 / 10</span>
+                <span class="trc-dur">Direct Care</span>
+              </div>
+              <div class="trc-badges"><span>24/7 VIP</span><span>On-Time</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">CELESTIAL SUPPORT</h3>
+                <p class="trc-sub">Pain Point Solved: Dependable VIP developer service with zero delays</p>
+                <div class="trc-tags"><span>Zero Ghosting</span> • <span>VIP Care</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 05 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="4" data-name="WooCommerce Stores" data-tags="Stripe / SSL, AJAX Filters, Fast Checkout">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(244,114,182,0.52), rgba(192,38,211,0.58), rgba(88,28,135,0.75)), url('assets/scene2.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">05 / 10</span>
+                <span class="trc-dur">High ROI</span>
+              </div>
+              <div class="trc-badges"><span>WooCommerce</span><span>Fast Cart</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">COMMERCE CITADEL</h3>
+                <p class="trc-sub">High-converting WooCommerce &amp; e-commerce stores built for sales</p>
+                <div class="trc-tags"><span>Payment Gateways</span> • <span>AJAX Cart</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 06 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="5" data-name="3D Interactive Web" data-tags="Scrollytelling, 3D Objects, Shader Glow">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(217,70,239,0.55), rgba(236,72,153,0.58), rgba(91,33,182,0.75)), url('assets/scene3.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">06 / 10</span>
+                <span class="trc-dur">Cinematic</span>
+              </div>
+              <div class="trc-badges"><span>60 FPS</span><span>Three.js</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">STARLIGHT WEBGL</h3>
+                <p class="trc-sub">Scroll-scrubbed 3D storytelling, glassmorphism &amp; interactive objects</p>
+                <div class="trc-tags"><span>Scrollytelling</span> • <span>Glass UI</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 07 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="6" data-name="Next.js & React" data-tags="React 19, Serverless, TypeScript">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(236,72,153,0.54), rgba(168,85,247,0.58), rgba(112,26,117,0.75)), url('assets/scene1.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">07 / 10</span>
+                <span class="trc-dur">Edge App</span>
+              </div>
+              <div class="trc-badges"><span>Next.js</span><span>TypeScript</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">QUANTUM FULL-STACK</h3>
+                <p class="trc-sub">Scalable custom web applications, SaaS dashboards &amp; client portals</p>
+                <div class="trc-tags"><span>React / Next.js</span> • <span>TypeScript</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 08 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="7" data-name="Technical SEO" data-tags="Rich Schema, Meta Tags, Sitemap XML">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(244,63,94,0.52), rgba(217,70,239,0.58), rgba(131,24,67,0.75)), url('assets/scene2.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">08 / 10</span>
+                <span class="trc-dur">#1 Ready</span>
+              </div>
+              <div class="trc-badges"><span>100 SEO</span><span>JSON-LD</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">SOLARIS RANKING</h3>
+                <p class="trc-sub">Pain Point Solved: Semantic HTML5, meta tags &amp; Google #1 SEO schema</p>
+                <div class="trc-tags"><span>Rich Schema</span> • <span>Organic Growth</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 09 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="8" data-name="Mobile Redesign" data-tags="Mobile-First, Retina Ready, Modern UX">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(219,39,119,0.56), rgba(192,38,211,0.58), rgba(88,28,135,0.75)), url('assets/scene3.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">09 / 10</span>
+                <span class="trc-dur">All Screens</span>
+              </div>
+              <div class="trc-badges"><span>100% Mobile</span><span>Glass UI</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">LUMINOUS REDESIGN</h3>
+                <p class="trc-sub">Pain Point Solved: Transform broken mobile layouts into luxury UI</p>
+                <div class="trc-tags"><span>Mobile-First</span> • <span>Modern UX</span></div>
+              </div>
+            </article>
+
+            <!-- CARD 10 -->
+            <article class="tidalia-realm-card shine-card" data-card-idx="9" data-name="Cloud & API Rescue" data-tags="Netlify / Vercel, Bug Rescue, Cloud Migration">
+              <div class="trc-bg" style="background-image: linear-gradient(155deg, rgba(236,72,153,0.54), rgba(147,51,234,0.58), rgba(76,29,149,0.75)), url('assets/scene1.jpg');"></div>
+              <div class="trc-scrim"></div>
+              <div class="trc-glass-sheen"></div>
+              <div class="trc-top">
+                <span class="trc-idx">10 / 10</span>
+                <span class="trc-dur">Global CDN</span>
+              </div>
+              <div class="trc-badges"><span>99.99% Up</span><span>API Sync</span></div>
+              <div class="trc-mid">
+                <div class="trc-play-btn">▶</div>
+                <div class="trc-wave-pill"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="trc-bottom">
+                <h3 class="trc-title">ABYSSAL CLOUD</h3>
+                <p class="trc-sub">Zero-downtime deployment on Netlify, Vercel, Render &amp; cPanel</p>
+                <div class="trc-tags"><span>Netlify / Vercel</span> • <span>Bug Rescue</span></div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- Bottom Bar with 10 Progress Dots (Exact Video Match 0:23) -->
+        <div class="realms-footer-bar">
+          <div class="rf-left">
+            SCROLL TO TRAVERSE • <span id="active-realm-mood">Custom Theme, Elementor Pro, ACF Pro</span>
+          </div>
+
+          <div class="rf-dots" id="rf-dots">
+            <button type="button" class="rf-dot active" data-dot-idx="0" aria-label="Realm 1"></button>
+            <button type="button" class="rf-dot" data-dot-idx="1" aria-label="Realm 2"></button>
+            <button type="button" class="rf-dot" data-dot-idx="2" aria-label="Realm 3"></button>
+            <button type="button" class="rf-dot" data-dot-idx="3" aria-label="Realm 4"></button>
+            <button type="button" class="rf-dot" data-dot-idx="4" aria-label="Realm 5"></button>
+            <button type="button" class="rf-dot" data-dot-idx="5" aria-label="Realm 6"></button>
+            <button type="button" class="rf-dot" data-dot-idx="6" aria-label="Realm 7"></button>
+            <button type="button" class="rf-dot" data-dot-idx="7" aria-label="Realm 8"></button>
+            <button type="button" class="rf-dot" data-dot-idx="8" aria-label="Realm 9"></button>
+            <button type="button" class="rf-dot" data-dot-idx="9" aria-label="Realm 10"></button>
+          </div>
+
+          <div class="rf-right">
+            DRAG • ARROWS • SCROLL CONTROLLED
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         4. INTERACTIVE COMPOSER / PAIN-POINT SOLVER SECTION
+            (PREMIUM ARCHITECTURE BLUEPRINT STUDIO)
+         ===================================================================== -->
+    <section id="composer-section" class="light-composer-section">
+      <div class="light-aurora-glow" aria-hidden="true"></div>
+
+      <div class="composer-container">
+        <div class="composer-header">
+          <div class="studio-badge-pill">
+            <span class="studio-pulse-dot"></span>
+            <span>INTERACTIVE ARCHITECTURE STUDIO • INSTANT ESTIMATE</span>
+          </div>
+          <h2 class="composer-serif-title">
+            DESCRIBE YOUR CHALLENGE.<br />
+            <span class="composer-gradient-text">GET A PRECISION BLUEPRINT.</span>
+          </h2>
+          <p class="composer-sub">
+            Facing slow loading times, malware vulnerabilities, low Google rankings, or developer ghosting? Select your parameters below to generate a tailored engineering roadmap and guarantee.
+          </p>
+        </div>
+
+        <div class="composer-white-card shine-card">
+          <div class="prompt-box-area">
+            <div class="prompt-header-flex">
+              <span class="prompt-tiny-label">SPECIFY YOUR CORE CHALLENGE OR CUSTOM REQUIREMENT</span>
+              <span class="prompt-status-tag">Live Dynamic Analysis</span>
+            </div>
+            <div class="composer-input-wrapper">
+              <span class="input-icon-symbol">✦</span>
+              <input
+                type="text"
+                id="composer-prompt-input"
+                class="composer-prompt-input"
+                value="My WordPress / WooCommerce store has lag issues, needs hardened security, and a sub-100ms luxury redesign."
+                aria-label="Your website challenge prompt"
+              />
+            </div>
+
+            <div class="inspirations-row">
+              <span class="insp-label">Quick Challenge Presets:</span>
+              <button type="button" class="insp-pill active" data-pain-key="lag">⚡ Slow Loading &amp; Lag (&gt;3s)</button>
+              <button type="button" class="insp-pill" data-pain-key="security">🛡️ Security &amp; Malware Shield</button>
+              <button type="button" class="insp-pill" data-pain-key="service">🤝 Developer Ghosting &amp; Bug Rescue</button>
+              <button type="button" class="insp-pill" data-pain-key="wordpress">🧩 WordPress &amp; WooCommerce Pro</button>
+              <button type="button" class="insp-pill" data-pain-key="seo">📈 #1 Technical SEO &amp; Schema</button>
+            </div>
+          </div>
+
+          <div class="composer-filters-grid">
+            <div class="filter-col">
+              <span class="filter-col-title">01 • TARGET PLATFORM</span>
+              <div class="filter-pill-group">
+                <button type="button" class="f-pill active">WordPress</button>
+                <button type="button" class="f-pill">WooCommerce</button>
+                <button type="button" class="f-pill">Next.js / React</button>
+                <button type="button" class="f-pill">Elementor Pro</button>
+                <button type="button" class="f-pill">3D WebGL</button>
+              </div>
+            </div>
+
+            <div class="filter-col">
+              <span class="filter-col-title">02 • PRIMARY DELIVERABLE</span>
+              <div class="filter-pill-group">
+                <button type="button" class="f-pill active">&lt;100ms Speed</button>
+                <button type="button" class="f-pill">Malware Shield</button>
+                <button type="button" class="f-pill">VIP Maintenance</button>
+                <button type="button" class="f-pill">Full Redesign</button>
+                <button type="button" class="f-pill">SEO Schema</button>
+              </div>
+            </div>
+
+            <div class="filter-col">
+              <span class="filter-col-title">03 • PERFORMANCE GOAL</span>
+              <div class="filter-pill-group">
+                <button type="button" class="f-pill">50ms Edge</button>
+                <button type="button" class="f-pill active">85ms Instant</button>
+                <button type="button" class="f-pill">100ms SLA</button>
+                <button type="button" class="f-pill">99+ Google Core</button>
+              </div>
+            </div>
+
+            <div class="filter-col">
+              <span class="filter-col-title">04 • SERVICE &amp; SUPPORT</span>
+              <div class="filter-pill-group">
+                <button type="button" class="f-pill active">24/7 Direct VIP</button>
+                <button type="button" class="f-pill">Monthly Retainer</button>
+                <button type="button" class="f-pill">Turnkey Delivery</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="composer-bottom-row">
+            <div class="comp-slider-box">
+              <div class="cs-head">
+                <span class="cs-label-text">SPEED OPTIMIZATION TARGET</span>
+                <strong id="speed-val">99% PageSpeed</strong>
+              </div>
+              <input type="range" min="80" max="100" value="99" class="purple-range" id="speed-range" aria-label="Speed Optimization Percentage" />
+              <div class="cs-ticks"><span>STANDARD</span><span>OPTIMIZED</span><span>&lt;100MS EDGE</span></div>
+            </div>
+
+            <div class="comp-slider-box">
+              <div class="cs-head">
+                <span class="cs-label-text">SECURITY &amp; SEO RATING</span>
+                <strong id="sec-val">100 / 100 Audit</strong>
+              </div>
+              <input type="range" min="85" max="100" value="100" class="purple-range" id="sec-range" aria-label="Security and SEO Score" />
+              <div class="cs-ticks"><span>SSL SHIELD</span><span>WAF HARDENED</span><span>MILITARY GRADE</span></div>
+            </div>
+
+            <div class="comp-cta-box">
+              <button type="button" id="generate-solution-btn" class="btn-shine generate-soundtrack-btn">
+                <span>GENERATE SOLUTION</span>
+                <span>↗</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Upgraded Premium Architectural Blueprint Specification Card -->
+          <div class="blueprint-console-card shine-card" id="generated-solution-toast">
+            <div class="bc-top-bar">
+              <div class="bc-meta-left">
+                <span class="bc-pulse-dot"></span>
+                <span class="bc-code">SPECIFICATION SHEET &bull; ARCH-2026-FLH</span>
+              </div>
+              <div class="bc-verified-pill">
+                <span class="bc-check">✓</span>
+                <span>VERIFIED BY FAZLUL HAQUE</span>
+              </div>
+            </div>
+
+            <div class="bc-specs-grid">
+              <div class="bc-spec-box">
+                <span class="bc-spec-label">⚡ TARGET SPEED</span>
+                <strong class="bc-spec-val" id="bc-speed-metric">&lt;100ms LCP &bull; 99+ Score</strong>
+              </div>
+              <div class="bc-spec-box">
+                <span class="bc-spec-label">🛡️ SECURITY PROTOCOL</span>
+                <strong class="bc-spec-val" id="bc-sec-metric">WAF Hardened &bull; Cleaned</strong>
+              </div>
+              <div class="bc-spec-box">
+                <span class="bc-spec-label">⏱️ SPRINT TIMELINE</span>
+                <strong class="bc-spec-val">24 &ndash; 72 Hours Rapid</strong>
+              </div>
+              <div class="bc-spec-box">
+                <span class="bc-spec-label">🤝 DIRECT ACCESS</span>
+                <strong class="bc-spec-val">Fazlul Haque (No Middlemen)</strong>
+              </div>
+            </div>
+
+            <div class="bc-narrative-area">
+              <span class="bc-blueprint-tag">ARCHITECTURAL ROADMAP</span>
+              <p class="bc-narrative-text" id="generated-solution-text">
+                Sub-100ms WebP/Edge pipeline + WordPress WAF Malware Shield + 24/7 VIP Support directly by Fazlul Haque.
+              </p>
+            </div>
+
+            <div class="bc-cta-row">
+              <a href="contact.html" class="btn-shine pill-btn-purple bc-claim-btn">
+                <span>CLAIM THIS BLUEPRINT ↗</span>
+              </a>
+              <span class="bc-guarantee-note">🔒 Fixed Pricing &bull; 100% Confidential NDA Standard</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         5. FINAL VOYAGE FOOTER + FLOATING INTERACTIVE 3D COLORFUL CUBE
+            (EXACT MATCH TO VIDEO 0:28 - 0:30!)
+         ===================================================================== -->
+    <footer id="final-voyage" class="final-voyage-section">
+      <canvas id="footer-star-canvas" class="realms-star-canvas" aria-hidden="true"></canvas>
+
+      <div class="voyage-container">
+        <div class="voyage-left">
+          <div class="rh-eyebrow"><span class="dot-purple"></span> FINAL VOYAGE • WEB ARCHITECTURE</div>
+          <h2 class="voyage-serif-title">
+            YOUR WORLD IS<br />
+            WAITING TO BE<br />
+            BUILT.
+          </h2>
+          <p class="voyage-sub">
+            Immerse your visitors in sub-100ms performance, ironclad security, and unforgettable design. Fazlul Haque breathes life into your digital vision.
+          </p>
+
+          <div class="voyage-wave-bar shine-card">
+            <span class="vw-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="vw-text">FAZLUL HAQUE • AVAILABLE FOR NEW PROJECTS</span>
+          </div>
+
+          <div class="voyage-btns">
+            <a href="contact.html" class="btn-shine pill-btn-purple">
+              <span>HIRE FAZLUL HAQUE</span>
+              <span>↗</span>
+            </a>
+            <a href="#realms-section" class="btn-shine pill-btn-dark">
+              <span>REVISIT 10 REALMS</span>
+            </a>
+          </div>
+
+          <span class="voyage-tiny-note">
+            Featuring Interactive 3D Colorful Cube • Unlimited Portfolio Ready (About Page)
+          </span>
+        </div>
+
+        <!-- Right Side: Floating 3D Colorful Multi-Box Cube in Space -->
+        <div class="voyage-right">
+          <div class="cube-floating-stage">
+            <canvas id="voyage-3d-cube" width="560" height="520" aria-label="Interactive 3D Colorful Cube — Drag to rotate"></canvas>
+            <div class="drag-rotate-pill shine-card">
+              <span class="dot-purple"></span>
+              <span>DRAG TO ROTATE 3D CUBE • INTERACTIVE CANVAS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <footer class="about-footer-bar">
+    <div class="af-container">
+      <div class="af-left">
+        <a href="index.html" class="nav-wave-logo" aria-label="Fazlul Haque (FLH) Home">
+          <img src="assets/flh-logo.svg" alt="FLH Logo" class="flh-logo-svg" width="42" height="42" />
+        </a>
+        <span>&copy; 2026 FAZLUL HAQUE &bull; FULL-STACK &amp; WORDPRESS ARCHITECT</span>
+      </div>
+
+      <nav class="af-links" aria-label="Footer Navigation">
+        <a href="index.html" class="active">HOME</a>
+        <a href="about.html">ABOUT &amp; PORTFOLIO</a>
+        <a href="contact.html">CONTACT</a>
+        <a href="index.html#realms-section">10 REALMS</a>
+      </nav>
+
+      <div class="af-right">
+        <div class="footer-social-wrap">
+          <a href="https://www.linkedin.com/in/mdfazlulhaque003/" target="_blank" rel="noopener noreferrer" class="social-footer-btn" aria-label="Fazlul Haque LinkedIn" title="LinkedIn Profile">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+            </svg>
+          </a>
+          <a href="https://www.facebook.com/profile.php?id=61572731453253" target="_blank" rel="noopener noreferrer" class="social-footer-btn" aria-label="Fazlul Haque Facebook" title="Facebook Page">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/>
+            </svg>
+          </a>
+        </div>
+        <a href="contact.html" class="btn-shine pill-btn-purple bubble-glass-btn">
+          <span class="btn-label-text">HIRE FAZLUL &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Modal for Inspecting Any Realm Card or Previewing the Unlimited About-Page Portfolio Engine -->
+  <div class="realm-modal-backdrop" id="realm-modal" aria-hidden="true">
+    <div class="realm-modal-card shine-card">
+      <div class="rm-header">
+        <span class="rm-tag" id="rm-tag">01 / 10 • REALM DETAILS</span>
+        <button type="button" class="rm-close" id="rm-close">✕</button>
+      </div>
+      <h3 class="rm-title" id="rm-title">WordPress &amp; Elementor Mastery</h3>
+      <p class="rm-desc" id="rm-desc"></p>
+      <div class="rm-list" id="rm-list"></div>
+      <div class="rm-footer">
+        <a href="contact.html" class="btn-shine pill-btn-purple bubble-glass-btn" id="rm-cta"><span class="btn-label-text">START THIS PROJECT ↗</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Back-to-Top Rocket Button (One-Click Smooth Scroll to Hero) -->
+  <button type="button" class="floating-back-to-top shine-card" id="back-to-top-btn" aria-label="Back to Top">
+    <span class="btt-icon">↑</span>
+    <span class="btt-text">TOP</span>
+  </button>
+
+  <!-- Interactive Golden-Yellow Jumping Spider Canvas (Follows Cursor with Organic Inverse Kinematics) -->
+  <canvas id="cursor-spider-canvas" class="cursor-spider-canvas" aria-hidden="true"></canvas>
+
+  <!-- Standard defer script (No type="module") so it runs 100% on file:///C:/Users/... -->
+  <script defer src="app.js"></script>
+
+  <!-- Floating Mobile Bottom Navigation Dock (Visible on Mobile Screens < 768px) -->
+  <nav class="mobile-bottom-dock" aria-label="Mobile Navigation">
+    <a href="index.html" class="mob-dock-item active">
+      <svg class="dock-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span>HOME</span>
+    </a>
+    <a href="about.html" class="mob-dock-item ">
+      <svg class="dock-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+      <span>ABOUT</span>
+    </a>
+    <a href="contact.html" class="mob-dock-item ">
+      <svg class="dock-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span>CONTACT</span>
+    </a>
+    <a href="https://wa.me/8801302927167" target="_blank" rel="noopener noreferrer" class="mob-dock-item mob-dock-wa" aria-label="Direct WhatsApp">
+      <svg class="dock-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+        <path d="M20.52 3.48A11.93 11.93 0 0 0 12.06 0C5.46 0 .09 5.37.09 11.97c0 2.11.55 4.17 1.6 5.99L0 24l6.21-1.63a11.9 11.9 0 0 0 5.85 1.52h.01c6.6 0 11.97-5.37 11.97-11.97 0-3.2-1.25-6.21-3.52-8.44zm-8.46 18.39h-.01a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.74.98 1-3.65-.24-.38a9.92 9.92 0 0 1-1.52-5.26c0-5.48 4.46-9.94 9.94-9.94 2.65 0 5.15 1.03 7.03 2.91a9.88 9.88 0 0 1 2.91 7.03c0 5.48-4.46 9.94-9.94 9.94zm5.45-7.44c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.51s1.08 2.91 1.23 3.11c.15.2 2.12 3.24 5.14 4.54.72.31 1.28.5 1.72.64.72.23 1.38.2 1.9.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z"/>
+      </svg>
+      <span>CHAT</span>
+    </a>
+  </nav>
+
+</body>
+</html>

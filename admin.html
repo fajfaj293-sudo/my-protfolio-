@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard &amp; Portfolio Manager — Fazlul Haque</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* Security Overlay & Lock Screen */
+    .admin-lock-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, rgba(30, 20, 50, 0.96) 0%, rgba(9, 7, 16, 0.99) 100%);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .admin-lock-card {
+      width: min(440px, 94vw);
+      padding: 3rem 2.4rem;
+      border-radius: 28px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.06) 0%, rgba(14,10,22,0.92) 100%);
+      border: 1.5px solid rgba(244, 114, 182, 0.45);
+      box-shadow: 0 30px 90px rgba(0,0,0,0.85), 0 0 50px rgba(236, 72, 153, 0.25);
+      text-align: center;
+      position: relative;
+    }
+    .lock-shield-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      background: rgba(244, 114, 182, 0.12);
+      border: 1.5px solid rgba(244, 114, 182, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 0 25px rgba(236, 72, 153, 0.35);
+    }
+    .lock-title {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+    }
+    .lock-desc {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.5;
+      margin-bottom: 2rem;
+    }
+    .lock-input-group {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    .lock-input {
+      width: 100%;
+      padding: 1rem 1.2rem;
+      padding-right: 3rem;
+      background: rgba(12, 9, 20, 0.95);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      box-sizing: border-box;
+      letter-spacing: 0.15em;
+      transition: all 0.25s ease;
+    }
+    .lock-input:focus {
+      outline: none;
+      border-color: #f472b6;
+      box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.25), 0 0 25px rgba(236, 72, 153, 0.3);
+    }
+    .lock-eye-btn {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    .lock-error-msg {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: #f87171;
+      margin-top: -0.8rem;
+      margin-bottom: 1.2rem;
+      display: none;
+    }
+
+    /* Admin Workspace Styling */
+    .admin-main-container {
+      width: min(1200px, 94vw);
+      margin: 100px auto 60px;
+      padding: 2rem 0;
+      display: none; /* Hidden until unlocked! */
+    }
+    .admin-header-card {
+      padding: 2.5rem;
+      border-radius: 24px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.05) 0%, rgba(14,10,22,0.85) 100%);
+      border: 1.5px solid rgba(244,114,182,0.35);
+      margin-bottom: 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    }
+    .admin-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 3.5vw, 2.8rem);
+      color: #ffffff;
+      margin: 0.5rem 0;
+    }
+    .admin-subtitle {
+      color: rgba(255,255,255,0.72);
+      font-size: 0.95rem;
+    }
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.4fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    .admin-card {
+      padding: 2.4rem;
+      border-radius: 24px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.04) 0%, rgba(14,10,22,0.8) 100%);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+    }
+    .admin-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.3rem;
+    }
+    .admin-form-group label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      color: #f472b6;
+      font-weight: 600;
+    }
+    .admin-input, .admin-select {
+      width: 100%;
+      padding: 0.9rem 1.1rem;
+      background: rgba(12, 9, 20, 0.9);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      color: #ffffff;
+      font-family: var(--font-sans);
+      font-size: 0.92rem;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+    .admin-input:focus, .admin-select:focus {
+      outline: none;
+      border-color: #f472b6;
+      box-shadow: 0 0 0 3px rgba(244,114,182,0.25);
+    }
+    .live-preview-box {
+      margin-top: 1rem;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: #090710;
+      position: relative;
+      aspect-ratio: 16 / 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .live-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+    .preview-placeholder {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      padding: 1rem;
+    }
+    .admin-projects-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      max-height: 700px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+    .admin-item-row {
+      display: grid;
+      grid-template-columns: 110px 1fr auto;
+      gap: 1.2rem;
+      align-items: center;
+      padding: 1.1rem;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.25s ease;
+    }
+    .admin-item-row:hover {
+      border-color: rgba(244,114,182,0.4);
+      background: rgba(255,255,255,0.05);
+    }
+    .air-thumb {
+      width: 110px;
+      height: 70px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #110e1c;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .air-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+    .air-info h4 {
+      font-size: 1rem;
+      color: #ffffff;
+      margin: 0 0 0.3rem;
+      font-family: var(--font-sans);
+    }
+    .air-info p {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #f472b6;
+      margin: 0 0 0.3rem;
+      word-break: break-all;
+    }
+    .air-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.8);
+    }
+    .btn-delete-proj {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.4);
+      color: #fca5a5;
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      transition: all 0.2s ease;
+    }
+    .btn-delete-proj:hover {
+      background: rgba(239,68,68,0.35);
+      color: #ffffff;
+      transform: scale(1.05);
+    }
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      transition: all 0.2s ease;
+    }
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+    @media (max-width: 900px) {
+      .admin-grid { grid-template-columns: 1fr; }
+      .admin-item-row { grid-template-columns: 80px 1fr; }
+      .btn-delete-proj { grid-column: 1 / -1; justify-self: flex-start; }
+    }
+  </style>
+</head>
+<body class="page-about">
+
+  <!-- SECURITY LOGIN BARRIER (LOCKED BY DEFAULT) -->
+  <div class="admin-lock-screen" id="admin-lock-screen">
+    <div class="admin-lock-card shine-card">
+      <div class="lock-shield-icon">🛡️</div>
+      <div class="rh-eyebrow" style="margin-bottom:0.5rem;">
+        <span class="dot-purple"></span>
+        <span>SECURITY VERIFICATION REQUIRED</span>
+      </div>
+      <h1 class="lock-title">FAZLUL HAQUE</h1>
+      <p class="lock-desc">Enter your administrator email/username and password to unlock the portfolio management engine.</p>
+
+      <form id="lock-form">
+        <div class="admin-form-group" style="text-align:left; margin-bottom:1.1rem;">
+          <label for="admin-username" style="font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.15em; color:#f472b6;">ADMIN EMAIL OR USERNAME</label>
+          <input
+            type="text"
+            id="admin-username"
+            class="lock-input"
+            placeholder="fazlulbuisness1@gmail.com or fazlul"
+            required
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="admin-form-group" style="text-align:left; margin-bottom:1.3rem;">
+          <label for="admin-passcode" style="font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.15em; color:#f472b6;">ADMIN PASSWORD</label>
+          <div class="lock-input-group" style="margin-bottom:0;">
+            <input
+              type="password"
+              id="admin-passcode"
+              class="lock-input"
+              placeholder="ENTER PASSWORD"
+              required
+              autocomplete="current-password"
+            />
+            <button type="button" class="lock-eye-btn" id="lock-eye-btn" aria-label="Toggle password visibility">👁️</button>
+          </div>
+        </div>
+
+        <div class="lock-error-msg" id="lock-error-msg">Incorrect credentials. Access denied.</div>
+
+        <button type="submit" class="btn-shine pill-btn-purple bubble-glass-btn" style="width:100%; padding:1rem;">
+          <span class="btn-label-text">UNLOCK DASHBOARD ↗</span>
+        </button>
+
+        <div style="margin-top:1.5rem; font-family:var(--font-mono); font-size:0.68rem; color:rgba(255,255,255,0.45); letter-spacing:0.06em; line-height:1.6;">
+          🔒 SHA-256 PROTECTED AUTHENTICATION<br>
+          USER/EMAIL: <code>fazlulbuisness1@gmail.com</code> | PASS: <code>fazlul2026</code>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="top-nav-bar" id="top-nav">
+    <a href="index.html" class="nav-wave-logo" aria-label="Fazlul Haque Home">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M2 12c2.5-4 5.5-4 8 0s5.5 4 8 0 4-4 4-4" stroke-linecap="round"/>
+      </svg>
+    </a>
+
+    <nav class="nav-center-links" aria-label="Primary Navigation">
+      <a href="index.html">HOME</a>
+      <a href="about.html">ABOUT &amp; PORTFOLIO</a>
+      <a href="contact.html">CONTACT</a>
+    </nav>
+
+    <div class="nav-right-group">
+      <button type="button" class="btn-logout" id="btn-logout">🔒 LOCK / LOGOUT</button>
+      <a href="about.html" class="btn-shine start-creating-pill">
+        <span>VIEW LIVE ABOUT</span>
+        <span class="arrow-ne">↗</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- AUTHENTICATED ADMIN DASHBOARD -->
+  <main class="admin-main-container" id="admin-main-container">
+    
+    <div class="admin-header-card shine-card">
+      <div>
+        <div class="rh-eyebrow">
+          <span class="dot-purple"></span>
+          <span>ADMIN DASHBOARD • CLIENT WORK SHOWCASE</span>
+        </div>
+        <h1 class="admin-title">PORTFOLIO LINK MANAGER</h1>
+        <p class="admin-subtitle">Add your client website links here. The homepage hero section image will automatically appear on your About &amp; Portfolio page.</p>
+      </div>
+
+      <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+        <button type="button" class="btn-shine pill-btn-dark" id="btn-change-pass" title="Change your administrator email or password">
+          <span>🔑 CHANGE PASSWORD / EMAIL</span>
+        </button>
+        <button type="button" class="btn-shine pill-btn-dark" id="btn-export-json" title="Download backup of your added projects">
+          <span>EXPORT BACKUP JSON</span>
+        </button>
+        <a href="about.html#portfolio-showcase" class="btn-shine pill-btn-purple">
+          <span>GO TO LIVE PORTFOLIO ↗</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="admin-grid">
+      
+      <!-- ADD PROJECT FORM -->
+      <section class="admin-card shine-card">
+        <div class="rh-eyebrow">
+          <span class="dot-purple"></span>
+          <span>ADD NEW WORK</span>
+        </div>
+        <h2 style="font-family:var(--font-serif); font-size:1.8rem; color:#fff; margin:0.5rem 0 1.5rem;">LINK A NEW CLIENT SITE</h2>
+
+        <form id="add-project-form">
+          <div class="admin-form-group">
+            <label for="proj-title">PROJECT / CLIENT NAME *</label>
+            <input type="text" id="proj-title" class="admin-input" placeholder="e.g. Aura Luxe Fashion Store" required />
+          </div>
+
+          <div class="admin-form-group">
+            <label for="proj-url">WEBSITE LIVE URL *</label>
+            <input type="url" id="proj-url" class="admin-input" placeholder="https://example.com" required />
+            <small style="font-family:var(--font-mono); font-size:0.68rem; color:rgba(255,255,255,0.5);">Tip: Enter full URL with https://. Hero preview generates automatically.</small>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="proj-category">CATEGORY / REALM</label>
+            <select id="proj-category" class="admin-select">
+              <option value="wordpress">WordPress &amp; Elementor</option>
+              <option value="woocommerce">WooCommerce Store</option>
+              <option value="speed">Speed &amp; Security</option>
+              <option value="fullstack">React / Next.js / SaaS</option>
+              <option value="custom">Custom Web Development</option>
+            </select>
+          </div>
+
+          <div class="admin-form-group">
+            <label for="proj-desc">SHORT DESCRIPTION / TECH STACK</label>
+            <input type="text" id="proj-desc" class="admin-input" placeholder="e.g. Sub-100ms custom WooCommerce theme with instant checkout" />
+          </div>
+
+          <!-- Hero Image Live Preview -->
+          <div class="admin-form-group">
+            <label>HOMEPAGE HERO PREVIEW</label>
+            <div class="live-preview-box" id="preview-box">
+              <span class="preview-placeholder">Enter a live website URL above to see the homepage hero preview</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-shine pill-btn-purple bubble-glass-btn" style="width:100%; margin-top:1rem; padding:1rem;">
+            <span class="btn-label-text">✨ ADD PROJECT TO PORTFOLIO ↗</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- ACTIVE PROJECTS LIST -->
+      <section class="admin-card shine-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <div class="rh-eyebrow">
+              <span class="dot-purple"></span>
+              <span>LIVE SHOWCASE INVENTORY</span>
+            </div>
+            <h2 style="font-family:var(--font-serif); font-size:1.8rem; color:#fff; margin:0.3rem 0;">CURRENT PROJECTS (<span id="proj-count">0</span>)</h2>
+          </div>
+          <button type="button" id="btn-reset-default" style="background:none; border:none; color:rgba(255,255,255,0.5); font-family:var(--font-mono); font-size:0.7rem; text-decoration:underline; cursor:pointer;">
+            Reset to Sample
+          </button>
+        </div>
+
+        <div class="admin-projects-list" id="admin-projects-list">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // =========================================================================
+    // SECURITY LOGIN & SESSION GUARD (EMAIL + PASSWORD)
+    // =========================================================================
+    const AUTH_KEY = 'fazlul_admin_session_auth_v1';
+    const PASS_KEY = 'fazlul_admin_master_pass_hash_v1';
+    const USER_KEY = 'fazlul_admin_username_v1';
+    const DEFAULT_PASS = 'fazlul2026';
+    const DEFAULT_USER = 'fazlulbuisness1@gmail.com';
+
+    const lockScreen = document.getElementById('admin-lock-screen');
+    const mainContainer = document.getElementById('admin-main-container');
+    const lockForm = document.getElementById('lock-form');
+    const userInput = document.getElementById('admin-username');
+    const passInput = document.getElementById('admin-passcode');
+    const errorMsg = document.getElementById('lock-error-msg');
+    const eyeBtn = document.getElementById('lock-eye-btn');
+    const logoutBtn = document.getElementById('btn-logout');
+
+    function getStoredUser() {
+      return (localStorage.getItem(USER_KEY) || DEFAULT_USER).trim().toLowerCase();
+    }
+
+    // SHA-256 Hashing helper
+    async function hashPassword(str) {
+      const buffer = new TextEncoder().encode(str + '_salt_fazlul_secure');
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function getStoredPassHash() {
+      let stored = localStorage.getItem(PASS_KEY);
+      if (!stored) {
+        stored = await hashPassword(DEFAULT_PASS);
+        localStorage.setItem(PASS_KEY, stored);
+      }
+      return stored;
+    }
+
+    // Check if session is already active in this tab
+    async function checkAuthSession() {
+      const isAuth = sessionStorage.getItem(AUTH_KEY);
+      if (isAuth === 'true') {
+        lockScreen.style.display = 'none';
+        mainContainer.style.display = 'block';
+        renderAdminList();
+      } else {
+        lockScreen.style.display = 'flex';
+        mainContainer.style.display = 'none';
+        if (userInput) userInput.focus();
+      }
+    }
+
+    // Toggle password eye
+    eyeBtn.addEventListener('click', () => {
+      passInput.type = passInput.type === 'password' ? 'text' : 'password';
+      eyeBtn.textContent = passInput.type === 'password' ? '👁️' : '🔒';
+    });
+
+    // Handle Login submission
+    lockForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const enteredUser = (userInput.value || '').trim().toLowerCase();
+      const enteredPass = passInput.value.trim();
+      const enteredHash = await hashPassword(enteredPass);
+      const targetHash = await getStoredPassHash();
+      const storedUser = getStoredUser();
+
+      // Allowed usernames: custom stored user, default email, or alias 'fazlul'
+      const isUserValid = (
+        enteredUser === storedUser ||
+        enteredUser === 'fazlul' ||
+        enteredUser === 'fazlulbuisness1@gmail.com'
+      );
+      const isPassValid = (enteredHash === targetHash);
+
+      if (isUserValid && isPassValid) {
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        errorMsg.style.display = 'none';
+        lockScreen.style.display = 'none';
+        mainContainer.style.display = 'block';
+        renderAdminList();
+      } else {
+        if (!isUserValid && !isPassValid) {
+          errorMsg.textContent = '❌ Access Denied: Incorrect email/username and password.';
+        } else if (!isUserValid) {
+          errorMsg.textContent = '❌ Access Denied: Incorrect administrator email or username.';
+        } else {
+          errorMsg.textContent = '❌ Access Denied: Incorrect administrator password.';
+        }
+        errorMsg.style.display = 'block';
+        passInput.value = '';
+        passInput.focus();
+      }
+    });
+
+    // Logout / Lock
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem(AUTH_KEY);
+      if (userInput) userInput.value = '';
+      passInput.value = '';
+      checkAuthSession();
+    });
+
+    // Change Passcode and Email/Username inside Dashboard
+    document.getElementById('btn-change-pass').addEventListener('click', async () => {
+      const current = prompt('Enter your CURRENT administrator password:');
+      if (!current) return;
+      const currentHash = await hashPassword(current.trim());
+      const targetHash = await getStoredPassHash();
+
+      if (currentHash !== targetHash) {
+        alert('❌ Current password is incorrect.');
+        return;
+      }
+
+      const newPass = prompt('Enter your NEW password (leave blank to keep current):');
+      if (newPass && newPass.trim().length > 0) {
+        if (newPass.trim().length < 6) {
+          alert('Password must be at least 6 characters long.');
+          return;
+        }
+        const newHash = await hashPassword(newPass.trim());
+        localStorage.setItem(PASS_KEY, newHash);
+      }
+
+      const currentUser = getStoredUser();
+      const newUser = prompt(`Enter your NEW Email / Username (Current: ${currentUser}, leave blank to keep unchanged):`);
+      if (newUser && newUser.trim().length > 0) {
+        localStorage.setItem(USER_KEY, newUser.trim().toLowerCase());
+      }
+
+      alert('✅ Security credentials updated successfully! Changes saved.');
+    });
+
+    // =========================================================================
+    // PORTFOLIO MANAGER LOGIC
+    // =========================================================================
+    const urlInput = document.getElementById('proj-url');
+    const previewBox = document.getElementById('preview-box');
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getHeroPreviewUrl(url) {
+      if (!url || !url.startsWith('http')) return '';
+      return `https://image.thum.io/get/width/1000/crop/650/noanimate/${encodeURI(url)}`;
+    }
+
+    urlInput.addEventListener('input', () => {
+      const val = urlInput.value.trim();
+      if (val.startsWith('http://') || val.startsWith('https://')) {
+        const previewUrl = getHeroPreviewUrl(val);
+        previewBox.innerHTML = `
+          <img src="${previewUrl}" alt="Hero Preview" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'preview-placeholder\\'>Live preview loading... Click Add to test live.</span>';" />
+        `;
+      } else {
+        previewBox.innerHTML = `<span class="preview-placeholder">Enter a live website URL above to see the homepage hero preview</span>`;
+      }
+    });
+
+    // Handle Form Submit
+    document.getElementById('add-project-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('proj-title').value.trim();
+      const url = document.getElementById('proj-url').value.trim();
+      const category = document.getElementById('proj-category').value;
+      const desc = document.getElementById('proj-desc').value.trim() || 'Custom engineered platform with sub-100ms speed and responsive architecture.';
+
+      if (!title || !url) return;
+
+      const newProj = {
+        id: 'proj_' + Date.now(),
+        title: title,
+        url: url,
+        category: category,
+        desc: desc,
+        preview: getHeroPreviewUrl(url)
+      };
+
+      const projects = PortfolioManager.getProjects();
+      projects.unshift(newProj);
+      PortfolioManager.saveProjects(projects);
+
+      renderAdminList();
+      document.getElementById('add-project-form').reset();
+      previewBox.innerHTML = `<span class="preview-placeholder">Enter a live website URL above to see the homepage hero preview</span>`;
+      alert('✨ Project added successfully! Visit About & Portfolio page to see it live.');
+    });
+
+    function renderAdminList() {
+      const projects = PortfolioManager.getProjects();
+      const listEl = document.getElementById('admin-projects-list');
+      const countEl = document.getElementById('proj-count');
+      countEl.textContent = projects.length;
+
+      if (!projects.length) {
+        listEl.innerHTML = `<div style="text-align:center; padding:2.5rem; color:rgba(255,255,255,0.45); font-family:var(--font-mono); font-size:0.85rem;">No projects added yet. Use the form on the left to add your first client website!</div>`;
+        return;
+      }
+
+      listEl.innerHTML = projects.map((p, index) => {
+        const safeTitle = escapeHTML(p.title);
+        const safeUrl = encodeURI(p.url || '#');
+        const safeCat = escapeHTML(p.category || 'WORK');
+        const previewSrc = encodeURI(p.preview || getHeroPreviewUrl(p.url));
+        return `
+        <div class="admin-item-row">
+          <div class="air-thumb">
+            <img src="${previewSrc}" alt="${safeTitle}" onerror="this.src='assets/scene1.jpg';" />
+          </div>
+          <div class="air-info">
+            <h4>${safeTitle}</h4>
+            <p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color:#f472b6; text-decoration:none;">${safeUrl} ↗</a></p>
+            <span class="air-badge">${safeCat.toUpperCase()}</span>
+          </div>
+          <div>
+            <button type="button" class="btn-delete-proj" onclick="deleteProject(${index})">DELETE</button>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    window.deleteProject = function(index) {
+      if (confirm('Are you sure you want to remove this project from your portfolio?')) {
+        const projects = PortfolioManager.getProjects();
+        projects.splice(index, 1);
+        PortfolioManager.saveProjects(projects);
+        renderAdminList();
+      }
+    };
+
+    document.getElementById('btn-reset-default').addEventListener('click', () => {
+      if (confirm('Reset to standard portfolio sample works?')) {
+        PortfolioManager.resetToDefaults();
+        renderAdminList();
+      }
+    });
+
+    document.getElementById('btn-export-json').addEventListener('click', () => {
+      const data = JSON.stringify(PortfolioManager.getProjects(), null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'fazlul-portfolio-projects.json';
+      a.click();
+    });
+
+    document.addEventListener('DOMContentLoaded', checkAuthSession);
+  </script>
+</body>
+</html>

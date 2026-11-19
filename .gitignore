@@ -1,0 +1,11 @@
+# Backup & redundant video files
+protfolio_intra.mp4
+protfolio_backup_gop.mp4
+protfolio_clean.mp4
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*.log
+
+protfolio_smooth.mp4
