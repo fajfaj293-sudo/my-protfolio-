@@ -3998,41 +3998,63 @@ a.channel-item:hover .ci-arrow {
 
 @media (max-width: 768px) {
 
-  /* Responsive Hero Title: Bold and commanding on mobile */
+  /* Responsive Hero Image, Title & Subtitle on Mobile */
+  .hero-main-img {
+    object-position: 58% 22% !important;
+  }
   .tidalia-hero-title {
-    font-size: clamp(4.6rem, 16vw, 6.8rem) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.16em !important;
-    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.9), 0 0 30px rgba(168, 85, 247, 0.35) !important;
+    font-size: clamp(2.4rem, 10.5vw, 3.6rem) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.12em !important;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.95) !important;
   }
   .hero-letter {
-    font-weight: 700 !important;
+    font-weight: 600 !important;
   }
   .hero-title-overlay {
-    margin-bottom: 2.2rem !important;
+    margin-bottom: 1.2rem !important;
+    padding: 0 1.2rem !important;
   }
   .tidalia-hero-sub {
-    font-size: 0.95rem !important;
-    padding: 0 1rem;
-    font-weight: 500;
+    font-size: 0.82rem !important;
+    line-height: 1.42 !important;
+    max-width: 330px !important;
+    margin: 0.35rem auto 0 !important;
+    padding: 0 0.5rem !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.92) !important;
   }
-
+  .hero-bottom-pills {
+    margin-bottom: 0.8rem !important;
+    gap: 0.5rem !important;
+  }
+  .scroll-discover-btn,
+  .sound-on-btn {
+    padding: 0.5rem 0.95rem !important;
+    font-size: 0.68rem !important;
+  }
 
   /* 10 Realms Carousel Mobile Layout: Center card + symmetrical peek on left & right */
-  .tidalia-realm-card {
-    width: 200px !important;
-    height: 310px !important;
-    margin-top: -155px !important;
-    margin-left: -100px !important;
-    border-radius: 20px !important;
-    padding: 0.85rem !important;
-  }
-  .realms-track {
-    height: 330px !important;
-    overflow: visible !important;
+  .realms-stage {
+    padding-top: 1rem !important;
+    padding-bottom: 1.5rem !important;
   }
   .realms-viewport {
+    height: 300px !important;
+    min-height: 300px !important;
     overflow: visible !important;
+  }
+  .realms-track {
+    height: 280px !important;
+    overflow: visible !important;
+  }
+  .tidalia-realm-card {
+    width: 172px !important;
+    height: 270px !important;
+    margin-top: -135px !important;
+    margin-left: -86px !important;
+    border-radius: 18px !important;
+    padding: 0.75rem !important;
   }
   .realms-header-bar {
     padding: 0.8rem 1rem !important;
@@ -4118,11 +4140,13 @@ a.channel-item:hover .ci-arrow {
     font-size: 0.68rem !important;
   }
 
-  /* Window Video Frame Mobile Optimization: Centered, fully visible initially, allows JS zoom to 100vw/100vh */
+  /* Window Video Frame Mobile Optimization: Centered 16:9 uncropped double window, zooms smoothly to fullscreen */
   .window-arch-wrapper {
-    width: min(88vw, 440px);
-    height: min(62vh, 520px);
-    border-radius: 20px;
+    width: min(92vw, 420px) !important;
+    height: min(calc(92vw * 9 / 16), 240px) !important;
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 18px !important;
+    max-height: 240px !important;
   }
 
   /* Story Scene Overlays on Mobile: Perfectly scaled, high readability, beautiful glass scrim */

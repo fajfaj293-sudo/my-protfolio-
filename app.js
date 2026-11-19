@@ -396,16 +396,24 @@ function initContinuousZoomStory() {
         windowWrapper.style.boxShadow = 'none';
         windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
       } else {
-        const baseW = isMobile ? 88 : 84;
-        const baseH = isMobile ? 62 : 68;
+        const baseW = isMobile ? 90 : 84;
         const wPct = baseW + zoomPhase * (100 - baseW);
-        const hPct = baseH + zoomPhase * (100 - baseH);
-        const radius = Math.max(0, (isMobile ? 20 : 24) * (1 - zoomPhase * 1.5));
+        const radius = Math.max(0, (isMobile ? 18 : 24) * (1 - zoomPhase * 1.5));
         const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
-        const scale = 0.90 + zoomPhase * 0.10;
+        const scale = 0.92 + zoomPhase * 0.08;
 
-        windowWrapper.style.width = isMobile ? `${wPct.toFixed(1)}vw` : `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
-        windowWrapper.style.height = isMobile ? `${hPct.toFixed(1)}vh` : `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
+        if (isMobile) {
+          const baseH = (baseW * 9) / 16;
+          const currentH = baseH + zoomPhase * (100 - baseH);
+          windowWrapper.style.width = `${wPct.toFixed(1)}vw`;
+          windowWrapper.style.height = zoomPhase > 0.02 ? `${currentH.toFixed(1)}vh` : `min(calc(92vw * 9 / 16), 240px)`;
+        } else {
+          const baseH = 68;
+          const hPct = baseH + zoomPhase * (100 - baseH);
+          windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
+          windowWrapper.style.height = `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
+        }
+
         windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
         windowWrapper.style.boxShadow = shadowAlpha > 0.01 
           ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
@@ -608,12 +616,12 @@ function initPinnedRealmsCarousel() {
 
     el.classList.toggle('active', diff === 0);
 
-    // Precise symmetrical offsets ensuring center card is in the middle with cards peeking on BOTH sides!
-    const step1X = isMobile ? 88 : 130;
-    const step2X = isMobile ? 152 : 238;
-    const step3X = isMobile ? 205 : 330;
-    const step4X = isMobile ? 250 : 408;
-    const step5X = isMobile ? 290 : 474;
+    // Precise symmetrical offsets: on mobile, cards peek gracefully on BOTH sides!
+    const step1X = isMobile ? 52 : 130;
+    const step2X = isMobile ? 94 : 238;
+    const step3X = isMobile ? 132 : 330;
+    const step4X = isMobile ? 164 : 408;
+    const step5X = isMobile ? 190 : 474;
 
     if (diff === 0) {
       el.style.transform = `translate3d(0px, 0px, 70px) scale(${isMobile ? 1.0 : 1.02}) rotateY(0deg)`;
@@ -622,33 +630,33 @@ function initPinnedRealmsCarousel() {
       el.style.zIndex = '40';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 1) {
-      el.style.transform = `translate3d(${sign * step1X}px, 0px, -25px) scale(${isMobile ? 0.86 : 0.89}) rotateY(${-sign * (isMobile ? 12 : 14)}deg)`;
-      el.style.opacity = '0.93';
+      el.style.transform = `translate3d(${sign * step1X}px, 0px, -20px) scale(${isMobile ? 0.88 : 0.89}) rotateY(${-sign * (isMobile ? 10 : 14)}deg)`;
+      el.style.opacity = '0.94';
       el.style.filter = 'blur(0px)';
       el.style.zIndex = '34';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 2) {
-      el.style.transform = `translate3d(${sign * step2X}px, 0px, -85px) scale(${isMobile ? 0.74 : 0.78}) rotateY(${-sign * (isMobile ? 16 : 19)}deg)`;
-      el.style.opacity = '0.84';
+      el.style.transform = `translate3d(${sign * step2X}px, 0px, -60px) scale(${isMobile ? 0.77 : 0.78}) rotateY(${-sign * (isMobile ? 14 : 19)}deg)`;
+      el.style.opacity = '0.85';
       el.style.filter = 'blur(0.2px)';
       el.style.zIndex = '28';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 3) {
-      el.style.transform = `translate3d(${sign * step3X}px, 0px, -145px) scale(${isMobile ? 0.62 : 0.68}) rotateY(${-sign * (isMobile ? 20 : 23)}deg)`;
-      el.style.opacity = '0.73';
-      el.style.filter = 'blur(0.5px)';
+      el.style.transform = `translate3d(${sign * step3X}px, 0px, -100px) scale(${isMobile ? 0.66 : 0.68}) rotateY(${-sign * (isMobile ? 18 : 23)}deg)`;
+      el.style.opacity = '0.74';
+      el.style.filter = 'blur(0.4px)';
       el.style.zIndex = '22';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 4) {
-      el.style.transform = `translate3d(${sign * step4X}px, 0px, -205px) scale(${isMobile ? 0.52 : 0.59}) rotateY(${-sign * (isMobile ? 23 : 27)}deg)`;
-      el.style.opacity = '0.60';
-      el.style.filter = 'blur(0.8px)';
+      el.style.transform = `translate3d(${sign * step4X}px, 0px, -140px) scale(${isMobile ? 0.56 : 0.59}) rotateY(${-sign * (isMobile ? 22 : 27)}deg)`;
+      el.style.opacity = '0.62';
+      el.style.filter = 'blur(0.7px)';
       el.style.zIndex = '16';
       el.style.pointerEvents = 'auto';
     } else {
-      el.style.transform = `translate3d(${sign * step5X}px, 0px, -265px) scale(${isMobile ? 0.44 : 0.50}) rotateY(${-sign * (isMobile ? 26 : 30)}deg)`;
-      el.style.opacity = '0.46';
-      el.style.filter = 'blur(1.1px)';
+      el.style.transform = `translate3d(${sign * step5X}px, 0px, -180px) scale(${isMobile ? 0.46 : 0.50}) rotateY(${-sign * (isMobile ? 25 : 30)}deg)`;
+      el.style.opacity = '0.48';
+      el.style.filter = 'blur(1.0px)';
       el.style.zIndex = '10';
       el.style.pointerEvents = 'auto';
     }
