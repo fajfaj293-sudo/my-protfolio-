@@ -134,16 +134,18 @@
         <!-- Centered Window Stage on White Background that Zooms to Fullscreen (Pure Video Only) -->
         <div class="video-window-stage" id="video-window-stage">
           <div class="window-arch-wrapper" id="window-arch-wrapper">
-            <!-- Fullscreen Scroll-Scrubbed Video with Instant Poster Frame -->
+            <!-- Fullscreen Scroll-Scrubbed Video via High-Speed Edge CDN (Cloudinary) -->
             <video
               id="portfolio-scroll-video"
               class="portfolio-scrub-video"
-              src="protfolio .mp4"
+              src="https://res.cloudinary.com/vqe5tonz/video/upload/protfolio.mp4"
               poster="assets/video-poster.jpg"
               muted
               playsinline
               preload="auto"
+              crossorigin="anonymous"
             >
+              <source src="https://res.cloudinary.com/vqe5tonz/video/upload/protfolio.mp4" type="video/mp4" />
               <source src="protfolio .mp4" type="video/mp4" />
             </video>
           </div>
