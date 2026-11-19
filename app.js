@@ -314,6 +314,9 @@ function initContinuousZoomStory() {
   video.preload = 'auto';
 
   // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
+  let lastScrubTime = 0;
+  let seekLockTime = 0;
+
   video.addEventListener('seeked', () => {
     isSeeking = false;
     if (pendingTime !== null) {
@@ -323,19 +326,18 @@ function initContinuousZoomStory() {
     }
   });
 
-  let lastScrubTime = 0;
   function scrubToTime(t) {
     if (!video.duration || isNaN(video.duration)) return;
     const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
-    if (Math.abs(video.currentTime - boundedTime) < 0.03) return;
+    // Half-frame precision for ultra-fluid 30fps scrubbing
+    if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
 
     const now = performance.now();
-    const isMobile = window.innerWidth <= 768;
-    // On mobile, throttle hardware decoder seeks to 45ms to keep main thread completely fluid
-    if (isMobile && now - lastScrubTime < 45) {
-      pendingTime = boundedTime;
-      return;
+
+    // Deadlock breaker: if seeking has been held for > 40ms, release it immediately
+    if (isSeeking && (now - seekLockTime > 40)) {
+      isSeeking = false;
     }
 
     if (isSeeking) {
@@ -344,7 +346,9 @@ function initContinuousZoomStory() {
     }
 
     isSeeking = true;
+    seekLockTime = now;
     lastScrubTime = now;
+
     if (typeof video.fastSeek === 'function') {
       try {
         video.fastSeek(boundedTime);
@@ -396,8 +400,10 @@ function initContinuousZoomStory() {
       return;
     }
 
-    // Ultra-smooth lerp
-    smoothProgress += (targetProgress - smoothProgress) * 0.16;
+    const isMobile = window.innerWidth <= 768;
+    // Responsive lerp: fast tracking with zero drag or stickiness
+    const lerpFactor = isMobile ? 0.35 : 0.28;
+    smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
 
     // 1. Centered Window Zooms & Expands into 100% Fullscreen
     if (windowWrapper) {
