@@ -629,37 +629,37 @@ function initPinnedRealmsCarousel() {
     if (diff === 0) {
       el.style.transform = `translate3d(0px, 0px, 70px) scale(${isMobile ? 1.0 : 1.02}) rotateY(0deg)`;
       el.style.opacity = '1';
-      el.style.filter = 'blur(0px)';
+      if (!isMobile) el.style.filter = 'blur(0px)';
       el.style.zIndex = '40';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 1) {
       el.style.transform = `translate3d(${sign * step1X}px, 0px, -20px) scale(${isMobile ? 0.88 : 0.89}) rotateY(${-sign * (isMobile ? 10 : 14)}deg)`;
       el.style.opacity = '0.94';
-      el.style.filter = 'blur(0px)';
+      if (!isMobile) el.style.filter = 'blur(0px)';
       el.style.zIndex = '34';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 2) {
       el.style.transform = `translate3d(${sign * step2X}px, 0px, -60px) scale(${isMobile ? 0.77 : 0.78}) rotateY(${-sign * (isMobile ? 14 : 19)}deg)`;
       el.style.opacity = '0.85';
-      el.style.filter = 'blur(0.2px)';
+      if (!isMobile) el.style.filter = 'blur(0.2px)';
       el.style.zIndex = '28';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 3) {
       el.style.transform = `translate3d(${sign * step3X}px, 0px, -100px) scale(${isMobile ? 0.66 : 0.68}) rotateY(${-sign * (isMobile ? 18 : 23)}deg)`;
       el.style.opacity = '0.74';
-      el.style.filter = 'blur(0.4px)';
+      if (!isMobile) el.style.filter = 'blur(0.4px)';
       el.style.zIndex = '22';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 4) {
       el.style.transform = `translate3d(${sign * step4X}px, 0px, -140px) scale(${isMobile ? 0.56 : 0.59}) rotateY(${-sign * (isMobile ? 22 : 27)}deg)`;
       el.style.opacity = '0.62';
-      el.style.filter = 'blur(0.7px)';
+      if (!isMobile) el.style.filter = 'blur(0.7px)';
       el.style.zIndex = '16';
       el.style.pointerEvents = 'auto';
     } else {
       el.style.transform = `translate3d(${sign * step5X}px, 0px, -180px) scale(${isMobile ? 0.46 : 0.50}) rotateY(${-sign * (isMobile ? 25 : 30)}deg)`;
       el.style.opacity = '0.48';
-      el.style.filter = 'blur(1.0px)';
+      if (!isMobile) el.style.filter = 'blur(1.0px)';
       el.style.zIndex = '10';
       el.style.pointerEvents = 'auto';
     }
@@ -678,7 +678,10 @@ function initPinnedRealmsCarousel() {
 
     if (leftMirrorCard) {
       const oppIdx = (activeIdx + 5) % total;
-      leftMirrorCard.innerHTML = cards[oppIdx].innerHTML;
+      if (leftMirrorCard.dataset.cachedIdx !== String(oppIdx)) {
+        leftMirrorCard.dataset.cachedIdx = String(oppIdx);
+        leftMirrorCard.innerHTML = cards[oppIdx].innerHTML;
+      }
       applyStackTransform(leftMirrorCard, -5);
     }
 
