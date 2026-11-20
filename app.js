@@ -342,12 +342,13 @@ function initContinuousZoomStory() {
     const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
     const isMobile = window.innerWidth <= 768;
-    const deltaThreshold = isMobile ? 0.08 : 0.012;
+    // On low-RAM mobiles, larger delta threshold prevents micro-stutters
+    const deltaThreshold = isMobile ? 0.18 : 0.012;
     if (Math.abs(video.currentTime - boundedTime) < deltaThreshold) return;
 
     const now = performance.now();
-    // Deadlock breaker: if seeking has been held for > 250ms, release it
-    if (isSeeking && (now - seekLockTime > 250)) {
+    // Deadlock breaker: if seeking has been held for > 300ms, release it
+    if (isSeeking && (now - seekLockTime > 300)) {
       isSeeking = false;
     }
 
@@ -356,8 +357,8 @@ function initContinuousZoomStory() {
       return;
     }
 
-    // On mobile, throttle hardware video seeks to ~12fps to avoid video decoder lockup and scroll freeze
-    const minInterval = isMobile ? 85 : 30;
+    // On low-RAM mobiles, throttle hardware video seeks to ~6-7fps to prevent hardware decoder saturation
+    const minInterval = isMobile ? 150 : 30;
     if (now - lastScrubTime < minInterval) {
       pendingTime = boundedTime;
       return;
@@ -633,6 +634,13 @@ function initPinnedRealmsCarousel() {
 
     el.classList.toggle('active', diff === 0);
 
+    // On mobile, hide cards that are far behind to save massive GPU composite overhead
+    if (isMobile && absDiff > 2) {
+      el.style.display = 'none';
+      return;
+    }
+    el.style.display = 'flex';
+
     // Precise symmetrical offsets: on mobile, cards peek gracefully on BOTH sides!
     const step1X = isMobile ? 52 : 130;
     const step2X = isMobile ? 94 : 238;
@@ -726,10 +734,13 @@ function initPinnedRealmsCarousel() {
 
   function scrollToRealm(idx) {
     const wrapped = ((idx % total) + total) % total;
-    const maxScroll = runway.offsetHeight - window.innerHeight;
-    const targetY = runway.offsetTop + (wrapped / (total - 0.5)) * maxScroll;
-    window.scrollTo({ top: targetY, behavior: 'smooth' });
+    const isMobile = window.innerWidth < 768;
     setActiveRealm(wrapped);
+    if (!isMobile) {
+      const maxScroll = runway.offsetHeight - window.innerHeight;
+      const targetY = runway.offsetTop + (wrapped / (total - 0.5)) * maxScroll;
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
   }
 
   if (prevBtn) prevBtn.addEventListener('click', () => scrollToRealm(activeIdx - 1));
