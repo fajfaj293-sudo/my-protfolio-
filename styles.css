@@ -3581,11 +3581,44 @@ a.channel-item:hover .ci-arrow {
     flex-direction: column;
   }
   .faq-header {
-    flex-wrap: wrap;
-    gap: 0.8rem;
+    flex-wrap: nowrap !important;
+    gap: 0.65rem !important;
+    align-items: center !important;
+  }
+  .faq-q-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+  .faq-num-pill {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.72rem !important;
+    flex-shrink: 0 !important;
+    border-radius: 8px !important;
+  }
+  .faq-question {
+    font-size: 0.86rem !important;
+    line-height: 1.32 !important;
+    flex: 1 !important;
+    min-width: 0 !important;
   }
   .faq-chain-trigger {
-    align-self: flex-start;
+    padding: 0.32rem 0.6rem !important;
+    font-size: 0.6rem !important;
+    gap: 0.35rem !important;
+    flex-shrink: 0 !important;
+    align-self: center !important;
+  }
+  .trigger-label {
+    letter-spacing: 0.08em !important;
+  }
+  .trigger-icon-box {
+    width: 13px !important;
+    height: 13px !important;
+    font-size: 0.6rem !important;
   }
   .faq-suspension-rig {
     padding: 0 1.2rem;
@@ -4036,35 +4069,79 @@ a.channel-item:hover .ci-arrow {
     font-size: 0.68rem !important;
   }
 
-  /* 10 Realms Carousel Mobile Layout: Center card + symmetrical peek on left & right */
+  /* 10 Realms Carousel Mobile Layout: Compact desktop-proportion cards with symmetrical peeking */
   .realms-stage {
-    padding-top: 1rem !important;
-    padding-bottom: 1.5rem !important;
+    padding-top: 0.8rem !important;
+    padding-bottom: 1.2rem !important;
   }
   .realms-viewport {
-    height: 300px !important;
-    min-height: 300px !important;
+    height: 255px !important;
+    min-height: 255px !important;
     overflow: visible !important;
   }
   .realms-track {
-    height: 280px !important;
+    height: 245px !important;
     overflow: visible !important;
   }
   .tidalia-realm-card {
-    width: 172px !important;
-    height: 270px !important;
-    margin-top: -135px !important;
-    margin-left: -86px !important;
-    border-radius: 18px !important;
-    padding: 0.75rem !important;
+    width: 148px !important;
+    height: 232px !important;
+    margin-top: -116px !important;
+    margin-left: -74px !important;
+    border-radius: 16px !important;
+    padding: 0.6rem !important;
+  }
+  .trc-top {
+    font-size: 0.58rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+  .trc-idx {
+    padding: 0.18rem 0.45rem !important;
+    font-size: 0.55rem !important;
+  }
+  .trc-dur {
+    padding: 0.18rem 0.45rem !important;
+    font-size: 0.55rem !important;
+  }
+  .trc-mid {
+    gap: 0.4rem !important;
+  }
+  .trc-play-btn {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.65rem !important;
+  }
+  .trc-wave-pill {
+    padding: 0.2rem 0.42rem !important;
+  }
+  .trc-wave-pill i {
+    width: 1.8px !important;
+    height: 7px !important;
+  }
+  .trc-title {
+    font-size: 0.82rem !important;
+    line-height: 1.15 !important;
+    margin-bottom: 0.15rem !important;
+  }
+  .trc-sub {
+    font-size: 0.58rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 0.25rem !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .trc-tags {
+    font-size: 0.52rem !important;
+    gap: 0.25rem !important;
   }
   .realms-header-bar {
-    padding: 0.8rem 1rem !important;
+    padding: 0.6rem 0.9rem !important;
   }
   .realms-footer-bar {
-    padding: 0.8rem 1rem !important;
+    padding: 0.6rem 0.9rem !important;
   }
-
 
   /* Realm Modal Mobile Overhaul: Compact, manageable, within viewport */
   .realm-modal-backdrop {
@@ -4108,38 +4185,67 @@ a.channel-item:hover .ci-arrow {
     margin-top: 0.8rem !important;
   }
 
-
-  /* Compact Blueprint card on mobile: 2x2 grid instead of 4 giant rows */
+  /* Compact Blueprint Specification Card on Mobile: Sleek & Optimized */
   .blueprint-console-card {
-    padding: 1.1rem 1.2rem !important;
-    margin-top: 1.2rem !important;
+    padding: 0.85rem 0.95rem !important;
+    margin-top: 0.8rem !important;
+    border-radius: 16px !important;
+  }
+  .bc-top-bar {
+    margin-bottom: 0.45rem !important;
+  }
+  .bc-code {
+    font-size: 0.6rem !important;
+  }
+  .bc-verified-pill {
+    padding: 0.2rem 0.45rem !important;
+    font-size: 0.56rem !important;
   }
   .bc-specs-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.6rem !important;
+    gap: 0.4rem !important;
+    margin-bottom: 0.45rem !important;
   }
   .bc-spec-box {
-    padding: 0.55rem 0.7rem !important;
+    padding: 0.38rem 0.5rem !important;
+    border-radius: 9px !important;
   }
   .bc-spec-label {
-    font-size: 0.55rem !important;
+    font-size: 0.5rem !important;
+    margin-bottom: 0.12rem !important;
   }
   .bc-spec-val {
-    font-size: 0.72rem !important;
+    font-size: 0.66rem !important;
+    line-height: 1.2 !important;
+  }
+  .bc-narrative-area {
+    padding: 0.5rem 0.68rem !important;
+    margin-bottom: 0.55rem !important;
+    border-radius: 10px !important;
+  }
+  .bc-blueprint-tag {
+    font-size: 0.52rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+  .bc-narrative-text {
+    font-size: 0.68rem !important;
+    line-height: 1.35 !important;
   }
   .bc-cta-row {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 0.6rem !important;
+    gap: 0.45rem !important;
   }
   .bc-claim-btn {
     width: 100% !important;
     justify-content: center !important;
-    padding: 0.65rem 1.2rem !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.68rem !important;
   }
   .bc-guarantee-note {
     text-align: center !important;
-    font-size: 0.68rem !important;
+    font-size: 0.58rem !important;
+    margin-top: 0.2rem !important;
   }
 
   /* Window Video Frame Mobile Optimization: Centered, smoothly expands into fullscreen */
@@ -4150,9 +4256,9 @@ a.channel-item:hover .ci-arrow {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   }
 
-  /* Story Scene Overlays on Mobile: Perfectly scaled, high readability, beautiful glass scrim */
+  /* Story Scene Overlays on Mobile: Perfectly scaled, compact elements so video shines */
   .story-scene-ui {
-    padding: 1.5rem 1.2rem !important;
+    padding: 1.1rem 0.95rem !important;
     flex-direction: column !important;
     justify-content: flex-end !important;
     align-items: stretch !important;
@@ -4161,43 +4267,55 @@ a.channel-item:hover .ci-arrow {
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
-    padding: 1rem !important;
+    padding: 0.85rem !important;
   }
   .story-scene-ui.story-ui-top {
     justify-content: flex-start !important;
-    padding-top: 3.5rem !important;
+    padding-top: 2.8rem !important;
   }
   .story-text-left {
     max-width: 100% !important;
-    margin-bottom: 0.8rem !important;
+    margin-bottom: 0.45rem !important;
   }
   .story-serif-h2 {
-    font-size: 1.4rem !important;
-    line-height: 1.25 !important;
-    margin-bottom: 0.45rem !important;
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95) !important;
-  }
-  .story-sub-p {
-    font-size: 0.82rem !important;
-    line-height: 1.45 !important;
-    margin-bottom: 0.8rem !important;
+    font-size: 1.12rem !important;
+    line-height: 1.22 !important;
+    margin-bottom: 0.25rem !important;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95) !important;
   }
+  .story-sub-p {
+    font-size: 0.72rem !important;
+    line-height: 1.35 !important;
+    margin-bottom: 0.45rem !important;
+    max-width: 300px !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95) !important;
+  }
   .story-step-line {
-    font-size: 0.65rem !important;
-    margin-bottom: 0.4rem !important;
+    font-size: 0.58rem !important;
+    margin-bottom: 0.25rem !important;
   }
   .story-pills-right,
   .story-sliders-right {
     flex-direction: row !important;
     flex-wrap: wrap !important;
-    gap: 0.5rem !important;
-    margin-bottom: 0.8rem !important;
+    gap: 0.35rem !important;
+    margin-bottom: 0.45rem !important;
   }
   .frosted-meta-pill,
   .frosted-wave-slider {
-    padding: 0.45rem 0.75rem !important;
-    font-size: 0.7rem !important;
+    padding: 0.32rem 0.65rem !important;
+    font-size: 0.62rem !important;
+    min-width: unset !important;
+    width: 100% !important;
+    max-width: 260px !important;
+    border-radius: 999px !important;
+  }
+  .frosted-meta-pill span {
+    font-size: 0.54rem !important;
+    letter-spacing: 0.12em !important;
+  }
+  .frosted-meta-pill strong {
+    font-size: 0.62rem !important;
   }
 
   /* Scene 4 Center Box on Mobile: Pure floating transparent text, NO black box */
