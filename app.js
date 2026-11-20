@@ -148,8 +148,7 @@ function initHeroSpotlight() {
           st.targetSkew = Math.sin(angle) * (speed * 0.6) * proximity;
           st.targetScaleX = 1 + Math.abs(Math.cos(angle)) * (speed * 0.035) * proximity;
           st.targetScaleY = 1 + Math.abs(Math.sin(angle)) * (speed * 0.035) * proximity;
-          const isMobileHero = window.innerWidth <= 768;
-          st.targetBlur = isMobileHero ? 0 : Math.min(9, (speed * 0.35 + 3.5) * proximity);
+          st.targetBlur = Math.min(9, (speed * 0.35 + 3.5) * proximity);
           st.targetOpacity = Math.max(0.45, 1 - proximity * 0.45);
         } else {
           // Snake has moved past: Letter begins gentle relaxation back to normal
@@ -314,16 +313,6 @@ function initContinuousZoomStory() {
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
-  // Track if runway is visible in viewport to save mobile CPU/GPU
-  let runwayInView = true;
-  if ('IntersectionObserver' in window) {
-    const rObs = new IntersectionObserver((entries) => {
-      runwayInView = entries[0].isIntersecting;
-      if (runwayInView) requestTick();
-    }, { rootMargin: '150px 0px' });
-    rObs.observe(runway);
-  }
-
   // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
   let lastScrubTime = 0;
   let seekLockTime = 0;
@@ -341,25 +330,17 @@ function initContinuousZoomStory() {
     if (!video.duration || isNaN(video.duration)) return;
     const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
-    const isMobile = window.innerWidth <= 768;
-    // On low-RAM mobiles, larger delta threshold prevents micro-stutters
-    const deltaThreshold = isMobile ? 0.18 : 0.012;
-    if (Math.abs(video.currentTime - boundedTime) < deltaThreshold) return;
+    // Half-frame precision for ultra-fluid 30fps scrubbing
+    if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
 
     const now = performance.now();
-    // Deadlock breaker: if seeking has been held for > 300ms, release it
-    if (isSeeking && (now - seekLockTime > 300)) {
+
+    // Deadlock breaker: if seeking has been held for > 40ms, release it immediately
+    if (isSeeking && (now - seekLockTime > 40)) {
       isSeeking = false;
     }
 
-    if (video.seeking || isSeeking) {
-      pendingTime = boundedTime;
-      return;
-    }
-
-    // On low-RAM mobiles, throttle hardware video seeks to ~6-7fps to prevent hardware decoder saturation
-    const minInterval = isMobile ? 150 : 30;
-    if (now - lastScrubTime < minInterval) {
+    if (isSeeking) {
       pendingTime = boundedTime;
       return;
     }
@@ -388,7 +369,6 @@ function initContinuousZoomStory() {
 
   // Smooth scroll listener
   window.addEventListener('scroll', () => {
-    if (!runwayInView) return;
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
@@ -398,10 +378,6 @@ function initContinuousZoomStory() {
 
   // 60FPS Render Loop
   function renderFrame() {
-    if (!runwayInView) {
-      isTicking = false;
-      return;
-    }
 
     const isMobile = window.innerWidth <= 768;
     // Responsive lerp: fast tracking with zero drag or stickiness
@@ -447,11 +423,17 @@ function initContinuousZoomStory() {
     }
 
     // 2. Video Scrubbing with Calibrated Scene Timeline
-    let videoProgress = smoothProgress <= 0.82 ? (smoothProgress / 0.82) : 1.0;
-    const effectiveDuration = (video.duration && !isNaN(video.duration)) ? video.duration : 14.43;
-    const currentTargetTime = videoProgress * effectiveDuration;
-
+    let currentTargetTime = 0;
     if (video.duration && !isNaN(video.duration)) {
+      let videoProgress = 0;
+      if (smoothProgress <= 0.82) {
+        // From 0 to 82% scroll, play smoothly from 0s to 14.4s
+        videoProgress = smoothProgress / 0.82;
+      } else {
+        // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
+        videoProgress = 1.0;
+      }
+      currentTargetTime = videoProgress * video.duration;
       scrubToTime(currentTargetTime);
     }
 
@@ -473,9 +455,9 @@ function initContinuousZoomStory() {
       scene4.classList.toggle('active', currentTargetTime >= 11.0);
     }
 
-    // Continue render loop ONLY while scroll lerp is actively moving
+    // Continue render loop while lerp is still settling or seeking is pending
     const diff = Math.abs(targetProgress - smoothProgress);
-    if (diff > 0.001) {
+    if (diff > 0.0006 || isSeeking || pendingTime !== null) {
       requestAnimationFrame(renderFrame);
     } else {
       isTicking = false;
@@ -634,13 +616,6 @@ function initPinnedRealmsCarousel() {
 
     el.classList.toggle('active', diff === 0);
 
-    // On mobile, hide cards that are far behind to save massive GPU composite overhead
-    if (isMobile && absDiff > 2) {
-      el.style.display = 'none';
-      return;
-    }
-    el.style.display = 'flex';
-
     // Precise symmetrical offsets: on mobile, cards peek gracefully on BOTH sides!
     const step1X = isMobile ? 52 : 130;
     const step2X = isMobile ? 94 : 238;
@@ -651,37 +626,37 @@ function initPinnedRealmsCarousel() {
     if (diff === 0) {
       el.style.transform = `translate3d(0px, 0px, 70px) scale(${isMobile ? 1.0 : 1.02}) rotateY(0deg)`;
       el.style.opacity = '1';
-      el.style.filter = 'none';
+      el.style.filter = 'blur(0px)';
       el.style.zIndex = '40';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 1) {
       el.style.transform = `translate3d(${sign * step1X}px, 0px, -20px) scale(${isMobile ? 0.88 : 0.89}) rotateY(${-sign * (isMobile ? 10 : 14)}deg)`;
       el.style.opacity = '0.94';
-      el.style.filter = 'none';
+      el.style.filter = 'blur(0px)';
       el.style.zIndex = '34';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 2) {
       el.style.transform = `translate3d(${sign * step2X}px, 0px, -60px) scale(${isMobile ? 0.77 : 0.78}) rotateY(${-sign * (isMobile ? 14 : 19)}deg)`;
       el.style.opacity = '0.85';
-      el.style.filter = isMobile ? 'none' : 'blur(0.2px)';
+      el.style.filter = 'blur(0.2px)';
       el.style.zIndex = '28';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 3) {
       el.style.transform = `translate3d(${sign * step3X}px, 0px, -100px) scale(${isMobile ? 0.66 : 0.68}) rotateY(${-sign * (isMobile ? 18 : 23)}deg)`;
       el.style.opacity = '0.74';
-      el.style.filter = isMobile ? 'none' : 'blur(0.4px)';
+      el.style.filter = 'blur(0.4px)';
       el.style.zIndex = '22';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 4) {
       el.style.transform = `translate3d(${sign * step4X}px, 0px, -140px) scale(${isMobile ? 0.56 : 0.59}) rotateY(${-sign * (isMobile ? 22 : 27)}deg)`;
       el.style.opacity = '0.62';
-      el.style.filter = isMobile ? 'none' : 'blur(0.7px)';
+      el.style.filter = 'blur(0.7px)';
       el.style.zIndex = '16';
       el.style.pointerEvents = 'auto';
     } else {
       el.style.transform = `translate3d(${sign * step5X}px, 0px, -180px) scale(${isMobile ? 0.46 : 0.50}) rotateY(${-sign * (isMobile ? 25 : 30)}deg)`;
       el.style.opacity = '0.48';
-      el.style.filter = isMobile ? 'none' : 'blur(1.0px)';
+      el.style.filter = 'blur(1.0px)';
       el.style.zIndex = '10';
       el.style.pointerEvents = 'auto';
     }
@@ -734,13 +709,10 @@ function initPinnedRealmsCarousel() {
 
   function scrollToRealm(idx) {
     const wrapped = ((idx % total) + total) % total;
-    const isMobile = window.innerWidth < 768;
+    const maxScroll = runway.offsetHeight - window.innerHeight;
+    const targetY = runway.offsetTop + (wrapped / (total - 0.5)) * maxScroll;
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
     setActiveRealm(wrapped);
-    if (!isMobile) {
-      const maxScroll = runway.offsetHeight - window.innerHeight;
-      const targetY = runway.offsetTop + (wrapped / (total - 0.5)) * maxScroll;
-      window.scrollTo({ top: targetY, behavior: 'smooth' });
-    }
   }
 
   if (prevBtn) prevBtn.addEventListener('click', () => scrollToRealm(activeIdx - 1));
@@ -1253,23 +1225,21 @@ function initBubbleGlassButtons() {
       chamber.setAttribute('aria-hidden', 'true');
       btn.insertBefore(chamber, btn.firstChild);
 
-      // Responsive density: 4 lightweight bubbles on mobile, 8 on desktop
-      const isMobile = window.innerWidth <= 768;
-      const bubbleCount = isMobile ? 4 : 8;
+      // Reduced density (8 bubbles instead of 20) for a cleaner, high-luxury aesthetic
+      const bubbleCount = 8;
       for (let i = 0; i < bubbleCount; i++) {
         const bubble = document.createElement('span');
         bubble.className = 'bubble-drop';
 
-        // Deep rich jewel sizes: 6px to 11px
-        const size = (Math.random() * 5 + 6).toFixed(1);
+        // Deep rich jewel sizes: 7px to 13px
+        const size = (Math.random() * 6 + 7).toFixed(1);
         const left = (Math.random() * 84 + 8).toFixed(1);
-        // Instant start on mobile so bubbles appear immediately upon load without delay
-        const delay = (isMobile ? (Math.random() * 0.45) : (Math.random() * 2.2)).toFixed(2);
-        const duration = (Math.random() * 1.0 + 1.6).toFixed(2);
-        const wobble1 = ((Math.random() - 0.5) * 8).toFixed(1);
-        const wobble2 = ((Math.random() - 0.5) * 12).toFixed(1);
-        const wobble3 = ((Math.random() - 0.5) * 8).toFixed(1);
-        const wobble4 = ((Math.random() - 0.5) * 6).toFixed(1);
+        const delay = (Math.random() * 2.8).toFixed(2);
+        const duration = (Math.random() * 1.2 + 1.8).toFixed(2);
+        const wobble1 = ((Math.random() - 0.5) * 12).toFixed(1);
+        const wobble2 = ((Math.random() - 0.5) * 16).toFixed(1);
+        const wobble3 = ((Math.random() - 0.5) * 12).toFixed(1);
+        const wobble4 = ((Math.random() - 0.5) * 8).toFixed(1);
 
         bubble.style.setProperty('--size', `${size}px`);
         bubble.style.setProperty('--left', `${left}%`);
@@ -1608,8 +1578,7 @@ function initCursorSpider() {
   function resize() {
     w = window.innerWidth;
     h = window.innerHeight;
-    const isMobile = w <= 768;
-    dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = w + 'px';
@@ -1949,13 +1918,10 @@ function initCursorSpider() {
       const ik = solveSpiderLocalIK(cfg, fx, fy, spider.x, spider.y, spider.angle);
 
       ctx.save();
-      const isMobile = window.innerWidth <= 768;
-      if (!isMobile) {
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 3 + leg.current.lift * 0.5;
-      }
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 3 + leg.current.lift * 0.5;
 
       // Femur (Segment 1: Base to high knee)
       drawStripedSegment(ox, oy, ik.knee.x, ik.knee.y, 3.2, 2.3);
@@ -1981,12 +1947,10 @@ function initCursorSpider() {
     ctx.translate(spider.x, spider.y);
     ctx.rotate(spider.angle);
 
-    if (window.innerWidth > 768) {
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 3;
-      ctx.shadowOffsetY = 4;
-    }
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 4;
 
     // 1. ABDOMEN
     ctx.save();

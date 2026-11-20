@@ -3581,44 +3581,11 @@ a.channel-item:hover .ci-arrow {
     flex-direction: column;
   }
   .faq-header {
-    flex-wrap: nowrap !important;
-    gap: 0.65rem !important;
-    align-items: center !important;
-  }
-  .faq-q-left {
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.65rem !important;
-    flex: 1 !important;
-    min-width: 0 !important;
-  }
-  .faq-num-pill {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 0.72rem !important;
-    flex-shrink: 0 !important;
-    border-radius: 8px !important;
-  }
-  .faq-question {
-    font-size: 0.86rem !important;
-    line-height: 1.32 !important;
-    flex: 1 !important;
-    min-width: 0 !important;
+    flex-wrap: wrap;
+    gap: 0.8rem;
   }
   .faq-chain-trigger {
-    padding: 0.32rem 0.6rem !important;
-    font-size: 0.6rem !important;
-    gap: 0.35rem !important;
-    flex-shrink: 0 !important;
-    align-self: center !important;
-  }
-  .trigger-label {
-    letter-spacing: 0.08em !important;
-  }
-  .trigger-icon-box {
-    width: 13px !important;
-    height: 13px !important;
-    font-size: 0.6rem !important;
+    align-self: flex-start;
   }
   .faq-suspension-rig {
     padding: 0 1.2rem;
@@ -4031,13 +3998,11 @@ a.channel-item:hover .ci-arrow {
 
 @media (max-width: 768px) {
 
-  /* Responsive Hero Image on Mobile: Full-bleed edge-to-edge, NO black side bars, perfectly centered */
+  /* Responsive Hero Image, Title & Subtitle on Mobile */
   .hero-main-img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    object-position: 50% 12% !important;
-    transform: none !important;
+    object-position: 50% 18% !important;
+    transform: scale(0.96) !important;
+    transform-origin: center top !important;
   }
   .tidalia-hero-title {
     font-size: clamp(2.2rem, 9.5vw, 3.2rem) !important;
@@ -4071,82 +4036,35 @@ a.channel-item:hover .ci-arrow {
     font-size: 0.68rem !important;
   }
 
-  /* 10 Realms Carousel Mobile Layout: Compact desktop-proportion cards with symmetrical peeking */
+  /* 10 Realms Carousel Mobile Layout: Center card + symmetrical peek on left & right */
   .realms-stage {
-    padding-top: 0.8rem !important;
-    padding-bottom: 1.2rem !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1.5rem !important;
   }
   .realms-viewport {
-    height: 255px !important;
-    min-height: 255px !important;
+    height: 300px !important;
+    min-height: 300px !important;
     overflow: visible !important;
   }
   .realms-track {
-    height: 245px !important;
+    height: 280px !important;
     overflow: visible !important;
   }
   .tidalia-realm-card {
-    width: 148px !important;
-    height: 232px !important;
-    margin-top: -116px !important;
-    margin-left: -74px !important;
-    border-radius: 16px !important;
-    padding: 0.6rem !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
-  }
-  .trc-top {
-    font-size: 0.58rem !important;
-    margin-bottom: 0.2rem !important;
-  }
-  .trc-idx {
-    padding: 0.18rem 0.45rem !important;
-    font-size: 0.55rem !important;
-  }
-  .trc-dur {
-    padding: 0.18rem 0.45rem !important;
-    font-size: 0.55rem !important;
-  }
-  .trc-mid {
-    gap: 0.4rem !important;
-  }
-  .trc-play-btn {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 0.65rem !important;
-  }
-  .trc-wave-pill {
-    padding: 0.2rem 0.42rem !important;
-  }
-  .trc-wave-pill i {
-    width: 1.8px !important;
-    height: 7px !important;
-  }
-  .trc-title {
-    font-size: 0.82rem !important;
-    line-height: 1.15 !important;
-    margin-bottom: 0.15rem !important;
-  }
-  .trc-sub {
-    font-size: 0.58rem !important;
-    line-height: 1.25 !important;
-    margin-bottom: 0.25rem !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .trc-tags {
-    font-size: 0.52rem !important;
-    gap: 0.25rem !important;
+    width: 172px !important;
+    height: 270px !important;
+    margin-top: -135px !important;
+    margin-left: -86px !important;
+    border-radius: 18px !important;
+    padding: 0.75rem !important;
   }
   .realms-header-bar {
-    padding: 0.6rem 0.9rem !important;
+    padding: 0.8rem 1rem !important;
   }
   .realms-footer-bar {
-    padding: 0.6rem 0.9rem !important;
+    padding: 0.8rem 1rem !important;
   }
+
 
   /* Realm Modal Mobile Overhaul: Compact, manageable, within viewport */
   .realm-modal-backdrop {
@@ -4190,158 +4108,96 @@ a.channel-item:hover .ci-arrow {
     margin-top: 0.8rem !important;
   }
 
-  /* Blueprint Specification Card on Mobile: Wide, sleek, proportional & not stretched long */
+
+  /* Compact Blueprint card on mobile: 2x2 grid instead of 4 giant rows */
   .blueprint-console-card {
-    padding: 1.05rem 1.15rem !important;
-    margin-top: 0.9rem !important;
-    border-radius: 18px !important;
-    width: 100% !important;
-  }
-  .bc-top-bar {
-    margin-bottom: 0.5rem !important;
-  }
-  .bc-code {
-    font-size: 0.62rem !important;
-  }
-  .bc-verified-pill {
-    padding: 0.2rem 0.45rem !important;
-    font-size: 0.56rem !important;
+    padding: 1.1rem 1.2rem !important;
+    margin-top: 1.2rem !important;
   }
   .bc-specs-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.45rem !important;
-    margin-bottom: 0.65rem !important;
+    gap: 0.6rem !important;
   }
   .bc-spec-box {
-    padding: 0.48rem 0.65rem !important;
-    border-radius: 10px !important;
+    padding: 0.55rem 0.7rem !important;
   }
   .bc-spec-label {
-    font-size: 0.52rem !important;
-    margin-bottom: 0.15rem !important;
+    font-size: 0.55rem !important;
   }
   .bc-spec-val {
-    font-size: 0.7rem !important;
-    line-height: 1.25 !important;
-  }
-  .bc-narrative-area {
-    padding: 0.7rem 0.9rem !important;
-    margin-bottom: 0.7rem !important;
-    border-radius: 12px !important;
-    min-height: unset !important;
-  }
-  .bc-blueprint-tag {
-    font-size: 0.54rem !important;
-    margin-bottom: 0.2rem !important;
-  }
-  .bc-narrative-text {
-    font-size: 0.75rem !important;
-    line-height: 1.45 !important;
+    font-size: 0.72rem !important;
   }
   .bc-cta-row {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 0.5rem !important;
+    gap: 0.6rem !important;
   }
   .bc-claim-btn {
     width: 100% !important;
     justify-content: center !important;
-    padding: 0.55rem 1rem !important;
-    font-size: 0.7rem !important;
+    padding: 0.65rem 1.2rem !important;
   }
   .bc-guarantee-note {
     text-align: center !important;
-    font-size: 0.6rem !important;
-    margin-top: 0.15rem !important;
+    font-size: 0.68rem !important;
   }
 
-  /* Window Video Frame Mobile Optimization: Expansive, natural cinema frame, NO black letterbox bars */
+  /* Window Video Frame Mobile Optimization: Centered, smoothly expands into fullscreen */
   .window-arch-wrapper {
-    width: min(92vw, 460px) !important;
-    height: min(65vh, 480px) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55) !important;
-    overflow: hidden !important;
-  }
-  .portfolio-scrub-video {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    object-position: center center !important;
-    background: transparent !important;
-    border-radius: inherit !important;
+    width: min(92vw, 440px);
+    height: min(62vh, 480px);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   }
 
-  /* Mobile Bubble Drops: Zero lag, instant animation */
-  .bubble-drop {
-    box-shadow: none !important;
-    border: none !important;
-    will-change: transform, opacity;
-  }
-
-  /* Story Scene Overlays on Mobile: Pure transparent floating text directly over the video - ZERO dark backgrounds */
+  /* Story Scene Overlays on Mobile: Perfectly scaled, high readability, beautiful glass scrim */
   .story-scene-ui {
     padding: 1.5rem 1.2rem !important;
     flex-direction: column !important;
     justify-content: flex-end !important;
-    align-items: flex-start !important;
-    background: transparent !important;
+    align-items: stretch !important;
   }
   .story-scene-ui.story-ui-center {
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
-    padding: 1.2rem !important;
-    background: transparent !important;
+    padding: 1rem !important;
   }
   .story-scene-ui.story-ui-top {
     justify-content: flex-start !important;
-    padding-top: 3.2rem !important;
-    background: transparent !important;
+    padding-top: 3.5rem !important;
   }
   .story-text-left {
     max-width: 100% !important;
-    margin-bottom: 0.45rem !important;
+    margin-bottom: 0.8rem !important;
   }
   .story-serif-h2 {
-    font-size: 1.22rem !important;
-    line-height: 1.24 !important;
-    margin-bottom: 0.3rem !important;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.8) !important;
+    font-size: 1.4rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 0.45rem !important;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95) !important;
   }
   .story-sub-p {
-    font-size: 0.78rem !important;
-    line-height: 1.4 !important;
-    margin-bottom: 0.55rem !important;
-    max-width: 320px !important;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95), 0 0 15px rgba(0, 0, 0, 0.8) !important;
+    font-size: 0.82rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 0.8rem !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95) !important;
   }
   .story-step-line {
-    font-size: 0.58rem !important;
-    margin-bottom: 0.25rem !important;
+    font-size: 0.65rem !important;
+    margin-bottom: 0.4rem !important;
   }
   .story-pills-right,
   .story-sliders-right {
     flex-direction: row !important;
     flex-wrap: wrap !important;
-    gap: 0.45rem !important;
-    margin-bottom: 0.45rem !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0.8rem !important;
   }
   .frosted-meta-pill,
   .frosted-wave-slider {
-    padding: 0.38rem 0.75rem !important;
-    font-size: 0.65rem !important;
-    min-width: unset !important;
-    width: auto !important;
-    max-width: 100% !important;
-    border-radius: 999px !important;
-  }
-  .frosted-meta-pill span {
-    font-size: 0.54rem !important;
-    letter-spacing: 0.12em !important;
-  }
-  .frosted-meta-pill strong {
-    font-size: 0.62rem !important;
+    padding: 0.45rem 0.75rem !important;
+    font-size: 0.7rem !important;
   }
 
   /* Scene 4 Center Box on Mobile: Pure floating transparent text, NO black box */
