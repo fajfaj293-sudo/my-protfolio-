@@ -4057,6 +4057,15 @@ a.channel-item:hover .ci-arrow {
     margin-left: -86px !important;
     border-radius: 18px !important;
     padding: 0.75rem !important;
+    backdrop-filter: blur(8px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(180%) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65), 0 0 15px rgba(219, 39, 119, 0.3) !important;
+  }
+  .trc-glass-sheen {
+    animation: none !important;
+  }
+  .tidalia-realm-card.active .trc-glass-sheen {
+    animation: pinkGlassSweep 4.8s ease-in-out infinite !important;
   }
   .realms-header-bar {
     padding: 0.8rem 1rem !important;

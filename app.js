@@ -330,13 +330,16 @@ function initContinuousZoomStory() {
     if (!video.duration || isNaN(video.duration)) return;
     const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
-    // Half-frame precision for ultra-fluid 30fps scrubbing
-    if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
+    const isMobile = window.innerWidth <= 768;
+    // Adaptive precision: desktop gets ultra-fine precision, mobile avoids micro-decoder stalls
+    const precisionThreshold = isMobile ? 0.06 : 0.012;
+    if (Math.abs(video.currentTime - boundedTime) < precisionThreshold) return;
 
     const now = performance.now();
 
-    // Deadlock breaker: if seeking has been held for > 40ms, release it immediately
-    if (isSeeking && (now - seekLockTime > 40)) {
+    // Mobile hardware video decoders need more breathing room to avoid decoder pipeline lock
+    const maxSeekLock = isMobile ? 120 : 40;
+    if (isSeeking && (now - seekLockTime > maxSeekLock)) {
       isSeeking = false;
     }
 
