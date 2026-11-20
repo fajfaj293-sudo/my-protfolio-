@@ -327,20 +327,20 @@ function initContinuousZoomStory() {
   });
 
   function scrubToTime(t) {
-    const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
-    const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
+    if (!video.duration || isNaN(video.duration)) return;
+    const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
     // Half-frame precision for ultra-fluid 30fps scrubbing
     if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
 
     const now = performance.now();
 
-    // Deadlock breaker: if seeking has been held for > 350ms, release it
-    if (isSeeking && (now - seekLockTime > 350)) {
+    // Deadlock breaker: if seeking has been held for > 40ms, release it immediately
+    if (isSeeking && (now - seekLockTime > 40)) {
       isSeeking = false;
     }
 
-    if (isSeeking || video.seeking) {
+    if (isSeeking) {
       pendingTime = boundedTime;
       return;
     }
@@ -396,16 +396,24 @@ function initContinuousZoomStory() {
         windowWrapper.style.boxShadow = 'none';
         windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
       } else {
-        const baseW = isMobile ? 88 : 84;
-        const baseH = isMobile ? 62 : 68;
+        const baseW = isMobile ? 90 : 84;
         const wPct = baseW + zoomPhase * (100 - baseW);
-        const hPct = baseH + zoomPhase * (100 - baseH);
-        const radius = Math.max(0, (isMobile ? 20 : 24) * (1 - zoomPhase * 1.5));
+        const radius = Math.max(0, (isMobile ? 18 : 24) * (1 - zoomPhase * 1.5));
         const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
-        const scale = 0.90 + zoomPhase * 0.10;
+        const scale = 0.92 + zoomPhase * 0.08;
 
-        windowWrapper.style.width = isMobile ? `${wPct.toFixed(1)}vw` : `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
-        windowWrapper.style.height = isMobile ? `${hPct.toFixed(1)}vh` : `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
+        if (isMobile) {
+          const baseH = (baseW * 9) / 16;
+          const currentH = baseH + zoomPhase * (100 - baseH);
+          windowWrapper.style.width = `${wPct.toFixed(1)}vw`;
+          windowWrapper.style.height = zoomPhase > 0.02 ? `${currentH.toFixed(1)}vh` : `min(calc(92vw * 9 / 16), 240px)`;
+        } else {
+          const baseH = 68;
+          const hPct = baseH + zoomPhase * (100 - baseH);
+          windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
+          windowWrapper.style.height = `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
+        }
+
         windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
         windowWrapper.style.boxShadow = shadowAlpha > 0.01 
           ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
@@ -415,17 +423,19 @@ function initContinuousZoomStory() {
     }
 
     // 2. Video Scrubbing with Calibrated Scene Timeline
-    const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
-    let videoProgress = 0;
-    if (smoothProgress <= 0.82) {
-      // From 0 to 82% scroll, play smoothly from 0s to 14.4s
-      videoProgress = smoothProgress / 0.82;
-    } else {
-      // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
-      videoProgress = 1.0;
+    let currentTargetTime = 0;
+    if (video.duration && !isNaN(video.duration)) {
+      let videoProgress = 0;
+      if (smoothProgress <= 0.82) {
+        // From 0 to 82% scroll, play smoothly from 0s to 14.4s
+        videoProgress = smoothProgress / 0.82;
+      } else {
+        // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
+        videoProgress = 1.0;
+      }
+      currentTargetTime = videoProgress * video.duration;
+      scrubToTime(currentTargetTime);
     }
-    const currentTargetTime = videoProgress * videoDuration;
-    scrubToTime(currentTargetTime);
 
     // 3. Scene Content Overlays Synced to Video Timelines
     // Window opening (0.0s to 1.6s): Clean window with NO text overlay
