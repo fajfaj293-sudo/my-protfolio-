@@ -148,7 +148,8 @@ function initHeroSpotlight() {
           st.targetSkew = Math.sin(angle) * (speed * 0.6) * proximity;
           st.targetScaleX = 1 + Math.abs(Math.cos(angle)) * (speed * 0.035) * proximity;
           st.targetScaleY = 1 + Math.abs(Math.sin(angle)) * (speed * 0.035) * proximity;
-          st.targetBlur = Math.min(9, (speed * 0.35 + 3.5) * proximity);
+          const isMobileHero = window.innerWidth <= 768;
+          st.targetBlur = isMobileHero ? 0 : Math.min(9, (speed * 0.35 + 3.5) * proximity);
           st.targetOpacity = Math.max(0.45, 1 - proximity * 0.45);
         } else {
           // Snake has moved past: Letter begins gentle relaxation back to normal
@@ -313,6 +314,16 @@ function initContinuousZoomStory() {
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
+  // Track if runway is visible in viewport to save mobile CPU/GPU
+  let runwayInView = true;
+  if ('IntersectionObserver' in window) {
+    const rObs = new IntersectionObserver((entries) => {
+      runwayInView = entries[0].isIntersecting;
+      if (runwayInView) requestTick();
+    }, { rootMargin: '150px 0px' });
+    rObs.observe(runway);
+  }
+
   // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
   let lastScrubTime = 0;
   let seekLockTime = 0;
@@ -330,10 +341,17 @@ function initContinuousZoomStory() {
     if (!video.duration || isNaN(video.duration)) return;
     const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
-    // Half-frame precision for ultra-fluid 30fps scrubbing
-    if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
+    const isMobile = window.innerWidth <= 768;
+    const deltaThreshold = isMobile ? 0.045 : 0.012;
+    if (Math.abs(video.currentTime - boundedTime) < deltaThreshold) return;
 
     const now = performance.now();
+    // On mobile, throttle hardware video seeks to ~14fps to avoid video decoder lockup and scroll freeze
+    const minInterval = isMobile ? 70 : 30;
+    if (now - lastScrubTime < minInterval) {
+      pendingTime = boundedTime;
+      return;
+    }
 
     // Deadlock breaker: if seeking has been held for > 40ms, release it immediately
     if (isSeeking && (now - seekLockTime > 40)) {
@@ -369,6 +387,7 @@ function initContinuousZoomStory() {
 
   // Smooth scroll listener
   window.addEventListener('scroll', () => {
+    if (!runwayInView) return;
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
@@ -1225,21 +1244,23 @@ function initBubbleGlassButtons() {
       chamber.setAttribute('aria-hidden', 'true');
       btn.insertBefore(chamber, btn.firstChild);
 
-      // Reduced density (8 bubbles instead of 20) for a cleaner, high-luxury aesthetic
-      const bubbleCount = 8;
+      // Responsive density: 4 lightweight bubbles on mobile, 8 on desktop
+      const isMobile = window.innerWidth <= 768;
+      const bubbleCount = isMobile ? 4 : 8;
       for (let i = 0; i < bubbleCount; i++) {
         const bubble = document.createElement('span');
         bubble.className = 'bubble-drop';
 
-        // Deep rich jewel sizes: 7px to 13px
-        const size = (Math.random() * 6 + 7).toFixed(1);
+        // Deep rich jewel sizes: 6px to 11px
+        const size = (Math.random() * 5 + 6).toFixed(1);
         const left = (Math.random() * 84 + 8).toFixed(1);
-        const delay = (Math.random() * 2.8).toFixed(2);
-        const duration = (Math.random() * 1.2 + 1.8).toFixed(2);
-        const wobble1 = ((Math.random() - 0.5) * 12).toFixed(1);
-        const wobble2 = ((Math.random() - 0.5) * 16).toFixed(1);
-        const wobble3 = ((Math.random() - 0.5) * 12).toFixed(1);
-        const wobble4 = ((Math.random() - 0.5) * 8).toFixed(1);
+        // Instant start on mobile so bubbles appear immediately upon load without delay
+        const delay = (isMobile ? (Math.random() * 0.45) : (Math.random() * 2.2)).toFixed(2);
+        const duration = (Math.random() * 1.0 + 1.6).toFixed(2);
+        const wobble1 = ((Math.random() - 0.5) * 8).toFixed(1);
+        const wobble2 = ((Math.random() - 0.5) * 12).toFixed(1);
+        const wobble3 = ((Math.random() - 0.5) * 8).toFixed(1);
+        const wobble4 = ((Math.random() - 0.5) * 6).toFixed(1);
 
         bubble.style.setProperty('--size', `${size}px`);
         bubble.style.setProperty('--left', `${left}%`);
@@ -1578,7 +1599,8 @@ function initCursorSpider() {
   function resize() {
     w = window.innerWidth;
     h = window.innerHeight;
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const isMobile = w <= 768;
+    dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = w + 'px';
@@ -1918,10 +1940,13 @@ function initCursorSpider() {
       const ik = solveSpiderLocalIK(cfg, fx, fy, spider.x, spider.y, spider.angle);
 
       ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 3 + leg.current.lift * 0.5;
+      const isMobile = window.innerWidth <= 768;
+      if (!isMobile) {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 3 + leg.current.lift * 0.5;
+      }
 
       // Femur (Segment 1: Base to high knee)
       drawStripedSegment(ox, oy, ik.knee.x, ik.knee.y, 3.2, 2.3);
@@ -1947,10 +1972,12 @@ function initCursorSpider() {
     ctx.translate(spider.x, spider.y);
     ctx.rotate(spider.angle);
 
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 3;
-    ctx.shadowOffsetY = 4;
+    if (window.innerWidth > 768) {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 4;
+    }
 
     // 1. ABDOMEN
     ctx.save();

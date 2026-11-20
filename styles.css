@@ -4031,11 +4031,11 @@ a.channel-item:hover .ci-arrow {
 
 @media (max-width: 768px) {
 
-  /* Responsive Hero Image, Title & Subtitle on Mobile */
+  /* Responsive Hero Image, Title & Subtitle on Mobile: Zoomed out & perfectly centered */
   .hero-main-img {
-    object-position: 50% 18% !important;
-    transform: scale(0.96) !important;
-    transform-origin: center top !important;
+    object-position: 50% 16% !important;
+    transform: scale(0.85) !important;
+    transform-origin: center 20% !important;
   }
   .tidalia-hero-title {
     font-size: clamp(2.2rem, 9.5vw, 3.2rem) !important;
@@ -4185,75 +4185,87 @@ a.channel-item:hover .ci-arrow {
     margin-top: 0.8rem !important;
   }
 
-  /* Compact Blueprint Specification Card on Mobile: Sleek & Optimized */
+  /* Compact Blueprint Specification Card on Mobile: Sleek, proportional with healthy breathing room */
   .blueprint-console-card {
-    padding: 0.85rem 0.95rem !important;
-    margin-top: 0.8rem !important;
-    border-radius: 16px !important;
+    padding: 1.15rem 1.2rem !important;
+    margin-top: 1rem !important;
+    border-radius: 18px !important;
   }
   .bc-top-bar {
-    margin-bottom: 0.45rem !important;
+    margin-bottom: 0.6rem !important;
   }
   .bc-code {
-    font-size: 0.6rem !important;
+    font-size: 0.62rem !important;
   }
   .bc-verified-pill {
-    padding: 0.2rem 0.45rem !important;
-    font-size: 0.56rem !important;
+    padding: 0.22rem 0.5rem !important;
+    font-size: 0.58rem !important;
   }
   .bc-specs-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.4rem !important;
-    margin-bottom: 0.45rem !important;
+    gap: 0.55rem !important;
+    margin-bottom: 0.75rem !important;
   }
   .bc-spec-box {
-    padding: 0.38rem 0.5rem !important;
-    border-radius: 9px !important;
+    padding: 0.6rem 0.75rem !important;
+    border-radius: 12px !important;
   }
   .bc-spec-label {
-    font-size: 0.5rem !important;
-    margin-bottom: 0.12rem !important;
+    font-size: 0.54rem !important;
+    margin-bottom: 0.22rem !important;
   }
   .bc-spec-val {
-    font-size: 0.66rem !important;
-    line-height: 1.2 !important;
+    font-size: 0.72rem !important;
+    line-height: 1.3 !important;
   }
   .bc-narrative-area {
-    padding: 0.5rem 0.68rem !important;
-    margin-bottom: 0.55rem !important;
-    border-radius: 10px !important;
+    padding: 0.85rem 1.1rem !important;
+    margin-bottom: 0.85rem !important;
+    border-radius: 14px !important;
+    min-height: 85px !important;
   }
   .bc-blueprint-tag {
-    font-size: 0.52rem !important;
-    margin-bottom: 0.15rem !important;
+    font-size: 0.58rem !important;
+    margin-bottom: 0.35rem !important;
   }
   .bc-narrative-text {
-    font-size: 0.68rem !important;
-    line-height: 1.35 !important;
+    font-size: 0.78rem !important;
+    line-height: 1.5 !important;
   }
   .bc-cta-row {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 0.45rem !important;
+    gap: 0.6rem !important;
   }
   .bc-claim-btn {
     width: 100% !important;
     justify-content: center !important;
-    padding: 0.5rem 1rem !important;
-    font-size: 0.68rem !important;
+    padding: 0.65rem 1.2rem !important;
+    font-size: 0.72rem !important;
   }
   .bc-guarantee-note {
     text-align: center !important;
-    font-size: 0.58rem !important;
-    margin-top: 0.2rem !important;
+    font-size: 0.62rem !important;
+    margin-top: 0.25rem !important;
   }
 
-  /* Window Video Frame Mobile Optimization: Centered, smoothly expands into fullscreen */
+  /* Window Video Frame Mobile Optimization: Zoomed-out, proportionate, full frame visible */
   .window-arch-wrapper {
-    width: min(92vw, 440px);
-    height: min(62vh, 480px);
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    width: min(88vw, 360px) !important;
+    height: min(52vh, 380px) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5) !important;
+  }
+  .portfolio-scrub-video {
+    object-fit: contain !important;
+    background: #000000 !important;
+  }
+
+  /* Mobile Bubble Drops: Zero lag, instant animation */
+  .bubble-drop {
+    box-shadow: none !important;
+    border: none !important;
+    will-change: transform, opacity;
   }
 
   /* Story Scene Overlays on Mobile: Perfectly scaled, compact elements so video shines */
