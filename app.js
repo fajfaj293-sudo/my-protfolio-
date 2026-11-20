@@ -316,6 +316,7 @@ function initContinuousZoomStory() {
   // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
   let lastScrubTime = 0;
   let seekLockTime = 0;
+  let lastMobileScrubTime = 0;
 
   video.addEventListener('seeked', () => {
     isSeeking = false;
@@ -331,14 +332,23 @@ function initContinuousZoomStory() {
     const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
     const isMobile = window.innerWidth <= 768;
-    // Adaptive precision: desktop gets ultra-fine precision, mobile avoids micro-decoder stalls
-    const precisionThreshold = isMobile ? 0.06 : 0.012;
-    if (Math.abs(video.currentTime - boundedTime) < precisionThreshold) return;
-
     const now = performance.now();
 
+    if (isMobile) {
+      // 2GB RAM Mobile Optimization: Throttle decoder seeking to 10 FPS (90ms)
+      // This prevents video buffer lock and allows 2GB/3GB mobile decoders to run butter-smooth!
+      if (now - lastMobileScrubTime < 90) {
+        pendingTime = boundedTime;
+        return;
+      }
+      if (Math.abs(video.currentTime - boundedTime) < 0.08) return;
+    } else {
+      // Desktop: 60 FPS ultra-fine scrubbing
+      if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
+    }
+
     // Mobile hardware video decoders need more breathing room to avoid decoder pipeline lock
-    const maxSeekLock = isMobile ? 120 : 40;
+    const maxSeekLock = isMobile ? 140 : 40;
     if (isSeeking && (now - seekLockTime > maxSeekLock)) {
       isSeeking = false;
     }
@@ -351,6 +361,7 @@ function initContinuousZoomStory() {
     isSeeking = true;
     seekLockTime = now;
     lastScrubTime = now;
+    if (isMobile) lastMobileScrubTime = now;
 
     if (typeof video.fastSeek === 'function') {
       try {
@@ -854,6 +865,7 @@ function initPinnedRealmsCarousel() {
 // 6. STARFIELD CANVASES FOR REALMS & FINAL VOYAGE SECTIONS
 // ============================================================================
 function initStarfields() {
+  if (window.innerWidth <= 768) return; // 2GB RAM Mobile Optimization
   ['realms-star-canvas', 'footer-star-canvas'].forEach((id) => {
     const c = document.getElementById(id);
     if (!c) return;
@@ -912,6 +924,7 @@ function initStarfields() {
 // 7. FLOATING 3D COLORFUL MULTI-BOX CUBE IN FINAL VOYAGE FOOTER
 // ============================================================================
 function initFloating3DCube() {
+  if (window.innerWidth <= 768) return; // 2GB RAM Mobile Optimization
   const canvas = document.getElementById('voyage-3d-cube');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -1574,6 +1587,7 @@ function initContactForm() {
 // 12. INTERACTIVE GOLDEN-YELLOW JUMPING SPIDER (ORGANIC ALTERNATING GAIT IK)
 // ============================================================================
 function initCursorSpider() {
+  if (window.innerWidth <= 768) return; // 2GB RAM Mobile Optimization: completely disabled on mobile
   const canvas = document.getElementById('cursor-spider-canvas');
   if (!canvas) return;
 

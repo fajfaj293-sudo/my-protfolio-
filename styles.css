@@ -4057,9 +4057,9 @@ a.channel-item:hover .ci-arrow {
     margin-left: -86px !important;
     border-radius: 18px !important;
     padding: 0.75rem !important;
-    backdrop-filter: blur(8px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(8px) saturate(180%) !important;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65), 0 0 15px rgba(219, 39, 119, 0.3) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5) !important;
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1) !important;
     will-change: transform, opacity !important;
     filter: none !important;
@@ -4069,6 +4069,14 @@ a.channel-item:hover .ci-arrow {
   }
   .tidalia-realm-card.active .trc-glass-sheen {
     animation: pinkGlassSweep 4.8s ease-in-out infinite !important;
+  }
+
+  /* 2GB RAM Mobile Optimization: Disable heavy background canvas layers on mobile */
+  .cursor-spider-canvas,
+  #realms-star-canvas,
+  #footer-star-canvas,
+  #voyage-3d-cube {
+    display: none !important;
   }
   .realms-header-bar {
     padding: 0.8rem 1rem !important;
