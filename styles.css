@@ -4279,25 +4279,25 @@ a.channel-item:hover .ci-arrow {
     will-change: transform, opacity;
   }
 
-  /* Story Scene Overlays on Mobile: Clean floating text directly OVER the video */
+  /* Story Scene Overlays on Mobile: Pure transparent floating text directly over the video - ZERO dark backgrounds */
   .story-scene-ui {
     padding: 1.5rem 1.2rem !important;
     flex-direction: column !important;
     justify-content: flex-end !important;
     align-items: flex-start !important;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.75) 100%) !important;
+    background: transparent !important;
   }
   .story-scene-ui.story-ui-center {
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
     padding: 1.2rem !important;
-    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.85) 100%) !important;
+    background: transparent !important;
   }
   .story-scene-ui.story-ui-top {
     justify-content: flex-start !important;
     padding-top: 3.2rem !important;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 70%) !important;
+    background: transparent !important;
   }
   .story-text-left {
     max-width: 100% !important;

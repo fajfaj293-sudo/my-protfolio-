@@ -397,6 +397,10 @@ function initContinuousZoomStory() {
 
   // 60FPS Render Loop
   function renderFrame() {
+    if (!runwayInView) {
+      isTicking = false;
+      return;
+    }
 
     const isMobile = window.innerWidth <= 768;
     // Responsive lerp: fast tracking with zero drag or stickiness
@@ -468,9 +472,9 @@ function initContinuousZoomStory() {
       scene4.classList.toggle('active', currentTargetTime >= 11.0);
     }
 
-    // Continue render loop while lerp is still settling or seeking is pending
+    // Continue render loop ONLY while scroll lerp is actively moving
     const diff = Math.abs(targetProgress - smoothProgress);
-    if (diff > 0.0006 || isSeeking || pendingTime !== null) {
+    if (diff > 0.001) {
       requestAnimationFrame(renderFrame);
     } else {
       isTicking = false;
