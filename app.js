@@ -342,23 +342,23 @@ function initContinuousZoomStory() {
     const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
     
     const isMobile = window.innerWidth <= 768;
-    const deltaThreshold = isMobile ? 0.045 : 0.012;
+    const deltaThreshold = isMobile ? 0.08 : 0.012;
     if (Math.abs(video.currentTime - boundedTime) < deltaThreshold) return;
 
     const now = performance.now();
-    // On mobile, throttle hardware video seeks to ~14fps to avoid video decoder lockup and scroll freeze
-    const minInterval = isMobile ? 70 : 30;
-    if (now - lastScrubTime < minInterval) {
+    // Deadlock breaker: if seeking has been held for > 250ms, release it
+    if (isSeeking && (now - seekLockTime > 250)) {
+      isSeeking = false;
+    }
+
+    if (video.seeking || isSeeking) {
       pendingTime = boundedTime;
       return;
     }
 
-    // Deadlock breaker: if seeking has been held for > 40ms, release it immediately
-    if (isSeeking && (now - seekLockTime > 40)) {
-      isSeeking = false;
-    }
-
-    if (isSeeking) {
+    // On mobile, throttle hardware video seeks to ~12fps to avoid video decoder lockup and scroll freeze
+    const minInterval = isMobile ? 85 : 30;
+    if (now - lastScrubTime < minInterval) {
       pendingTime = boundedTime;
       return;
     }
@@ -442,17 +442,11 @@ function initContinuousZoomStory() {
     }
 
     // 2. Video Scrubbing with Calibrated Scene Timeline
-    let currentTargetTime = 0;
+    let videoProgress = smoothProgress <= 0.82 ? (smoothProgress / 0.82) : 1.0;
+    const effectiveDuration = (video.duration && !isNaN(video.duration)) ? video.duration : 14.43;
+    const currentTargetTime = videoProgress * effectiveDuration;
+
     if (video.duration && !isNaN(video.duration)) {
-      let videoProgress = 0;
-      if (smoothProgress <= 0.82) {
-        // From 0 to 82% scroll, play smoothly from 0s to 14.4s
-        videoProgress = smoothProgress / 0.82;
-      } else {
-        // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
-        videoProgress = 1.0;
-      }
-      currentTargetTime = videoProgress * video.duration;
       scrubToTime(currentTargetTime);
     }
 
@@ -645,37 +639,37 @@ function initPinnedRealmsCarousel() {
     if (diff === 0) {
       el.style.transform = `translate3d(0px, 0px, 70px) scale(${isMobile ? 1.0 : 1.02}) rotateY(0deg)`;
       el.style.opacity = '1';
-      el.style.filter = 'blur(0px)';
+      el.style.filter = 'none';
       el.style.zIndex = '40';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 1) {
       el.style.transform = `translate3d(${sign * step1X}px, 0px, -20px) scale(${isMobile ? 0.88 : 0.89}) rotateY(${-sign * (isMobile ? 10 : 14)}deg)`;
       el.style.opacity = '0.94';
-      el.style.filter = 'blur(0px)';
+      el.style.filter = 'none';
       el.style.zIndex = '34';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 2) {
       el.style.transform = `translate3d(${sign * step2X}px, 0px, -60px) scale(${isMobile ? 0.77 : 0.78}) rotateY(${-sign * (isMobile ? 14 : 19)}deg)`;
       el.style.opacity = '0.85';
-      el.style.filter = 'blur(0.2px)';
+      el.style.filter = isMobile ? 'none' : 'blur(0.2px)';
       el.style.zIndex = '28';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 3) {
       el.style.transform = `translate3d(${sign * step3X}px, 0px, -100px) scale(${isMobile ? 0.66 : 0.68}) rotateY(${-sign * (isMobile ? 18 : 23)}deg)`;
       el.style.opacity = '0.74';
-      el.style.filter = 'blur(0.4px)';
+      el.style.filter = isMobile ? 'none' : 'blur(0.4px)';
       el.style.zIndex = '22';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 4) {
       el.style.transform = `translate3d(${sign * step4X}px, 0px, -140px) scale(${isMobile ? 0.56 : 0.59}) rotateY(${-sign * (isMobile ? 22 : 27)}deg)`;
       el.style.opacity = '0.62';
-      el.style.filter = 'blur(0.7px)';
+      el.style.filter = isMobile ? 'none' : 'blur(0.7px)';
       el.style.zIndex = '16';
       el.style.pointerEvents = 'auto';
     } else {
       el.style.transform = `translate3d(${sign * step5X}px, 0px, -180px) scale(${isMobile ? 0.46 : 0.50}) rotateY(${-sign * (isMobile ? 25 : 30)}deg)`;
       el.style.opacity = '0.48';
-      el.style.filter = 'blur(1.0px)';
+      el.style.filter = isMobile ? 'none' : 'blur(1.0px)';
       el.style.zIndex = '10';
       el.style.pointerEvents = 'auto';
     }
