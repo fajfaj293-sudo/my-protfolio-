@@ -327,20 +327,20 @@ function initContinuousZoomStory() {
   });
 
   function scrubToTime(t) {
-    if (!video.duration || isNaN(video.duration)) return;
-    const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
+    const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
+    const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
     
     // Half-frame precision for ultra-fluid 30fps scrubbing
     if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
 
     const now = performance.now();
 
-    // Deadlock breaker: if seeking has been held for > 40ms, release it immediately
-    if (isSeeking && (now - seekLockTime > 40)) {
+    // Deadlock breaker: if seeking has been held for > 350ms, release it
+    if (isSeeking && (now - seekLockTime > 350)) {
       isSeeking = false;
     }
 
-    if (isSeeking) {
+    if (isSeeking || video.seeking) {
       pendingTime = boundedTime;
       return;
     }
@@ -423,19 +423,17 @@ function initContinuousZoomStory() {
     }
 
     // 2. Video Scrubbing with Calibrated Scene Timeline
-    let currentTargetTime = 0;
-    if (video.duration && !isNaN(video.duration)) {
-      let videoProgress = 0;
-      if (smoothProgress <= 0.82) {
-        // From 0 to 82% scroll, play smoothly from 0s to 14.4s
-        videoProgress = smoothProgress / 0.82;
-      } else {
-        // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
-        videoProgress = 1.0;
-      }
-      currentTargetTime = videoProgress * video.duration;
-      scrubToTime(currentTargetTime);
+    const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
+    let videoProgress = 0;
+    if (smoothProgress <= 0.82) {
+      // From 0 to 82% scroll, play smoothly from 0s to 14.4s
+      videoProgress = smoothProgress / 0.82;
+    } else {
+      // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
+      videoProgress = 1.0;
     }
+    const currentTargetTime = videoProgress * videoDuration;
+    scrubToTime(currentTargetTime);
 
     // 3. Scene Content Overlays Synced to Video Timelines
     // Window opening (0.0s to 1.6s): Clean window with NO text overlay
