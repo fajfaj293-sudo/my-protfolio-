@@ -1380,7 +1380,7 @@ function initDynamicPortfolio() {
       <article class="portfolio-project-card shine-card" data-category="${safeCategory}">
         <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="ppc-thumb-link" aria-label="Visit ${safeTitle} live">
           <div class="ppc-thumb">
-            <img src="${safePreview}" alt="${safeTitle} Homepage Preview" class="ppc-hero-preview-img" onerror="this.onerror=null; this.src='assets/scene1.jpg';" loading="lazy" />
+            <img src="${safePreview}" alt="${safeTitle} Homepage Preview" class="ppc-hero-preview-img" onerror="this.onerror=null; this.src='assets/scene1.webp';" loading="lazy" />
             <span class="ppc-speed-badge">⚡ Sub-100ms Live</span>
             <span class="ppc-category-tag">${safeCatName}</span>
           </div>
