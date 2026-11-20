@@ -4031,11 +4031,13 @@ a.channel-item:hover .ci-arrow {
 
 @media (max-width: 768px) {
 
-  /* Responsive Hero Image, Title & Subtitle on Mobile: Zoomed out & perfectly centered */
+  /* Responsive Hero Image on Mobile: Full-bleed edge-to-edge, NO black side bars, perfectly centered */
   .hero-main-img {
-    object-position: 50% 16% !important;
-    transform: scale(0.85) !important;
-    transform-origin: center 20% !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: 50% 12% !important;
+    transform: none !important;
   }
   .tidalia-hero-title {
     font-size: clamp(2.2rem, 9.5vw, 3.2rem) !important;
@@ -4185,80 +4187,86 @@ a.channel-item:hover .ci-arrow {
     margin-top: 0.8rem !important;
   }
 
-  /* Compact Blueprint Specification Card on Mobile: Sleek, proportional with healthy breathing room */
+  /* Blueprint Specification Card on Mobile: Wide, sleek, proportional & not stretched long */
   .blueprint-console-card {
-    padding: 1.15rem 1.2rem !important;
-    margin-top: 1rem !important;
+    padding: 1.05rem 1.15rem !important;
+    margin-top: 0.9rem !important;
     border-radius: 18px !important;
+    width: 100% !important;
   }
   .bc-top-bar {
-    margin-bottom: 0.6rem !important;
+    margin-bottom: 0.5rem !important;
   }
   .bc-code {
     font-size: 0.62rem !important;
   }
   .bc-verified-pill {
-    padding: 0.22rem 0.5rem !important;
-    font-size: 0.58rem !important;
+    padding: 0.2rem 0.45rem !important;
+    font-size: 0.56rem !important;
   }
   .bc-specs-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.55rem !important;
-    margin-bottom: 0.75rem !important;
+    gap: 0.45rem !important;
+    margin-bottom: 0.65rem !important;
   }
   .bc-spec-box {
-    padding: 0.6rem 0.75rem !important;
-    border-radius: 12px !important;
+    padding: 0.48rem 0.65rem !important;
+    border-radius: 10px !important;
   }
   .bc-spec-label {
-    font-size: 0.54rem !important;
-    margin-bottom: 0.22rem !important;
+    font-size: 0.52rem !important;
+    margin-bottom: 0.15rem !important;
   }
   .bc-spec-val {
-    font-size: 0.72rem !important;
-    line-height: 1.3 !important;
+    font-size: 0.7rem !important;
+    line-height: 1.25 !important;
   }
   .bc-narrative-area {
-    padding: 0.85rem 1.1rem !important;
-    margin-bottom: 0.85rem !important;
-    border-radius: 14px !important;
-    min-height: 85px !important;
+    padding: 0.7rem 0.9rem !important;
+    margin-bottom: 0.7rem !important;
+    border-radius: 12px !important;
+    min-height: unset !important;
   }
   .bc-blueprint-tag {
-    font-size: 0.58rem !important;
-    margin-bottom: 0.35rem !important;
+    font-size: 0.54rem !important;
+    margin-bottom: 0.2rem !important;
   }
   .bc-narrative-text {
-    font-size: 0.78rem !important;
-    line-height: 1.5 !important;
+    font-size: 0.75rem !important;
+    line-height: 1.45 !important;
   }
   .bc-cta-row {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 0.6rem !important;
+    gap: 0.5rem !important;
   }
   .bc-claim-btn {
     width: 100% !important;
     justify-content: center !important;
-    padding: 0.65rem 1.2rem !important;
-    font-size: 0.72rem !important;
+    padding: 0.55rem 1rem !important;
+    font-size: 0.7rem !important;
   }
   .bc-guarantee-note {
     text-align: center !important;
-    font-size: 0.62rem !important;
-    margin-top: 0.25rem !important;
+    font-size: 0.6rem !important;
+    margin-top: 0.15rem !important;
   }
 
-  /* Window Video Frame Mobile Optimization: Zoomed-out, proportionate, full frame visible */
+  /* Window Video Frame Mobile Optimization: Expansive, natural cinema frame, NO black letterbox bars */
   .window-arch-wrapper {
-    width: min(88vw, 360px) !important;
-    height: min(52vh, 380px) !important;
-    border-radius: 18px !important;
-    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5) !important;
+    width: min(92vw, 460px) !important;
+    height: min(65vh, 480px) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55) !important;
+    overflow: hidden !important;
   }
   .portfolio-scrub-video {
-    object-fit: contain !important;
-    background: #000000 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    background: transparent !important;
+    border-radius: inherit !important;
   }
 
   /* Mobile Bubble Drops: Zero lag, instant animation */
@@ -4268,39 +4276,42 @@ a.channel-item:hover .ci-arrow {
     will-change: transform, opacity;
   }
 
-  /* Story Scene Overlays on Mobile: Perfectly scaled, compact elements so video shines */
+  /* Story Scene Overlays on Mobile: Clean floating text directly OVER the video */
   .story-scene-ui {
-    padding: 1.1rem 0.95rem !important;
+    padding: 1.5rem 1.2rem !important;
     flex-direction: column !important;
     justify-content: flex-end !important;
-    align-items: stretch !important;
+    align-items: flex-start !important;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.75) 100%) !important;
   }
   .story-scene-ui.story-ui-center {
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
-    padding: 0.85rem !important;
+    padding: 1.2rem !important;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.85) 100%) !important;
   }
   .story-scene-ui.story-ui-top {
     justify-content: flex-start !important;
-    padding-top: 2.8rem !important;
+    padding-top: 3.2rem !important;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 70%) !important;
   }
   .story-text-left {
     max-width: 100% !important;
     margin-bottom: 0.45rem !important;
   }
   .story-serif-h2 {
-    font-size: 1.12rem !important;
-    line-height: 1.22 !important;
-    margin-bottom: 0.25rem !important;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95) !important;
+    font-size: 1.22rem !important;
+    line-height: 1.24 !important;
+    margin-bottom: 0.3rem !important;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.8) !important;
   }
   .story-sub-p {
-    font-size: 0.72rem !important;
-    line-height: 1.35 !important;
-    margin-bottom: 0.45rem !important;
-    max-width: 300px !important;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95) !important;
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+    margin-bottom: 0.55rem !important;
+    max-width: 320px !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95), 0 0 15px rgba(0, 0, 0, 0.8) !important;
   }
   .story-step-line {
     font-size: 0.58rem !important;
@@ -4310,16 +4321,16 @@ a.channel-item:hover .ci-arrow {
   .story-sliders-right {
     flex-direction: row !important;
     flex-wrap: wrap !important;
-    gap: 0.35rem !important;
+    gap: 0.45rem !important;
     margin-bottom: 0.45rem !important;
   }
   .frosted-meta-pill,
   .frosted-wave-slider {
-    padding: 0.32rem 0.65rem !important;
-    font-size: 0.62rem !important;
+    padding: 0.38rem 0.75rem !important;
+    font-size: 0.65rem !important;
     min-width: unset !important;
-    width: 100% !important;
-    max-width: 260px !important;
+    width: auto !important;
+    max-width: 100% !important;
     border-radius: 999px !important;
   }
   .frosted-meta-pill span {
