@@ -396,24 +396,16 @@ function initContinuousZoomStory() {
         windowWrapper.style.boxShadow = 'none';
         windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
       } else {
-        const baseW = isMobile ? 90 : 84;
+        const baseW = isMobile ? 88 : 84;
+        const baseH = isMobile ? 62 : 68;
         const wPct = baseW + zoomPhase * (100 - baseW);
-        const radius = Math.max(0, (isMobile ? 18 : 24) * (1 - zoomPhase * 1.5));
+        const hPct = baseH + zoomPhase * (100 - baseH);
+        const radius = Math.max(0, (isMobile ? 20 : 24) * (1 - zoomPhase * 1.5));
         const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
-        const scale = 0.92 + zoomPhase * 0.08;
+        const scale = 0.90 + zoomPhase * 0.10;
 
-        if (isMobile) {
-          const baseH = (baseW * 9) / 16;
-          const currentH = baseH + zoomPhase * (100 - baseH);
-          windowWrapper.style.width = `${wPct.toFixed(1)}vw`;
-          windowWrapper.style.height = zoomPhase > 0.02 ? `${currentH.toFixed(1)}vh` : `min(calc(92vw * 9 / 16), 240px)`;
-        } else {
-          const baseH = 68;
-          const hPct = baseH + zoomPhase * (100 - baseH);
-          windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
-          windowWrapper.style.height = `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
-        }
-
+        windowWrapper.style.width = isMobile ? `${wPct.toFixed(1)}vw` : `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
+        windowWrapper.style.height = isMobile ? `${hPct.toFixed(1)}vh` : `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
         windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
         windowWrapper.style.boxShadow = shadowAlpha > 0.01 
           ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
