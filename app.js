@@ -428,36 +428,41 @@ function initContinuousZoomStory() {
       const zoomPhase = Math.min(smoothProgress / 0.18, 1);
       const isMobile = window.innerWidth <= 768;
 
-      if (zoomPhase >= 0.88) {
-        windowWrapper.style.width = '100vw';
-        windowWrapper.style.height = '100vh';
-        windowWrapper.style.borderRadius = '0px';
-        windowWrapper.style.boxShadow = 'none';
+      if (isMobile) {
+        // Mobile: Zoom out slightly so full 16:9 video content is 100% visible, not filling entire screen height!
+        const baseW = 86;
+        const targetW = 93;
+        const wPct = baseW + zoomPhase * (targetW - baseW);
+        const hPct = (wPct * 9) / 16;
+        windowWrapper.style.width = `${wPct.toFixed(1)}vw`;
+        windowWrapper.style.height = `min(${hPct.toFixed(1)}vw, 54vh)`;
+        windowWrapper.style.borderRadius = '16px';
+        windowWrapper.style.boxShadow = '0 16px 45px rgba(0, 0, 0, 0.55)';
         windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
       } else {
-        const baseW = isMobile ? 90 : 84;
-        const wPct = baseW + zoomPhase * (100 - baseW);
-        const radius = Math.max(0, (isMobile ? 18 : 24) * (1 - zoomPhase * 1.5));
-        const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
-        const scale = 0.92 + zoomPhase * 0.08;
-
-        if (isMobile) {
-          const baseH = (baseW * 9) / 16;
-          const currentH = baseH + zoomPhase * (100 - baseH);
-          windowWrapper.style.width = `${wPct.toFixed(1)}vw`;
-          windowWrapper.style.height = zoomPhase > 0.02 ? `${currentH.toFixed(1)}vh` : `min(calc(92vw * 9 / 16), 240px)`;
+        // Desktop: Remains 100% untouched
+        if (zoomPhase >= 0.88) {
+          windowWrapper.style.width = '100vw';
+          windowWrapper.style.height = '100vh';
+          windowWrapper.style.borderRadius = '0px';
+          windowWrapper.style.boxShadow = 'none';
+          windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
         } else {
+          const baseW = 84;
+          const wPct = baseW + zoomPhase * (100 - baseW);
+          const radius = Math.max(0, 24 * (1 - zoomPhase * 1.5));
+          const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
+          const scale = 0.92 + zoomPhase * 0.08;
           const baseH = 68;
           const hPct = baseH + zoomPhase * (100 - baseH);
           windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
           windowWrapper.style.height = `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
+          windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
+          windowWrapper.style.boxShadow = shadowAlpha > 0.01 
+            ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
+            : 'none';
+          windowWrapper.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
         }
-
-        windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
-        windowWrapper.style.boxShadow = shadowAlpha > 0.01 
-          ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
-          : 'none';
-        windowWrapper.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
       }
     }
 
@@ -1821,6 +1826,14 @@ function initCursorSpider() {
 
     ctx.clearRect(0, 0, w, h);
 
+    const isMobile = window.innerWidth <= 768;
+    ctx.save();
+    if (isMobile) {
+      ctx.translate(spider.x, spider.y);
+      ctx.scale(0.72, 0.72);
+      ctx.translate(-spider.x, -spider.y);
+    }
+
     const toCursorX = mouse.x - spider.x;
     const toCursorY = mouse.y - spider.y;
     const distToCursor = Math.hypot(toCursorX, toCursorY);
@@ -1860,8 +1873,8 @@ function initCursorSpider() {
       spider.vy *= 0.85;
     }
 
-    // Draw Silk Web Dragline
-    if (webSilk.length >= 2) {
+    // Draw Silk Web Dragline (Desktop only: clean and un-cluttered on mobile)
+    if (webSilk.length >= 2 && !isMobile) {
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(webSilk[0].x, webSilk[0].y);
@@ -1963,10 +1976,15 @@ function initCursorSpider() {
       const ik = solveSpiderLocalIK(cfg, fx, fy, spider.x, spider.y, spider.angle);
 
       ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 3 + leg.current.lift * 0.5;
+      if (!isMobile) {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 3 + leg.current.lift * 0.5;
+      } else {
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      }
 
       // Femur (Segment 1: Base to high knee)
       drawStripedSegment(ox, oy, ik.knee.x, ik.knee.y, 3.2, 2.3);
@@ -1992,10 +2010,15 @@ function initCursorSpider() {
     ctx.translate(spider.x, spider.y);
     ctx.rotate(spider.angle);
 
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 3;
-    ctx.shadowOffsetY = 4;
+    if (!isMobile) {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 4;
+    } else {
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+    }
 
     // 1. ABDOMEN
     ctx.save();
@@ -2127,6 +2150,7 @@ function initCursorSpider() {
     });
 
     ctx.restore();
+    if (isMobile) ctx.restore();
 
     requestAnimationFrame(renderSpider);
   }

@@ -4121,37 +4121,111 @@ a.channel-item:hover .ci-arrow {
   }
 
 
-  /* Compact Blueprint card on mobile: 2x2 grid instead of 4 giant rows */
+  /* Blueprint Specification Card: Wider, shorter, and compact on mobile */
+  .light-composer-section {
+    padding: 2rem 0.5rem !important;
+  }
+  .composer-container {
+    width: 100% !important;
+    padding: 0 !important;
+  }
+  .composer-white-card {
+    padding: 1.15rem 0.75rem !important;
+    border-radius: 20px !important;
+    width: 100% !important;
+  }
   .blueprint-console-card {
-    padding: 1.1rem 1.2rem !important;
-    margin-top: 1.2rem !important;
+    width: 100% !important;
+    padding: 0.85rem 0.8rem !important;
+    margin-top: 0.9rem !important;
+    border-radius: 18px !important;
+  }
+  .bc-top-bar {
+    margin-bottom: 0.6rem !important;
+    flex-wrap: nowrap !important;
+    gap: 0.35rem !important;
+  }
+  .bc-code {
+    font-size: 0.58rem !important;
+    white-space: nowrap !important;
+  }
+  .bc-verified-pill {
+    padding: 0.2rem 0.5rem !important;
+    font-size: 0.55rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
   }
   .bc-specs-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.6rem !important;
+    gap: 0.45rem !important;
+    margin-bottom: 0.6rem !important;
   }
   .bc-spec-box {
-    padding: 0.55rem 0.7rem !important;
+    padding: 0.4rem 0.55rem !important;
+    border-radius: 12px !important;
   }
   .bc-spec-label {
-    font-size: 0.55rem !important;
+    font-size: 0.52rem !important;
+    letter-spacing: 0.04em !important;
   }
   .bc-spec-val {
+    font-size: 0.7rem !important;
+  }
+  .bc-narrative-area {
+    padding: 0.55rem 0.7rem !important;
+    margin-bottom: 0.7rem !important;
+    border-radius: 12px !important;
+  }
+  .bc-blueprint-tag {
+    font-size: 0.52rem !important;
+  }
+  .bc-narrative-text {
     font-size: 0.72rem !important;
+    line-height: 1.35 !important;
+    margin-top: 0.2rem !important;
   }
   .bc-cta-row {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 0.6rem !important;
-  }
-  .bc-claim-btn {
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 0.65rem 1.2rem !important;
+    gap: 0.45rem !important;
   }
   .bc-guarantee-note {
     text-align: center !important;
-    font-size: 0.68rem !important;
+    font-size: 0.64rem !important;
+  }
+
+  /* Buttons: Text strictly on ONE single line without wrapping */
+  .generate-soundtrack-btn,
+  #generate-solution-btn {
+    white-space: nowrap !important;
+    font-size: 0.76rem !important;
+    padding: 0.7rem 0.9rem !important;
+    width: 100% !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    letter-spacing: 0.03em !important;
+  }
+  .generate-soundtrack-btn span,
+  #generate-solution-btn span {
+    white-space: nowrap !important;
+  }
+  .bc-claim-btn {
+    white-space: nowrap !important;
+    font-size: 0.76rem !important;
+    padding: 0.7rem 0.9rem !important;
+    width: 100% !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    letter-spacing: 0.03em !important;
+  }
+  .bc-claim-btn span {
+    white-space: nowrap !important;
   }
 
   /* Window Video Frame Mobile Optimization: Centered, smoothly expands into fullscreen */
