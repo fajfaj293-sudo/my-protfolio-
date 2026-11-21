@@ -4238,12 +4238,17 @@ a.channel-item:hover .ci-arrow {
     white-space: nowrap !important;
   }
 
-  /* Window Video Frame Mobile Optimization: Centered, smoothly expands into fullscreen */
+  /* Window Video Frame Mobile Optimization: Visibly compact & proportional so full content is clean and never oversized */
   .window-arch-wrapper {
-    width: min(92vw, 440px);
-    height: min(62vh, 480px);
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    width: min(84vw, 340px) !important;
+    height: min(calc(84vw * 9 / 16), 200px) !important;
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55) !important;
+  }
+  .portfolio-scrub-video {
+    object-fit: contain !important;
+    background: #000000 !important;
   }
 
   /* Story Scene Overlays on Mobile: Perfectly scaled, high readability, beautiful glass scrim */

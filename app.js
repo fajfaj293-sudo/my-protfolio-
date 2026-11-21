@@ -429,18 +429,15 @@ function initContinuousZoomStory() {
       const isMobile = window.innerWidth <= 768;
 
       if (isMobile) {
-        // Mobile: Zoom out slightly from 100vw/100vh to a comfortable frame with margins
-        const baseW = 88;
-        const targetW = 92;
+        // Mobile: Visibly compact size so video is never oversized or cropped, exactly as requested
+        const baseW = 78;
+        const targetW = 84;
         const wPct = baseW + zoomPhase * (targetW - baseW);
-        const baseH = 58;
-        const targetH = 68;
-        const hPct = baseH + zoomPhase * (targetH - baseH);
-        const radius = Math.max(12, 20 * (1 - zoomPhase * 0.4));
-        windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, 440px)`;
-        windowWrapper.style.height = `min(${hPct.toFixed(1)}vh, 480px)`;
-        windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
-        windowWrapper.style.boxShadow = '0 18px 50px rgba(0, 0, 0, 0.6)';
+        const maxH = (wPct * 9) / 16;
+        windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, 340px)`;
+        windowWrapper.style.height = `min(${maxH.toFixed(1)}vw, 200px)`;
+        windowWrapper.style.borderRadius = '16px';
+        windowWrapper.style.boxShadow = '0 14px 40px rgba(0, 0, 0, 0.55)';
         windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
       } else {
         // Desktop: Remains 100% untouched
