@@ -374,7 +374,22 @@ function initContinuousZoomStory() {
     }
   }
 
+  let runwayInView = true;
+  if ('IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      runwayInView = entries[0].isIntersecting;
+      if (runwayInView) {
+        requestTick();
+      }
+    }, { threshold: 0 });
+    obs.observe(runway);
+  }
+
   function requestTick() {
+    if (!runwayInView) {
+      isTicking = false;
+      return;
+    }
     if (!isTicking) {
       isTicking = true;
       requestAnimationFrame(renderFrame);
@@ -383,6 +398,7 @@ function initContinuousZoomStory() {
 
   // Smooth scroll listener
   window.addEventListener('scroll', () => {
+    if (!runwayInView) return;
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
@@ -392,6 +408,10 @@ function initContinuousZoomStory() {
 
   // 60FPS Render Loop
   function renderFrame() {
+    if (!runwayInView) {
+      isTicking = false;
+      return;
+    }
 
     const isMobile = window.innerWidth <= 768;
     // Responsive lerp: fast tracking with zero drag or stickiness
@@ -865,13 +885,13 @@ function initPinnedRealmsCarousel() {
 // 6. STARFIELD CANVASES FOR REALMS & FINAL VOYAGE SECTIONS
 // ============================================================================
 function initStarfields() {
-  if (window.innerWidth <= 768) return; // 2GB RAM Mobile Optimization
+  const isMobile = window.innerWidth <= 768;
   ['realms-star-canvas', 'footer-star-canvas'].forEach((id) => {
     const c = document.getElementById(id);
     if (!c) return;
     const ctx = c.getContext('2d');
-    c.width = 1280;
-    c.height = 720;
+    c.width = isMobile ? 640 : 1280;
+    c.height = isMobile ? 360 : 720;
 
     let canvasInView = true;
     let starRafId = null;
@@ -895,9 +915,10 @@ function initStarfields() {
       obs.observe(c);
     }
 
-    const stars = Array.from({ length: 90 }, () => ({
-      x: Math.random() * 1280,
-      y: Math.random() * 720,
+    const starCount = isMobile ? 25 : 90;
+    const stars = Array.from({ length: starCount }, () => ({
+      x: Math.random() * c.width,
+      y: Math.random() * c.height,
       r: Math.random() * 1.6 + 0.4
     }));
 
@@ -906,7 +927,7 @@ function initStarfields() {
         starRafId = null;
         return;
       }
-      ctx.clearRect(0, 0, 1280, 720);
+      ctx.clearRect(0, 0, c.width, c.height);
       stars.forEach((s, i) => {
         const alpha = 0.25 + 0.7 * Math.abs(Math.sin(t * 0.0015 + i));
         ctx.fillStyle = `rgba(233, 213, 255, ${alpha})`;
@@ -924,7 +945,6 @@ function initStarfields() {
 // 7. FLOATING 3D COLORFUL MULTI-BOX CUBE IN FINAL VOYAGE FOOTER
 // ============================================================================
 function initFloating3DCube() {
-  if (window.innerWidth <= 768) return; // 2GB RAM Mobile Optimization
   const canvas = document.getElementById('voyage-3d-cube');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -1587,7 +1607,6 @@ function initContactForm() {
 // 12. INTERACTIVE GOLDEN-YELLOW JUMPING SPIDER (ORGANIC ALTERNATING GAIT IK)
 // ============================================================================
 function initCursorSpider() {
-  if (window.innerWidth <= 768) return; // 2GB RAM Mobile Optimization: completely disabled on mobile
   const canvas = document.getElementById('cursor-spider-canvas');
   if (!canvas) return;
 
@@ -1598,7 +1617,8 @@ function initCursorSpider() {
   function resize() {
     w = window.innerWidth;
     h = window.innerHeight;
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const isMobile = window.innerWidth <= 768;
+    dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = w + 'px';
