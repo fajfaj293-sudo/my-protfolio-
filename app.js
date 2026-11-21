@@ -306,129 +306,211 @@ function initContinuousZoomStory() {
   const video = document.getElementById('portfolio-scroll-video');
   if (!runway || !video) return;
 
-  // Basic video configuration
+  let targetProgress = 0;
+  let smoothProgress = 0;
+  let isTicking = false;
+  let isSeeking = false;
+  let pendingTime = null;
+
+  // Optimize video configuration
   video.muted = true;
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
-  // Video duration fallback (exact Cloudinary video duration)
-  const DURATION = 14.4;
+  // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
+  let lastScrubTime = 0;
+  let seekLockTime = 0;
+  let lastMobileScrubTime = 0;
 
-  let targetProgress = 0;
-  let currentProgress = 0;
-  let rafId = null;
+  video.addEventListener('seeked', () => {
+    isSeeking = false;
+    if (pendingTime !== null) {
+      const nextTime = pendingTime;
+      pendingTime = null;
+      scrubToTime(nextTime);
+    }
+  });
 
-  // Direct, fast 1:1 video frame scrubbing without deadlocks
-  function setVideoTime(time) {
-    if (!video.duration || isNaN(video.duration)) {
-      video.currentTime = Math.max(0, Math.min(DURATION - 0.04, time));
+  function scrubToTime(t) {
+    if (!video.duration || isNaN(video.duration)) return;
+    const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
+    
+    const isMobile = window.innerWidth <= 768;
+    const now = performance.now();
+
+    if (isMobile) {
+      // 2GB RAM Mobile Optimization: Throttle decoder seeking to 10 FPS (90ms)
+      // This prevents video buffer lock and allows 2GB/3GB mobile decoders to run butter-smooth!
+      if (now - lastMobileScrubTime < 90) {
+        pendingTime = boundedTime;
+        return;
+      }
+      if (Math.abs(video.currentTime - boundedTime) < 0.08) return;
+    } else {
+      // Desktop: 60 FPS ultra-fine scrubbing
+      if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
+    }
+
+    // Mobile hardware video decoders need more breathing room to avoid decoder pipeline lock
+    const maxSeekLock = isMobile ? 140 : 40;
+    if (isSeeking && (now - seekLockTime > maxSeekLock)) {
+      isSeeking = false;
+    }
+
+    if (isSeeking) {
+      pendingTime = boundedTime;
       return;
     }
-    const maxT = Math.max(0, video.duration - 0.04);
-    const clamped = Math.max(0, Math.min(maxT, time));
-    if (Math.abs(video.currentTime - clamped) > 0.005) {
-      video.currentTime = clamped;
+
+    isSeeking = true;
+    seekLockTime = now;
+    lastScrubTime = now;
+    if (isMobile) lastMobileScrubTime = now;
+
+    if (typeof video.fastSeek === 'function') {
+      try {
+        video.fastSeek(boundedTime);
+      } catch (e) {
+        video.currentTime = boundedTime;
+      }
+    } else {
+      video.currentTime = boundedTime;
     }
   }
 
-  // Update on scroll: calculates 0.0 (top of runway) to 1.0 (bottom of runway)
-  function onScroll() {
+  let runwayInView = true;
+  if ('IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      runwayInView = entries[0].isIntersecting;
+      if (runwayInView) {
+        requestTick();
+      }
+    }, { threshold: 0 });
+    obs.observe(runway);
+  }
+
+  function requestTick() {
+    if (!runwayInView) {
+      isTicking = false;
+      return;
+    }
+    if (!isTicking) {
+      isTicking = true;
+      requestAnimationFrame(renderFrame);
+    }
+  }
+
+  // Smooth scroll listener
+  window.addEventListener('scroll', () => {
+    if (!runwayInView) return;
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
-    if (maxScroll <= 0) return;
-
-    // How far user has scrolled into runway
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
-    targetProgress = current / maxScroll;
+    targetProgress = maxScroll > 0 ? current / maxScroll : 0;
+    requestTick();
+  }, { passive: true });
 
-    if (!rafId) {
-      rafId = requestAnimationFrame(updateFrame);
+  // 60FPS Render Loop
+  function renderFrame() {
+    if (!runwayInView) {
+      isTicking = false;
+      return;
     }
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll, { passive: true });
-
-  // 60FPS Render loop
-  function updateFrame() {
-    rafId = null;
 
     const isMobile = window.innerWidth <= 768;
-    // Ultra-snappy tracking so video and window stay locked to scrollbar
-    const lerp = isMobile ? 0.35 : 0.7;
-    currentProgress += (targetProgress - currentProgress) * lerp;
+    // Responsive lerp: fast tracking with zero drag or stickiness
+    const lerpFactor = isMobile ? 0.35 : 0.28;
+    smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
 
-    // 1. Centered Window expands from initial size into 100vw x 100vh fullscreen
+    // 1. Centered Window Zooms & Expands into 100% Fullscreen
     if (windowWrapper) {
-      // First 20% of scroll runway expands the window to full viewport
-      const zoomPhase = Math.min(currentProgress / 0.20, 1);
+      const zoomPhase = Math.min(smoothProgress / 0.18, 1);
+      const isMobile = window.innerWidth <= 768;
 
-      if (isMobile) {
-        // Mobile compact natural window
-        const baseW = 80;
-        const targetW = 86;
-        const wPct = baseW + zoomPhase * (targetW - baseW);
-        const maxH = (wPct * 9) / 16;
-        windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, 340px)`;
-        windowWrapper.style.height = `min(${maxH.toFixed(1)}vw, 200px)`;
-        windowWrapper.style.borderRadius = '16px';
-        windowWrapper.style.boxShadow = '0 14px 40px rgba(0, 0, 0, 0.55)';
+      if (zoomPhase >= 0.88) {
+        windowWrapper.style.width = '100vw';
+        windowWrapper.style.height = '100vh';
+        windowWrapper.style.borderRadius = '0px';
+        windowWrapper.style.boxShadow = 'none';
         windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
       } else {
-        // Desktop: Zooms from centered card into 100% full screen
-        if (zoomPhase >= 0.92) {
-          windowWrapper.style.width = '100vw';
-          windowWrapper.style.height = '100vh';
-          windowWrapper.style.borderRadius = '0px';
-          windowWrapper.style.boxShadow = 'none';
-          windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
+        const baseW = isMobile ? 90 : 84;
+        const wPct = baseW + zoomPhase * (100 - baseW);
+        const radius = Math.max(0, (isMobile ? 18 : 24) * (1 - zoomPhase * 1.5));
+        const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
+        const scale = 0.92 + zoomPhase * 0.08;
+
+        if (isMobile) {
+          const baseH = (baseW * 9) / 16;
+          const currentH = baseH + zoomPhase * (100 - baseH);
+          windowWrapper.style.width = `${wPct.toFixed(1)}vw`;
+          windowWrapper.style.height = zoomPhase > 0.02 ? `${currentH.toFixed(1)}vh` : `min(calc(92vw * 9 / 16), 240px)`;
         } else {
-          const baseW = 84;
-          const wPct = baseW + zoomPhase * (100 - baseW);
           const baseH = 68;
           const hPct = baseH + zoomPhase * (100 - baseH);
-          const radius = Math.max(0, 24 * (1 - zoomPhase * 1.5));
-          const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
-          const scale = 0.92 + zoomPhase * 0.08;
-
           windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
           windowWrapper.style.height = `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
-          windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
-          windowWrapper.style.boxShadow = shadowAlpha > 0.01 
-            ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
-            : 'none';
-          windowWrapper.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
         }
+
+        windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
+        windowWrapper.style.boxShadow = shadowAlpha > 0.01 
+          ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
+          : 'none';
+        windowWrapper.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
       }
     }
 
-    // 2. Direct 1:1 Video Scrubbing across the entire runway
-    const dur = (video.duration && !isNaN(video.duration) && video.duration > 0) ? video.duration : DURATION;
-    const currentVideoTime = currentProgress * (dur - 0.04);
-    setVideoTime(currentVideoTime);
+    // 2. Video Scrubbing with Calibrated Scene Timeline
+    let currentTargetTime = 0;
+    if (video.duration && !isNaN(video.duration)) {
+      let videoProgress = 0;
+      if (smoothProgress <= 0.82) {
+        // From 0 to 82% scroll, play smoothly from 0s to 14.4s
+        videoProgress = smoothProgress / 0.82;
+      } else {
+        // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
+        videoProgress = 1.0;
+      }
+      currentTargetTime = videoProgress * video.duration;
+      scrubToTime(currentTargetTime);
+    }
 
-    // 3. Scene Content Overlays (Text animations on top of window)
+    // 3. Scene Content Overlays Synced to Video Timelines
+    // Window opening (0.0s to 1.6s): Clean window with NO text overlay
     const scene1 = document.getElementById('scene-ui-1');
     const scene2 = document.getElementById('scene-ui-2');
     const scene3 = document.getElementById('scene-ui-3');
     const scene4 = document.getElementById('scene-ui-4');
 
     if (scene1 && scene2 && scene3 && scene4) {
-      scene1.classList.toggle('active', currentVideoTime >= 1.6 && currentVideoTime < 4.5);
-      scene2.classList.toggle('active', currentVideoTime >= 4.5 && currentVideoTime < 7.5);
-      scene3.classList.toggle('active', currentVideoTime >= 7.5 && currentVideoTime < 11.0);
-      scene4.classList.toggle('active', currentVideoTime >= 11.0);
+      // Scene 1: Wireframing & UI/UX (1.6s - 4.5s)
+      scene1.classList.toggle('active', currentTargetTime >= 1.6 && currentTargetTime < 4.5);
+      // Scene 2: WordPress, Elementor & PHP Code (4.5s - 7.5s)
+      scene2.classList.toggle('active', currentTargetTime >= 4.5 && currentTargetTime < 7.5);
+      // Scene 3: Fluid Responsiveness Across All Devices (7.5s - 11.0s)
+      scene3.classList.toggle('active', currentTargetTime >= 7.5 && currentTargetTime < 11.0);
+      // Scene 4: 3D Project Showcase & Call to Action (11.0s - 14.4s+)
+      scene4.classList.toggle('active', currentTargetTime >= 11.0);
     }
 
-    // Keep loop active until settling
-    if (Math.abs(targetProgress - currentProgress) > 0.0005) {
-      rafId = requestAnimationFrame(updateFrame);
+    // Continue render loop while lerp is still settling or seeking is pending
+    const diff = Math.abs(targetProgress - smoothProgress);
+    if (diff > 0.0006 || isSeeking || pendingTime !== null) {
+      requestAnimationFrame(renderFrame);
+    } else {
+      isTicking = false;
     }
   }
 
-  // Initial trigger
-  onScroll();
+  video.addEventListener('loadedmetadata', requestTick);
+  if (video.readyState >= 1) {
+    requestTick();
+  } else {
+    video.load();
+    requestTick();
+  }
+  requestTick();
 }
 
 // ============================================================================
