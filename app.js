@@ -429,15 +429,18 @@ function initContinuousZoomStory() {
       const isMobile = window.innerWidth <= 768;
 
       if (isMobile) {
-        // Mobile: Zoom out slightly so full 16:9 video content is 100% visible, not filling entire screen height!
-        const baseW = 86;
-        const targetW = 93;
+        // Mobile: Zoom out slightly from 100vw/100vh to a comfortable frame with margins
+        const baseW = 88;
+        const targetW = 92;
         const wPct = baseW + zoomPhase * (targetW - baseW);
-        const hPct = (wPct * 9) / 16;
-        windowWrapper.style.width = `${wPct.toFixed(1)}vw`;
-        windowWrapper.style.height = `min(${hPct.toFixed(1)}vw, 54vh)`;
-        windowWrapper.style.borderRadius = '16px';
-        windowWrapper.style.boxShadow = '0 16px 45px rgba(0, 0, 0, 0.55)';
+        const baseH = 58;
+        const targetH = 68;
+        const hPct = baseH + zoomPhase * (targetH - baseH);
+        const radius = Math.max(12, 20 * (1 - zoomPhase * 0.4));
+        windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, 440px)`;
+        windowWrapper.style.height = `min(${hPct.toFixed(1)}vh, 480px)`;
+        windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
+        windowWrapper.style.boxShadow = '0 18px 50px rgba(0, 0, 0, 0.6)';
         windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
       } else {
         // Desktop: Remains 100% untouched
@@ -741,8 +744,11 @@ function initPinnedRealmsCarousel() {
   // Initialize 3D stacked layout immediately on page load!
   setActiveRealm(0);
 
-  // Vertical Scroll Automatically Traverses Cards 01/10 -> 10/10!
+  // Desktop only: Vertical Scroll Automatically Traverses Cards 01/10 -> 10/10!
   window.addEventListener('scroll', () => {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) return;
+
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
     if (rect.top <= 0 && rect.bottom >= window.innerHeight && maxScroll > 0) {
@@ -756,9 +762,12 @@ function initPinnedRealmsCarousel() {
 
   function scrollToRealm(idx) {
     const wrapped = ((idx % total) + total) % total;
-    const maxScroll = runway.offsetHeight - window.innerHeight;
-    const targetY = runway.offsetTop + (wrapped / (total - 0.5)) * maxScroll;
-    window.scrollTo({ top: targetY, behavior: 'smooth' });
+    const isMobile = window.innerWidth <= 768;
+    if (!isMobile) {
+      const maxScroll = runway.offsetHeight - window.innerHeight;
+      const targetY = runway.offsetTop + (wrapped / (total - 0.5)) * maxScroll;
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
     setActiveRealm(wrapped);
   }
 
@@ -775,6 +784,7 @@ function initPinnedRealmsCarousel() {
   let touchStartX = 0;
   let touchStartY = 0;
   let touchDeltaX = 0;
+  let touchDeltaY = 0;
   let isSwiping = false;
 
   track.addEventListener('touchstart', (e) => {
@@ -782,6 +792,7 @@ function initPinnedRealmsCarousel() {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchDeltaX = 0;
+    touchDeltaY = 0;
     isSwiping = true;
   }, { passive: true });
 
@@ -790,9 +801,10 @@ function initPinnedRealmsCarousel() {
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
     touchDeltaX = currentX - touchStartX;
-    const deltaY = currentY - touchStartY;
+    touchDeltaY = currentY - touchStartY;
 
-    if (Math.abs(touchDeltaX) > Math.abs(deltaY) && Math.abs(touchDeltaX) > 12) {
+    // Only prevent default if horizontal swipe is clearly dominant (> 1.5x vertical)
+    if (Math.abs(touchDeltaX) > Math.abs(touchDeltaY) * 1.5 && Math.abs(touchDeltaX) > 15) {
       if (e.cancelable) e.preventDefault();
     }
   }, { passive: false });
@@ -800,13 +812,16 @@ function initPinnedRealmsCarousel() {
   track.addEventListener('touchend', () => {
     if (!isSwiping) return;
     isSwiping = false;
-    const swipeThreshold = 38;
-    if (touchDeltaX < -swipeThreshold) {
-      scrollToRealm(activeIdx + 1);
-    } else if (touchDeltaX > swipeThreshold) {
-      scrollToRealm(activeIdx - 1);
+    const swipeThreshold = 35;
+    if (Math.abs(touchDeltaX) > Math.abs(touchDeltaY) && Math.abs(touchDeltaX) > swipeThreshold) {
+      if (touchDeltaX < 0) {
+        scrollToRealm(activeIdx + 1);
+      } else {
+        scrollToRealm(activeIdx - 1);
+      }
     }
     touchDeltaX = 0;
+    touchDeltaY = 0;
   }, { passive: true });
 
   // Modal Inspection
@@ -832,7 +847,17 @@ function initPinnedRealmsCarousel() {
 
   // Click interaction: Clicking ANY card opens the detailed modal immediately and centers that card!
   cards.forEach((card, idx) => {
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      const isMobile = window.innerWidth <= 768;
+      // If user was dragging vertically or swiping on mobile, ignore click so scrolling isn't blocked!
+      if (isMobile && (Math.abs(touchDeltaX) > 8 || Math.abs(touchDeltaY) > 8)) return;
+
+      // On mobile, if clicking an inactive background card, simply bring it to center first
+      if (isMobile && idx !== activeIdx) {
+        scrollToRealm(idx);
+        return;
+      }
+
       scrollToRealm(idx);
       const num = card.querySelector('.trc-idx')?.textContent || `0${idx + 1} / 10`;
       const name = card.getAttribute('data-name') || '';

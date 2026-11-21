@@ -4037,17 +4037,27 @@ a.channel-item:hover .ci-arrow {
   }
 
   /* 10 Realms Carousel Mobile Layout: Center card + symmetrical peek on left & right */
-  .realms-stage {
-    padding-top: 1rem !important;
-    padding-bottom: 1.5rem !important;
+  .realms-pin-runway {
+    height: auto !important;
+    min-height: unset !important;
+    position: relative !important;
+    padding: 1.5rem 0 2rem !important;
+  }
+  .realms-sticky-stage {
+    position: relative !important;
+    top: auto !important;
+    height: auto !important;
+    min-height: unset !important;
+    padding: 1.2rem 1rem 1.4rem !important;
+    overflow: visible !important;
   }
   .realms-viewport {
-    height: 300px !important;
-    min-height: 300px !important;
+    height: 310px !important;
+    min-height: 310px !important;
     overflow: visible !important;
   }
   .realms-track {
-    height: 280px !important;
+    height: 290px !important;
     overflow: visible !important;
   }
   .tidalia-realm-card {
