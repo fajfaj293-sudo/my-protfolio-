@@ -660,47 +660,69 @@ function initPinnedRealmsCarousel() {
 
     el.classList.toggle('active', diff === 0);
 
-    // Precise symmetrical offsets: on mobile, cards peek gracefully on BOTH sides!
-    const step1X = isMobile ? 52 : 130;
-    const step2X = isMobile ? 94 : 238;
-    const step3X = isMobile ? 132 : 330;
-    const step4X = isMobile ? 164 : 408;
-    const step5X = isMobile ? 190 : 474;
+    if (isMobile) {
+      // Mobile 60FPS: Only render the front card + 2 adjacent peek cards. All other 8 cards hidden!
+      if (absDiff > 1) {
+        el.style.display = 'none';
+        return;
+      }
+      el.style.display = 'flex';
+      if (diff === 0) {
+        el.style.transform = 'translate3d(0px, 0px, 0px) scale(1)';
+        el.style.opacity = '1';
+        el.style.zIndex = '40';
+        el.style.pointerEvents = 'auto';
+      } else {
+        const offX = sign * 68;
+        el.style.transform = `translate3d(${offX}px, 0px, 0px) scale(0.86)`;
+        el.style.opacity = '0.65';
+        el.style.zIndex = '20';
+        el.style.pointerEvents = 'auto';
+      }
+      return;
+    }
+
+    // Desktop: 100% UNTOUCHED full 11-card symmetric 3D depth stack
+    const step1X = 130;
+    const step2X = 238;
+    const step3X = 330;
+    const step4X = 408;
+    const step5X = 474;
 
     if (diff === 0) {
-      el.style.transform = `translate3d(0px, 0px, 70px) scale(${isMobile ? 1.0 : 1.02}) rotateY(0deg)`;
+      el.style.transform = 'translate3d(0px, 0px, 70px) scale(1.02) rotateY(0deg)';
       el.style.opacity = '1';
-      if (!isMobile) el.style.filter = 'blur(0px)';
+      el.style.filter = 'blur(0px)';
       el.style.zIndex = '40';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 1) {
-      el.style.transform = `translate3d(${sign * step1X}px, 0px, -20px) scale(${isMobile ? 0.88 : 0.89}) rotateY(${-sign * (isMobile ? 10 : 14)}deg)`;
+      el.style.transform = `translate3d(${sign * step1X}px, 0px, -20px) scale(0.89) rotateY(${-sign * 14}deg)`;
       el.style.opacity = '0.94';
-      if (!isMobile) el.style.filter = 'blur(0px)';
+      el.style.filter = 'blur(0px)';
       el.style.zIndex = '34';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 2) {
-      el.style.transform = `translate3d(${sign * step2X}px, 0px, -60px) scale(${isMobile ? 0.77 : 0.78}) rotateY(${-sign * (isMobile ? 14 : 19)}deg)`;
+      el.style.transform = `translate3d(${sign * step2X}px, 0px, -60px) scale(0.78) rotateY(${-sign * 19}deg)`;
       el.style.opacity = '0.85';
-      if (!isMobile) el.style.filter = 'blur(0.2px)';
+      el.style.filter = 'blur(0.2px)';
       el.style.zIndex = '28';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 3) {
-      el.style.transform = `translate3d(${sign * step3X}px, 0px, -100px) scale(${isMobile ? 0.66 : 0.68}) rotateY(${-sign * (isMobile ? 18 : 23)}deg)`;
+      el.style.transform = `translate3d(${sign * step3X}px, 0px, -100px) scale(0.68) rotateY(${-sign * 23}deg)`;
       el.style.opacity = '0.74';
-      if (!isMobile) el.style.filter = 'blur(0.4px)';
+      el.style.filter = 'blur(0.4px)';
       el.style.zIndex = '22';
       el.style.pointerEvents = 'auto';
     } else if (absDiff === 4) {
-      el.style.transform = `translate3d(${sign * step4X}px, 0px, -140px) scale(${isMobile ? 0.56 : 0.59}) rotateY(${-sign * (isMobile ? 22 : 27)}deg)`;
+      el.style.transform = `translate3d(${sign * step4X}px, 0px, -140px) scale(0.59) rotateY(${-sign * 27}deg)`;
       el.style.opacity = '0.62';
-      if (!isMobile) el.style.filter = 'blur(0.7px)';
+      el.style.filter = 'blur(0.7px)';
       el.style.zIndex = '16';
       el.style.pointerEvents = 'auto';
     } else {
-      el.style.transform = `translate3d(${sign * step5X}px, 0px, -180px) scale(${isMobile ? 0.46 : 0.50}) rotateY(${-sign * (isMobile ? 25 : 30)}deg)`;
+      el.style.transform = `translate3d(${sign * step5X}px, 0px, -180px) scale(0.50) rotateY(${-sign * 30}deg)`;
       el.style.opacity = '0.48';
-      if (!isMobile) el.style.filter = 'blur(1.0px)';
+      el.style.filter = 'blur(1.0px)';
       el.style.zIndex = '10';
       el.style.pointerEvents = 'auto';
     }
@@ -1706,9 +1728,11 @@ function initCursorSpider() {
     }
   }, { passive: true });
 
-  // Autonomous wandering for mobile / idle screens so spider actively crawls and jumps!
+  // Autonomous wandering: Desktop only. On mobile it stays parked so it never crawls over text!
   let nextSpiderWander = performance.now() + 2500;
   function handleSpiderIdleWander(now) {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) return;
     if (now - mouse.lastMove > 3000 && now > nextSpiderWander) {
       const margin = 70;
       mouse.x = margin + Math.random() * (window.innerWidth - margin * 2);
@@ -1717,6 +1741,15 @@ function initCursorSpider() {
       nextSpiderWander = now + 3500 + Math.random() * 3500;
     }
   }
+
+  // Mobile scroll performance: pause spider loop during scrolling to give 100% GPU to smooth scrolling
+  let isPageScrolling = false;
+  let scrollPauseTimer = null;
+  window.addEventListener('scroll', () => {
+    isPageScrolling = true;
+    if (scrollPauseTimer) clearTimeout(scrollPauseTimer);
+    scrollPauseTimer = setTimeout(() => { isPageScrolling = false; }, 90);
+  }, { passive: true });
 
   // Silk Web Thread Trail
   const webSilk = [];
@@ -1842,13 +1875,17 @@ function initCursorSpider() {
   let activeGaitGroup = 0;
 
   function renderSpider(now) {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile && isPageScrolling) {
+      requestAnimationFrame(renderSpider);
+      return;
+    }
     if (typeof handleSpiderIdleWander === "function") handleSpiderIdleWander(now);
     const dt = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
     ctx.clearRect(0, 0, w, h);
 
-    const isMobile = window.innerWidth <= 768;
     ctx.save();
     if (isMobile) {
       ctx.translate(spider.x, spider.y);
