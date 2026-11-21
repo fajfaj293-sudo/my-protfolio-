@@ -86,7 +86,6 @@ function initHeroSpotlight() {
 
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas, { passive: true });
-  window.addEventListener('scroll', updateLetterBoxes, { passive: true });
 
   // Snake-like Fluid Water Trail State
   const snakeTrail = [];
@@ -219,6 +218,7 @@ function initHeroSpotlight() {
     // GRADUAL & GENTLE LETTER RELAXATION ("আস্তে আস্তে আবার ঠিক হবে")
     // Gentle ease factor (0.075) allows the letter to slowly, smoothly recover from the dissolve
     const ease = 0.075;
+    let hasActiveLetter = false;
     letterStates.forEach(st => {
       st.currentX += (st.targetX - st.currentX) * ease;
       st.currentY += (st.targetY - st.currentY) * ease;
@@ -229,6 +229,7 @@ function initHeroSpotlight() {
       st.currentOpacity += (st.targetOpacity - st.currentOpacity) * ease;
 
       if (Math.abs(st.currentX) > 0.06 || Math.abs(st.currentY) > 0.06 || st.currentBlur > 0.1) {
+        hasActiveLetter = true;
         st.el.style.transform = `translate(${st.currentX.toFixed(2)}px, ${st.currentY.toFixed(2)}px) skewX(${st.currentSkew.toFixed(2)}deg) scale(${st.currentScaleX.toFixed(3)}, ${st.currentScaleY.toFixed(3)})`;
         st.el.style.filter = `blur(${st.currentBlur.toFixed(2)}px)`;
         st.el.style.opacity = st.currentOpacity.toFixed(2);
@@ -239,7 +240,11 @@ function initHeroSpotlight() {
       }
     });
 
-    heroRafId = requestAnimationFrame(animateHero);
+    if (!isStationary || hasActiveLetter) {
+      heroRafId = requestAnimationFrame(animateHero);
+    } else {
+      heroRafId = null;
+    }
   }
   startHeroLoop();
 }
