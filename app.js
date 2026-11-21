@@ -451,7 +451,7 @@ function initContinuousZoomStory() {
 
     // Continue render loop while lerp is still settling or seeking is pending
     const diff = Math.abs(targetProgress - smoothProgress);
-    if (diff > 0.0006 || isSeeking || pendingTime !== null) {
+    if (diff > 0.0006 || pendingTime !== null) {
       requestAnimationFrame(renderFrame);
     } else {
       isTicking = false;
