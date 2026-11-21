@@ -340,71 +340,47 @@ function initContinuousZoomStory() {
     const now = performance.now();
 
     if (isMobile) {
-      // 2GB RAM Mobile Optimization: Throttle decoder seeking to 10 FPS (90ms)
-      // This prevents video buffer lock and allows 2GB/3GB mobile decoders to run butter-smooth!
+      // Mobile: Throttle seeking to protect low-RAM mobile decoders
       if (now - lastMobileScrubTime < 90) {
         pendingTime = boundedTime;
         return;
       }
       if (Math.abs(video.currentTime - boundedTime) < 0.08) return;
+
+      const maxSeekLock = 140;
+      if (isSeeking && (now - seekLockTime > maxSeekLock)) {
+        isSeeking = false;
+      }
+      if (isSeeking) {
+        pendingTime = boundedTime;
+        return;
+      }
+      isSeeking = true;
+      seekLockTime = now;
+      lastMobileScrubTime = now;
+      video.currentTime = boundedTime;
     } else {
-      // Desktop: 60 FPS ultra-fine scrubbing
-      if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
-    }
-
-    // Mobile hardware video decoders need more breathing room to avoid decoder pipeline lock
-    const maxSeekLock = isMobile ? 140 : 40;
-    if (isSeeking && (now - seekLockTime > maxSeekLock)) {
-      isSeeking = false;
-    }
-
-    if (isSeeking) {
-      pendingTime = boundedTime;
-      return;
-    }
-
-    isSeeking = true;
-    seekLockTime = now;
-    lastScrubTime = now;
-    if (isMobile) lastMobileScrubTime = now;
-
-    if (typeof video.fastSeek === 'function') {
-      try {
-        video.fastSeek(boundedTime);
-      } catch (e) {
+      // Desktop: Instant 1:1 scroll synchronization with zero lag or frame locking
+      if (Math.abs(video.currentTime - boundedTime) < 0.006) return;
+      if (typeof video.fastSeek === 'function') {
+        try { video.fastSeek(boundedTime); } catch (e) { video.currentTime = boundedTime; }
+      } else {
         video.currentTime = boundedTime;
       }
-    } else {
-      video.currentTime = boundedTime;
     }
-  }
-
-  let runwayInView = true;
-  if ('IntersectionObserver' in window) {
-    const obs = new IntersectionObserver((entries) => {
-      runwayInView = entries[0].isIntersecting;
-      if (runwayInView) {
-        requestTick();
-      }
-    }, { threshold: 0 });
-    obs.observe(runway);
   }
 
   function requestTick() {
-    if (!runwayInView) {
-      isTicking = false;
-      return;
-    }
     if (!isTicking) {
       isTicking = true;
       requestAnimationFrame(renderFrame);
     }
   }
 
-  // Smooth scroll listener
+  // Smooth scroll listener - flawlessly synced on both desktop and mobile
   window.addEventListener('scroll', () => {
-    if (!runwayInView) return;
     const rect = runway.getBoundingClientRect();
+    if (rect.bottom < -100 || rect.top > window.innerHeight + 100) return;
     const maxScroll = runway.offsetHeight - window.innerHeight;
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
     targetProgress = maxScroll > 0 ? current / maxScroll : 0;
@@ -413,14 +389,11 @@ function initContinuousZoomStory() {
 
   // 60FPS Render Loop
   function renderFrame() {
-    if (!runwayInView) {
-      isTicking = false;
-      return;
-    }
-
+    const rect = runway.getBoundingClientRect();
     const isMobile = window.innerWidth <= 768;
-    // Responsive lerp: fast tracking with zero drag or stickiness
-    const lerpFactor = isMobile ? 0.35 : 0.28;
+    
+    // Desktop gets fast 0.45 lerp for instant responsive sync; mobile gets smooth 0.35
+    const lerpFactor = isMobile ? 0.35 : 0.45;
     smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
 
     // 1. Centered Window Zooms & Expands into 100% Fullscreen
