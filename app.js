@@ -309,7 +309,6 @@ function initContinuousZoomStory() {
   let targetProgress = 0;
   let smoothProgress = 0;
   let isTicking = false;
-  let isSeeking = false;
   let pendingTime = null;
 
   // Optimize video configuration
@@ -318,55 +317,44 @@ function initContinuousZoomStory() {
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
-  // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
-  let lastScrubTime = 0;
-  let seekLockTime = 0;
+  // Prime browser video decoder on first user scroll/interaction
+  let videoPrimed = false;
+  function primeVideoDecoder() {
+    if (videoPrimed) return;
+    videoPrimed = true;
+    try {
+      const p = video.play();
+      if (p !== undefined) {
+        p.then(() => video.pause()).catch(() => {});
+      }
+    } catch (e) {}
+  }
+  window.addEventListener('scroll', primeVideoDecoder, { once: true, passive: true });
+  window.addEventListener('touchstart', primeVideoDecoder, { once: true, passive: true });
+  window.addEventListener('pointerdown', primeVideoDecoder, { once: true, passive: true });
+
   let lastMobileScrubTime = 0;
 
-  video.addEventListener('seeked', () => {
-    isSeeking = false;
-    if (pendingTime !== null) {
-      const nextTime = pendingTime;
-      pendingTime = null;
-      scrubToTime(nextTime);
-    }
-  });
-
   function scrubToTime(t) {
-    if (!video.duration || isNaN(video.duration)) return;
-    const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
+    const dur = (video.duration && !isNaN(video.duration) && video.duration > 0) ? video.duration : 14.4;
+    const boundedTime = Math.max(0, Math.min(dur - 0.04, t));
     
     const isMobile = window.innerWidth <= 768;
     const now = performance.now();
 
     if (isMobile) {
       // Mobile: Throttle seeking to protect low-RAM mobile decoders
-      if (now - lastMobileScrubTime < 90) {
+      if (now - lastMobileScrubTime < 70) {
         pendingTime = boundedTime;
         return;
       }
-      if (Math.abs(video.currentTime - boundedTime) < 0.08) return;
-
-      const maxSeekLock = 140;
-      if (isSeeking && (now - seekLockTime > maxSeekLock)) {
-        isSeeking = false;
-      }
-      if (isSeeking) {
-        pendingTime = boundedTime;
-        return;
-      }
-      isSeeking = true;
-      seekLockTime = now;
+      if (Math.abs(video.currentTime - boundedTime) < 0.06) return;
       lastMobileScrubTime = now;
       video.currentTime = boundedTime;
     } else {
       // Desktop: Instant 1:1 scroll synchronization with zero lag or frame locking
-      if (Math.abs(video.currentTime - boundedTime) < 0.006) return;
-      if (typeof video.fastSeek === 'function') {
-        try { video.fastSeek(boundedTime); } catch (e) { video.currentTime = boundedTime; }
-      } else {
-        video.currentTime = boundedTime;
-      }
+      if (Math.abs(video.currentTime - boundedTime) < 0.003) return;
+      video.currentTime = boundedTime;
     }
   }
 
@@ -389,7 +377,6 @@ function initContinuousZoomStory() {
 
   // 60FPS Render Loop
   function renderFrame() {
-    const rect = runway.getBoundingClientRect();
     const isMobile = window.innerWidth <= 768;
     
     // Desktop gets ultra-responsive 0.65 lerp for instant 1:1 scroll sync; mobile gets smooth 0.35
@@ -399,7 +386,6 @@ function initContinuousZoomStory() {
     // 1. Centered Window Zooms & Expands into 100% Fullscreen
     if (windowWrapper) {
       const zoomPhase = Math.min(smoothProgress / 0.18, 1);
-      const isMobile = window.innerWidth <= 768;
 
       if (isMobile) {
         // Mobile: Visibly compact size so video is never oversized or cropped, exactly as requested
@@ -440,13 +426,10 @@ function initContinuousZoomStory() {
     }
 
     // 2. Video Scrubbing with Calibrated Scene Timeline - 100% Full-Runway Continuous Sync
-    let currentTargetTime = 0;
-    if (video.duration && !isNaN(video.duration)) {
-      // Direct 1:1 continuous mapping from start of scroll runway to the end
-      const videoProgress = Math.max(0, Math.min(1, smoothProgress));
-      currentTargetTime = videoProgress * (video.duration - 0.04);
-      scrubToTime(currentTargetTime);
-    }
+    const dur = (video.duration && !isNaN(video.duration) && video.duration > 0) ? video.duration : 14.4;
+    const videoProgress = Math.max(0, Math.min(1, smoothProgress));
+    const currentTargetTime = videoProgress * (dur - 0.04);
+    scrubToTime(currentTargetTime);
 
     // 3. Scene Content Overlays Synced to Video Timelines
     // Window opening (0.0s to 1.6s): Clean window with NO text overlay
