@@ -392,8 +392,8 @@ function initContinuousZoomStory() {
     const rect = runway.getBoundingClientRect();
     const isMobile = window.innerWidth <= 768;
     
-    // Desktop gets fast 0.45 lerp for instant responsive sync; mobile gets smooth 0.35
-    const lerpFactor = isMobile ? 0.35 : 0.45;
+    // Desktop gets ultra-responsive 0.65 lerp for instant 1:1 scroll sync; mobile gets smooth 0.35
+    const lerpFactor = isMobile ? 0.35 : 0.65;
     smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
 
     // 1. Centered Window Zooms & Expands into 100% Fullscreen
@@ -439,18 +439,12 @@ function initContinuousZoomStory() {
       }
     }
 
-    // 2. Video Scrubbing with Calibrated Scene Timeline
+    // 2. Video Scrubbing with Calibrated Scene Timeline - 100% Full-Runway Continuous Sync
     let currentTargetTime = 0;
     if (video.duration && !isNaN(video.duration)) {
-      let videoProgress = 0;
-      if (smoothProgress <= 0.82) {
-        // From 0 to 82% scroll, play smoothly from 0s to 14.4s
-        videoProgress = smoothProgress / 0.82;
-      } else {
-        // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
-        videoProgress = 1.0;
-      }
-      currentTargetTime = videoProgress * video.duration;
+      // Direct 1:1 continuous mapping from start of scroll runway to the end
+      const videoProgress = Math.max(0, Math.min(1, smoothProgress));
+      currentTargetTime = videoProgress * (video.duration - 0.04);
       scrubToTime(currentTargetTime);
     }
 
