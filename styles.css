@@ -577,8 +577,8 @@ body {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(20px);
-  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s;
+  transform: translateY(16px);
+  transition: opacity 0.22s ease-out, transform 0.22s ease-out, visibility 0.22s;
 }
 
 .story-scene-ui.story-ui-top {
@@ -609,7 +609,7 @@ body {
   padding: 0 !important;
   box-shadow: none !important;
   margin-bottom: 2rem;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.25s ease-out;
 }
 
 .story-pills-right {
@@ -4269,13 +4269,13 @@ a.channel-item:hover .ci-arrow {
     display: inline !important;
   }
 
-  /* Window Video Frame Mobile Optimization: Visibly compact & proportional so full content is clean and never oversized */
+  /* Window Video Frame Mobile Optimization: Visibly compact & proportional initial frame that smoothly expands */
   .window-arch-wrapper {
-    width: min(84vw, 340px) !important;
-    height: min(calc(84vw * 9 / 16), 200px) !important;
-    aspect-ratio: 16 / 9 !important;
-    border-radius: 16px !important;
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55) !important;
+    width: min(84vw, 340px);
+    height: min(calc(84vw * 9 / 16), 200px);
+    aspect-ratio: 16 / 9;
+    border-radius: 16px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
   }
   .portfolio-scrub-video {
     object-fit: contain !important;

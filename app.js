@@ -314,7 +314,7 @@ function initContinuousZoomStory() {
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
-  // Preload video as in-memory Blob for instant 0ms latency scrubbing
+  // Preload video as in-memory Blob for zero-latency local seek
   if (window.fetch && window.URL && window.Blob) {
     fetch(VIDEO_URL)
       .then(res => {
@@ -337,77 +337,158 @@ function initContinuousZoomStory() {
   const scene3 = document.getElementById('scene-ui-3');
   const scene4 = document.getElementById('scene-ui-4');
 
-  function updateZoomAndVideo() {
-    const rect = runway.getBoundingClientRect();
-    const maxScroll = runway.offsetHeight - window.innerHeight;
-    if (maxScroll <= 0) return;
+  // Decoder-friendly seek locking: Never abort in-flight seeks on wheel ticks
+  let isSeeking = false;
+  let pendingTime = null;
 
-    // Linear progress 0.0 to 1.0 throughout the runway
-    const progress = Math.min(Math.max(-rect.top / maxScroll, 0), 1);
+  function performSeek(time) {
+    if (isSeeking) {
+      pendingTime = time;
+      return;
+    }
+    if (Math.abs(video.currentTime - time) < 0.02) return;
 
-    // 1. Window Expansion from Centered Card to Fullscreen
+    isSeeking = true;
+    if (typeof video.fastSeek === 'function') {
+      video.fastSeek(time);
+    } else {
+      video.currentTime = time;
+    }
+  }
+
+  video.addEventListener('seeked', () => {
+    isSeeking = false;
+    if (pendingTime !== null) {
+      const nextTime = pendingTime;
+      pendingTime = null;
+      if (Math.abs(video.currentTime - nextTime) >= 0.02) {
+        performSeek(nextTime);
+      }
+    }
+  });
+
+  // Smooth interpolated rendering state
+  let targetProgress = 0;
+  let smoothProgress = 0;
+  let rafId = null;
+
+  function applyZoomAndVideo(progress) {
+    // -------------------------------------------------------------
+    // PHASE 1: WINDOW OPENING (Progress 0.00 to 0.14)
+    // The centered window card smoothly expands to 100vw x 100vh
+    // -------------------------------------------------------------
     const isMobile = window.innerWidth <= 768;
-    const zoom = Math.min(progress / 0.20, 1);
+    const OPEN_END = 0.14;
+    const zoom = Math.min(Math.max(progress / OPEN_END, 0), 1);
 
     if (windowWrapper) {
       if (isMobile) {
-        const w = 80 + zoom * 6;
-        const h = (w * 9) / 16;
-        windowWrapper.style.width = `min(${w.toFixed(1)}vw, 340px)`;
-        windowWrapper.style.height = `min(${h.toFixed(1)}vw, 200px)`;
-        windowWrapper.style.borderRadius = '16px';
-        windowWrapper.style.transform = 'translate(-50%, -50%)';
-      } else {
-        if (zoom >= 0.95) {
+        if (zoom >= 0.98) {
           windowWrapper.style.width = '100vw';
           windowWrapper.style.height = '100vh';
           windowWrapper.style.borderRadius = '0px';
           windowWrapper.style.boxShadow = 'none';
-          windowWrapper.style.transform = 'translate(-50%, -50%)';
+        } else {
+          const w = 84 + zoom * 16;
+          const initialH = (84 * 9) / 16;
+          const h = initialH + zoom * (100 - initialH);
+          const radius = Math.max(0, 16 * (1 - zoom));
+          windowWrapper.style.width = `min(${w.toFixed(1)}vw, 100vw)`;
+          windowWrapper.style.height = `min(${h.toFixed(1)}vh, 100vh)`;
+          windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
+          windowWrapper.style.boxShadow = `0 14px 40px rgba(0, 0, 0, ${(0.55 * (1 - zoom)).toFixed(2)})`;
+        }
+      } else {
+        if (zoom >= 0.98) {
+          windowWrapper.style.width = '100vw';
+          windowWrapper.style.height = '100vh';
+          windowWrapper.style.borderRadius = '0px';
+          windowWrapper.style.boxShadow = 'none';
         } else {
           const w = 84 + zoom * 16;
           const h = 68 + zoom * 32;
-          const radius = Math.max(0, 24 * (1 - zoom * 1.5));
-          windowWrapper.style.width = `min(${w.toFixed(1)}vw, ${1080 + zoom * 800}px)`;
-          windowWrapper.style.height = `min(${h.toFixed(1)}vh, ${600 + zoom * 800}px)`;
+          const radius = Math.max(0, 24 * (1 - zoom));
+          windowWrapper.style.width = `min(${w.toFixed(1)}vw, 100vw)`;
+          windowWrapper.style.height = `min(${h.toFixed(1)}vh, 100vh)`;
           windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
-          windowWrapper.style.boxShadow = '0 25px 70px -15px rgba(0, 0, 0, 0.25)';
-          windowWrapper.style.transform = 'translate(-50%, -50%)';
+          windowWrapper.style.boxShadow = `0 25px 70px -15px rgba(0, 0, 0, ${(0.25 * (1 - zoom)).toFixed(2)})`;
         }
       }
+      windowWrapper.style.transform = 'translate(-50%, -50%)';
     }
 
-    // 2. Direct 1:1 Video Scrubbing
+    // -------------------------------------------------------------
+    // PHASE 2: VIDEO SCRUBBING & SCENE SYNC (Progress 0.14 to 1.00)
+    // Starts from 0.0s only AFTER the window is open!
+    // -------------------------------------------------------------
     const dur = (video.duration && !isNaN(video.duration) && video.duration > 0) ? video.duration : FALLBACK_DURATION;
-    const targetTime = progress * (dur - 0.04);
-    if (Math.abs(video.currentTime - targetTime) > 0.008) {
-      video.currentTime = targetTime;
+    const maxTime = dur - 0.04;
+
+    let targetTime = 0;
+    if (progress >= OPEN_END) {
+      const vProgress = Math.min(Math.max((progress - OPEN_END) / (1.0 - OPEN_END), 0), 1);
+      targetTime = vProgress * maxTime;
     }
 
-    // 3. Scene Text Overlays Synced to Video Timelines
+    performSeek(targetTime);
+
+    // -------------------------------------------------------------
+    // PHASE 3: SCENE OVERLAYS (Evenly balanced across 4 quarters)
+    // Each scene matches exactly 3.6s of video with zero lag
+    // -------------------------------------------------------------
     if (scene1 && scene2 && scene3 && scene4) {
-      scene1.classList.toggle('active', targetTime >= 1.6 && targetTime < 4.5);
-      scene2.classList.toggle('active', targetTime >= 4.5 && targetTime < 7.5);
-      scene3.classList.toggle('active', targetTime >= 7.5 && targetTime < 11.0);
-      scene4.classList.toggle('active', targetTime >= 11.0);
+      if (progress < OPEN_END) {
+        // Window opening: Overlays stay clean and hidden
+        scene1.classList.remove('active');
+        scene2.classList.remove('active');
+        scene3.classList.remove('active');
+        scene4.classList.remove('active');
+      } else {
+        // Scene 1: 0.0s to 3.6s (Architecture & Wireframing)
+        scene1.classList.toggle('active', targetTime >= 0.1 && targetTime < 3.6);
+        // Scene 2: 3.6s to 7.2s (WordPress & Custom Code)
+        scene2.classList.toggle('active', targetTime >= 3.6 && targetTime < 7.2);
+        // Scene 3: 7.2s to 10.8s (Fluid Responsiveness)
+        scene3.classList.toggle('active', targetTime >= 7.2 && targetTime < 10.8);
+        // Scene 4: 10.8s to 14.4s (Digital Excellence & CTA)
+        scene4.classList.toggle('active', targetTime >= 10.8);
+      }
     }
   }
 
-  let ticking = false;
-  function requestUpdate() {
-    if (!ticking) {
-      ticking = true;
-      requestAnimationFrame(() => {
-        updateZoomAndVideo();
-        ticking = false;
-      });
+  function renderLoop() {
+    const diff = targetProgress - smoothProgress;
+    if (Math.abs(diff) > 0.0002) {
+      smoothProgress += diff * 0.14; // Silky damped lerp for mouse wheel
+    } else {
+      smoothProgress = targetProgress;
+    }
+
+    applyZoomAndVideo(smoothProgress);
+
+    if (Math.abs(targetProgress - smoothProgress) > 0.0002) {
+      rafId = requestAnimationFrame(renderLoop);
+    } else {
+      rafId = null;
     }
   }
 
-  window.addEventListener('scroll', requestUpdate, { passive: true });
-  window.addEventListener('resize', requestUpdate, { passive: true });
-  video.addEventListener('loadedmetadata', requestUpdate);
-  requestUpdate();
+  function updateTarget() {
+    const rect = runway.getBoundingClientRect();
+    const maxScroll = runway.offsetHeight - window.innerHeight;
+    if (maxScroll <= 0) return;
+
+    targetProgress = Math.min(Math.max(-rect.top / maxScroll, 0), 1);
+
+    if (!rafId) {
+      rafId = requestAnimationFrame(renderLoop);
+    }
+  }
+
+  window.addEventListener('scroll', updateTarget, { passive: true });
+  window.addEventListener('resize', updateTarget, { passive: true });
+  video.addEventListener('loadedmetadata', updateTarget);
+  updateTarget();
 }
 
 // ============================================================================
