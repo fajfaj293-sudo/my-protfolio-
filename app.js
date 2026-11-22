@@ -1712,11 +1712,12 @@ function initCursorSpider() {
   const ctx = canvas.getContext('2d');
   let w = 0, h = 0;
   let dpr = 1;
+  let isMobile = window.innerWidth <= 768;
 
   function resize() {
     w = window.innerWidth;
     h = window.innerHeight;
-    const isMobile = window.innerWidth <= 768;
+    isMobile = window.innerWidth <= 768;
     dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = w * dpr;
     canvas.height = h * dpr;
@@ -1729,8 +1730,8 @@ function initCursorSpider() {
 
   // Spider Body Position & Physics
   const spider = {
-    x: window.innerWidth * 0.7,
-    y: window.innerHeight * 0.5,
+    x: window.innerWidth * 0.72,
+    y: window.innerHeight * 0.45,
     vx: 0,
     vy: 0,
     angle: -Math.PI / 2,
@@ -1742,11 +1743,11 @@ function initCursorSpider() {
     pedipalpTimer: 0
   };
 
-  // Mouse Target Position
+  // Mouse / Finger Target Position
   const mouse = {
     x: spider.x,
     y: spider.y,
-    active: false,
+    active: true,
     lastMove: performance.now()
   };
 
@@ -1757,10 +1758,16 @@ function initCursorSpider() {
     mouse.lastMove = performance.now();
   }
 
+  // Pointer / Mouse tracking for Desktop
   window.addEventListener('pointermove', (e) => {
     updateSpiderTarget(e.clientX, e.clientY);
   }, { passive: true });
 
+  window.addEventListener('pointerdown', (e) => {
+    updateSpiderTarget(e.clientX, e.clientY);
+  }, { passive: true });
+
+  // Touch tracking for Mobile (Smooth Finger Following)
   window.addEventListener('touchstart', (e) => {
     if (e.touches && e.touches.length > 0) {
       updateSpiderTarget(e.touches[0].clientX, e.touches[0].clientY);
@@ -1773,35 +1780,25 @@ function initCursorSpider() {
     }
   }, { passive: true });
 
-  // Autonomous wandering: Desktop only. On mobile it stays parked so it never crawls over text!
+  // Autonomous wandering: Keeps spider alive and charming when user is idle
   let nextSpiderWander = performance.now() + 2500;
   function handleSpiderIdleWander(now) {
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) return;
-    if (now - mouse.lastMove > 3000 && now > nextSpiderWander) {
-      const margin = 70;
+    if (now - mouse.lastMove > 2800 && now > nextSpiderWander) {
+      const margin = isMobile ? 45 : 80;
       mouse.x = margin + Math.random() * (window.innerWidth - margin * 2);
-      mouse.y = margin + Math.random() * (window.innerHeight - margin * 2);
+      const minY = isMobile ? window.innerHeight * 0.16 : margin;
+      const maxY = isMobile ? window.innerHeight * 0.80 : window.innerHeight - margin;
+      mouse.y = minY + Math.random() * (maxY - minY);
       mouse.active = true;
-      nextSpiderWander = now + 3500 + Math.random() * 3500;
+      nextSpiderWander = now + (isMobile ? 4200 : 3200) + Math.random() * 3000;
     }
   }
 
-  // Mobile scroll performance: pause spider loop during scrolling to give 100% GPU to smooth scrolling
-  let isPageScrolling = false;
-  let scrollPauseTimer = null;
-  window.addEventListener('scroll', () => {
-    isPageScrolling = true;
-    if (scrollPauseTimer) clearTimeout(scrollPauseTimer);
-    scrollPauseTimer = setTimeout(() => { isPageScrolling = false; }, 90);
-  }, { passive: true });
-
-  // Silk Web Thread Trail
+  // Silk Web Thread Trail (Desktop only)
   const webSilk = [];
   const MAX_SILK = 60;
 
   // 8 Jointed Legs Configuration (Salticidae Anatomical Monotonic Rig)
-  // Each leg has a distinct thorax socket and dedicated outward arch vector
   const legConfigs = [
     // Left Side (side: -1)
     { id: 'L1', side: -1, root: { x: 8, y: -6 }, rest: { x: 30, y: -24 }, kneeDir: { x: 0.45, y: -0.9 }, arch: 10, group: 0 },
@@ -1831,7 +1828,7 @@ function initCursorSpider() {
     };
   });
 
-  // Anatomical Outward Kinematics - strictly forces knees outward with zero inversion or crossing
+  // Anatomical Outward Kinematics
   function solveSpiderLocalIK(cfg, footWorldX, footWorldY, spiderX, spiderY, spiderAngle) {
     const cosA = Math.cos(spiderAngle);
     const sinA = Math.sin(spiderAngle);
@@ -1841,11 +1838,9 @@ function initCursorSpider() {
     const lTx = relX * cosA + relY * sinA;
     const lTy = -relX * sinA + relY * cosA;
 
-    // Midpoint between root and foot in spider space
     const mx = cfg.root.x * 0.45 + lTx * 0.55;
     const my = cfg.root.y * 0.45 + lTy * 0.55;
 
-    // Knee is strictly elevated and arched outward along each leg's anatomical vector
     const lKx = mx + cfg.kneeDir.x * cfg.arch;
     const lKy = my + cfg.kneeDir.y * cfg.arch;
 
@@ -1914,29 +1909,24 @@ function initCursorSpider() {
     ctx.restore();
   }
 
-  // Animation Loop
+  // 60FPS Butter-Smooth Animation Loop
   let lastTime = performance.now();
   let stepTimer = 0;
   let activeGaitGroup = 0;
 
   function renderSpider(now) {
-    // Ultra performance: pause spider IK canvas loop during active scroll or when mobile video is in view
-    if (window.__mobileVideoActive) {
-      ctx.clearRect(0, 0, w, h);
-      requestAnimationFrame(renderSpider);
-      return;
+    // When mobile video is active, pause idle wandering so spider stays parked in place
+    const isVideoPaused = isMobile && !!window.__mobileVideoActive;
+
+    if (!isVideoPaused && typeof handleSpiderIdleWander === "function") {
+      handleSpiderIdleWander(now);
     }
-    if (isPageScrolling) {
-      requestAnimationFrame(renderSpider);
-      return;
-    }
-    if (typeof handleSpiderIdleWander === "function") handleSpiderIdleWander(now);
     const dt = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
     ctx.clearRect(0, 0, w, h);
 
-    ctx.save();
+    ctx.save(); // Top-level canvas state save
     if (isMobile) {
       ctx.translate(spider.x, spider.y);
       ctx.scale(0.72, 0.72);
@@ -1947,7 +1937,7 @@ function initCursorSpider() {
     const toCursorY = mouse.y - spider.y;
     const distToCursor = Math.hypot(toCursorX, toCursorY);
 
-    if (distToCursor > 25) {
+    if (!isVideoPaused && distToCursor > 25) {
       spider.targetAngle = Math.atan2(toCursorY, toCursorX);
     }
 
@@ -1956,10 +1946,11 @@ function initCursorSpider() {
     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
     spider.angle += angleDiff * Math.min(1, dt * 7.5);
 
-    const followRadius = 52;
-    if (distToCursor > followRadius && mouse.active) {
+    const followRadius = isMobile ? 36 : 52;
+    if (!isVideoPaused && distToCursor > followRadius && mouse.active) {
       spider.isWalking = true;
-      const moveSpeed = Math.min(distToCursor * 3.5, 260);
+      const maxSpd = isMobile ? 210 : 260;
+      const moveSpeed = Math.min(distToCursor * (isMobile ? 2.8 : 3.5), maxSpd);
 
       spider.vx = Math.cos(spider.angle) * moveSpeed;
       spider.vy = Math.sin(spider.angle) * moveSpeed;
@@ -1968,8 +1959,8 @@ function initCursorSpider() {
       spider.x += spider.vx * dt;
       spider.y += spider.vy * dt;
 
-      // Spin silk thread dragline
-      if (Math.random() < 0.25 || webSilk.length === 0) {
+      // Spin silk thread dragline (desktop only)
+      if (!isMobile && (Math.random() < 0.25 || webSilk.length === 0)) {
         const abdomenX = spider.x - Math.cos(spider.angle) * 16;
         const abdomenY = spider.y - Math.sin(spider.angle) * 16;
         webSilk.push({ x: abdomenX, y: abdomenY, life: 1.0 });
@@ -1982,7 +1973,7 @@ function initCursorSpider() {
       spider.vy *= 0.85;
     }
 
-    // Draw Silk Web Dragline (Desktop only: clean and un-cluttered on mobile)
+    // Draw Silk Web Dragline (Desktop only: clean and uncluttered on mobile)
     if (webSilk.length >= 2 && !isMobile) {
       ctx.save();
       ctx.beginPath();
@@ -2017,7 +2008,7 @@ function initCursorSpider() {
     const sinA = Math.sin(spider.angle);
 
     if (spider.isWalking) {
-      // WALKING: Alternating Tetrapod Gait with overextension prevention
+      // WALKING: Alternating Tetrapod Gait
       legs.forEach((leg) => {
         const cfg = leg.cfg;
         const idealX = spider.x + cfg.rest.x * cosA - cfg.rest.y * sinA;
@@ -2028,7 +2019,7 @@ function initCursorSpider() {
         
         const distFromIdeal = Math.hypot(leg.current.x - idealX, leg.current.y - idealY);
         const distFromRoot = Math.hypot(leg.current.x - ox, leg.current.y - oy);
-        const maxAllowedDist = (cfg.l1 + cfg.l2) * 0.88;
+        const maxAllowedDist = 48;
 
         if (!leg.isStepping && ((distFromIdeal > 18 && cfg.group === activeGaitGroup) || distFromRoot > maxAllowedDist)) {
           leg.isStepping = true;
@@ -2059,8 +2050,7 @@ function initCursorSpider() {
         }
       });
     } else {
-      // STANDING STILL: Smoothly lock every leg into its pristine resting stance!
-      // This completely prevents legs breaking, twisting, or overlapping when stationary!
+      // STANDING STILL: Lock legs into resting stance smoothly
       const settleRate = Math.min(1, dt * 14);
       legs.forEach((leg) => {
         const cfg = leg.cfg;
@@ -2095,18 +2085,18 @@ function initCursorSpider() {
         ctx.shadowBlur = 0;
       }
 
-      // Femur (Segment 1: Base to high knee)
+      // Femur (Base to knee)
       drawStripedSegment(ox, oy, ik.knee.x, ik.knee.y, 3.2, 2.3);
-      // Tibia & Tarsus (Segment 2: High knee to foot on ground)
+      // Tibia & Tarsus (Knee to foot)
       drawStripedSegment(ik.knee.x, ik.knee.y, ik.foot.x, ik.foot.y, 2.3, 1.2);
 
-      // Seamless rounded knee joint knob
+      // Rounded knee joint knob
       ctx.beginPath();
       ctx.arc(ik.knee.x, ik.knee.y, 2.2, 0, Math.PI * 2);
       ctx.fillStyle = '#ca8a04';
       ctx.fill();
 
-      // Foot tip on ground
+      // Foot tip
       ctx.beginPath();
       ctx.arc(ik.foot.x, ik.foot.y, 1.3, 0, Math.PI * 2);
       ctx.fillStyle = '#1c1917';
@@ -2258,14 +2248,13 @@ function initCursorSpider() {
       ctx.restore();
     });
 
-    ctx.restore();
-    if (isMobile) ctx.restore();
+    ctx.restore(); // Restores DRAW SPIDER BODY
+    ctx.restore(); // Restores Top-level canvas state save
 
     requestAnimationFrame(renderSpider);
   }
   requestAnimationFrame(renderSpider);
 }
-
 
 /* ==========================================================================
    EXCLUSIVE HANGING CHAIN PENDULUM FAQ INTERACTION

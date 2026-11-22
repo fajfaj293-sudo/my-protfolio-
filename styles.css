@@ -4468,9 +4468,7 @@ a.channel-item:hover .ci-arrow {
     border-radius: 12px !important;
   }
 
-  /* When video is in front on mobile, shut down ALL background animations for maximum smoothness */
-  body.mobile-video-active #cursor-spider-canvas,
-  body.mobile-video-active .cursor-spider-canvas,
+  /* When video is in front on mobile, shut down background star/cube canvases for maximum smoothness (spider stays parked peacefully) */
   body.mobile-video-active #realms-star-canvas,
   body.mobile-video-active #footer-star-canvas,
   body.mobile-video-active .cube-viewport,
