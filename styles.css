@@ -3997,14 +3997,21 @@ a.channel-item:hover .ci-arrow {
 
 @media (max-width: 768px) {
 
-  /* Responsive Hero Image, Title & Subtitle on Mobile */
-  .hero-main-img {
-    object-position: 50% 18% !important;
-    transform: scale(0.96) !important;
-    transform-origin: center top !important;
+  /* Responsive Hero Image, Title & Subtitle on Mobile: Shorter height & zoomed out */
+  .hero-fullscreen {
+    height: 78vh !important;
+    height: 78svh !important;
+    min-height: 480px !important;
+    max-height: 590px !important;
+    padding-bottom: 1.2rem !important;
+  }
+  .hero-main-img,
+  .hero-bright-img {
+    object-position: center 20% !important;
+    transform: none !important;
   }
   .tidalia-hero-title {
-    font-size: clamp(2.2rem, 9.5vw, 3.2rem) !important;
+    font-size: clamp(2.0rem, 8.8vw, 2.8rem) !important;
     font-weight: 600 !important;
     letter-spacing: 0.12em !important;
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.95) !important;
@@ -4013,26 +4020,26 @@ a.channel-item:hover .ci-arrow {
     font-weight: 600 !important;
   }
   .hero-title-overlay {
-    margin-bottom: 1.0rem !important;
+    margin-bottom: 0.75rem !important;
     padding: 0 1rem !important;
   }
   .tidalia-hero-sub {
-    font-size: 0.8rem !important;
-    line-height: 1.4 !important;
-    max-width: 320px !important;
-    margin: 0.3rem auto 0 !important;
+    font-size: 0.76rem !important;
+    line-height: 1.35 !important;
+    max-width: 310px !important;
+    margin: 0.25rem auto 0 !important;
     padding: 0 0.5rem !important;
     font-weight: 400 !important;
     color: rgba(255, 255, 255, 0.92) !important;
   }
   .hero-bottom-pills {
-    margin-bottom: 0.8rem !important;
+    margin-bottom: 0.5rem !important;
     gap: 0.5rem !important;
   }
   .scroll-discover-btn,
   .sound-on-btn {
-    padding: 0.5rem 0.95rem !important;
-    font-size: 0.68rem !important;
+    padding: 0.42rem 0.82rem !important;
+    font-size: 0.65rem !important;
   }
 
   /* 10 Realms Carousel Mobile Layout: Super lightweight, zero lag */
