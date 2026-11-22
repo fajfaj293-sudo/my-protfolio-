@@ -3580,11 +3580,59 @@ a.channel-item:hover .ci-arrow {
     flex-direction: column;
   }
   .faq-header {
-    flex-wrap: wrap;
-    gap: 0.8rem;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 0.75rem !important;
+  }
+  .faq-q-left {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.7rem !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  .faq-num-pill {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    border-radius: 8px !important;
+    font-size: 0.72rem !important;
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+  }
+  .faq-question {
+    font-family: var(--font-sans) !important;
+    font-size: 0.94rem !important;
+    line-height: 1.42 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    color: #f8fafc !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    margin: 0 !important;
   }
   .faq-chain-trigger {
-    align-self: flex-start;
+    padding: 0.38rem 0.65rem !important;
+    font-size: 0.65rem !important;
+    gap: 0.35rem !important;
+    flex-shrink: 0 !important;
+    align-self: flex-start !important;
+    margin-top: 2px !important;
+    border-radius: 999px !important;
+  }
+  .faq-chain-trigger .trigger-txt {
+    letter-spacing: 0.06em !important;
+  }
+  .faq-chain-trigger .trigger-chain-icon {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .faq-item {
+    padding: 1.15rem 1rem !important;
+    border-radius: 20px !important;
   }
   .faq-suspension-rig {
     padding: 0 1.2rem;
@@ -3596,7 +3644,21 @@ a.channel-item:hover .ci-arrow {
     right: 1.2rem;
   }
   .faq-hanging-plaque {
-    padding: 1.2rem 1.4rem;
+    padding: 1.15rem 1.1rem !important;
+    border-radius: 16px !important;
+  }
+  .faq-answer {
+    font-size: 0.85rem !important;
+    line-height: 1.62 !important;
+    color: rgba(255, 255, 255, 0.88) !important;
+  }
+  .plaque-header-meta {
+    margin-bottom: 0.65rem !important;
+    padding-bottom: 0.45rem !important;
+  }
+  .meta-status-chip,
+  .meta-tag {
+    font-size: 0.62rem !important;
   }
 }
 
@@ -3755,9 +3817,12 @@ a.channel-item:hover .ci-arrow {
   .about-hero-section,
   .contact-hero-section,
   .contact-interactive-section,
-  .contact-roadmap-section,
-  .contact-faq-section {
+  .contact-roadmap-section {
     padding: 4rem 1.2rem;
+    width: 100%;
+  }
+  .contact-faq-section {
+    padding: 4rem 1.1rem calc(5.5rem + env(safe-area-inset-bottom)) !important;
     width: 100%;
   }
   .section-serif-title {
@@ -3792,7 +3857,7 @@ a.channel-item:hover .ci-arrow {
     padding: 1rem 1.1rem;
   }
   .faq-item {
-    padding: 1.3rem 1.2rem;
+    padding: 1.1rem 0.95rem;
   }
   .faq-suspension-rig {
     padding: 0 0.8rem;
