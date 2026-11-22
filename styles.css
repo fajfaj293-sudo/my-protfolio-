@@ -432,7 +432,6 @@ body {
     0 0 0 1px rgba(0, 0, 0, 0.08),
     0 10px 30px -5px rgba(0, 0, 0, 0.12);
   will-change: width, height, border-radius, box-shadow, transform;
-  transition: border-radius 0.2s ease, box-shadow 0.2s ease;
 }
 
 .portfolio-scrub-video {

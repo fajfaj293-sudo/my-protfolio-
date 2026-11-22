@@ -415,8 +415,8 @@ function initContinuousZoomStory() {
   // 60FPS Render Loop
   function renderFrame() {
     const isMobile = window.innerWidth <= 768;
-    // Responsive lerp: fast tracking with zero drag or stickiness
-    const lerpFactor = isMobile ? 0.35 : 0.28;
+    // Responsive lerp: silky smooth exponential glide with zero drag or stickiness
+    const lerpFactor = isMobile ? 0.24 : 0.18;
     smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
 
     // 1. Centered Window Zooms & Expands into 100% Fullscreen
