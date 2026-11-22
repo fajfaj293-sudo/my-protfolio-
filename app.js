@@ -306,16 +306,22 @@ function initContinuousZoomStory() {
   const video = document.getElementById('portfolio-scroll-video');
   if (!runway || !video) return;
 
-  const LOCAL_VIDEO = 'assets/scroll-video.mp4';
-  const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
-  const FALLBACK_DURATION = 14.43;
+  let targetProgress = 0;
+  let smoothProgress = 0;
+  let isTicking = false;
+  let isSeeking = false;
+  let pendingTime = null;
 
+  // Optimize video configuration
   video.muted = true;
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
   // Preload fast local video into Blob for instant 0ms latency hardware scrubbing
+  const LOCAL_VIDEO = 'assets/scroll-video.mp4';
+  const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
+
   if (window.fetch && window.URL && window.Blob) {
     fetch(LOCAL_VIDEO)
       .then(res => {
@@ -343,143 +349,153 @@ function initContinuousZoomStory() {
       });
   }
 
-  // Active scene overlays
-  const scene1 = document.getElementById('scene-ui-1');
-  const scene2 = document.getElementById('scene-ui-2');
-  const scene3 = document.getElementById('scene-ui-3');
-  const scene4 = document.getElementById('scene-ui-4');
-
-  // Direct, low-latency seek pipeline with safety release
-  let isSeeking = false;
-  let targetTime = 0;
-
-  function setVideoTime(time) {
-    targetTime = time;
-    if (!isSeeking && Math.abs(video.currentTime - targetTime) > 0.015) {
-      isSeeking = true;
-      video.currentTime = targetTime;
-    }
-  }
+  // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
+  let lastScrubTime = 0;
+  let seekLockTime = 0;
 
   video.addEventListener('seeked', () => {
     isSeeking = false;
-    if (Math.abs(video.currentTime - targetTime) > 0.015) {
-      isSeeking = true;
-      video.currentTime = targetTime;
+    if (pendingTime !== null) {
+      const nextTime = pendingTime;
+      pendingTime = null;
+      scrubToTime(nextTime);
     }
   });
 
-  video.addEventListener('seeking', () => {
-    // Safety release: Never let isSeeking hang longer than 50ms
-    setTimeout(() => { isSeeking = false; }, 50);
-  });
+  function scrubToTime(t) {
+    const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
+    const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
+    
+    // Half-frame precision for ultra-fluid scrubbing
+    if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
 
-  // Smooth interpolated rendering state
-  let targetProgress = 0;
-  let smoothProgress = 0;
-  let rafId = null;
+    const now = performance.now();
 
-  function applyZoomAndVideo(progress) {
-    const dur = (video.duration && !isNaN(video.duration) && video.duration > 0) ? video.duration : FALLBACK_DURATION;
-    const maxTime = dur - 0.04;
-    const currentTimeScrub = Math.min(Math.max(progress * maxTime, 0), maxTime);
+    // Deadlock breaker: if seeking has been held for > 350ms, release it
+    if (isSeeking && (now - seekLockTime > 350)) {
+      isSeeking = false;
+    }
 
-    // Update video position synchronously
-    setVideoTime(currentTimeScrub);
+    if (isSeeking || video.seeking) {
+      pendingTime = boundedTime;
+      return;
+    }
 
-    // -------------------------------------------------------------
-    // PHASE 1: WINDOW OPENING (Progress 0.00 to 0.15)
-    // Synchronized with the video's wooden doors swinging open (0.0s - 2.2s)
-    // -------------------------------------------------------------
-    const isMobile = window.innerWidth <= 768;
-    const OPEN_END = 0.15;
-    const zoom = Math.min(Math.max(progress / OPEN_END, 0), 1);
+    isSeeking = true;
+    seekLockTime = now;
+    lastScrubTime = now;
 
-    if (windowWrapper) {
-      if (isMobile) {
-        if (zoom >= 0.98) {
-          windowWrapper.style.width = '100vw';
-          windowWrapper.style.height = '100vh';
-          windowWrapper.style.borderRadius = '0px';
-          windowWrapper.style.boxShadow = 'none';
-        } else {
-          const w = 84 + zoom * 16;
-          const initialH = (84 * 9) / 16;
-          const h = initialH + zoom * (100 - initialH);
-          const radius = Math.max(0, 16 * (1 - zoom));
-          windowWrapper.style.width = `min(${w.toFixed(1)}vw, 100vw)`;
-          windowWrapper.style.height = `min(${h.toFixed(1)}vh, 100vh)`;
-          windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
-          windowWrapper.style.boxShadow = `0 14px 40px rgba(0, 0, 0, ${(0.55 * (1 - zoom)).toFixed(2)})`;
-        }
-      } else {
-        if (zoom >= 0.98) {
-          windowWrapper.style.width = '100vw';
-          windowWrapper.style.height = '100vh';
-          windowWrapper.style.borderRadius = '0px';
-          windowWrapper.style.boxShadow = 'none';
-        } else {
-          const w = 84 + zoom * 16;
-          const h = 68 + zoom * 32;
-          const radius = Math.max(0, 24 * (1 - zoom));
-          windowWrapper.style.width = `min(${w.toFixed(1)}vw, 100vw)`;
-          windowWrapper.style.height = `min(${h.toFixed(1)}vh, 100vh)`;
-          windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
-          windowWrapper.style.boxShadow = `0 25px 70px -15px rgba(0, 0, 0, ${(0.25 * (1 - zoom)).toFixed(2)})`;
-        }
+    if (typeof video.fastSeek === 'function') {
+      try {
+        video.fastSeek(boundedTime);
+      } catch (e) {
+        video.currentTime = boundedTime;
       }
-      windowWrapper.style.transform = 'translate(-50%, -50%)';
-    }
-
-    // -------------------------------------------------------------
-    // PHASE 2 & 3: SCENE OVERLAYS (100% PRECISE VIDEO CONTENT MATCH)
-    // 0.0s - 2.2s: Wooden doors swing open (NO text overlay)
-    // 2.2s - 5.5s: Wireframes & Notebook (Scene 1: Architecture & Wireframing)
-    // 5.5s - 8.6s: Elementor & WordPress (Scene 2: WordPress & Custom Code)
-    // 8.6s - 11.5s: Responsive Multi-Devices (Scene 3: Fluid Responsiveness)
-    // 11.5s - 14.4s: 3D Floating Showcase (Scene 4: Digital Excellence & CTA)
-    // -------------------------------------------------------------
-    if (scene1 && scene2 && scene3 && scene4) {
-      scene1.classList.toggle('active', currentTimeScrub >= 2.2 && currentTimeScrub < 5.5);
-      scene2.classList.toggle('active', currentTimeScrub >= 5.5 && currentTimeScrub < 8.6);
-      scene3.classList.toggle('active', currentTimeScrub >= 8.6 && currentTimeScrub < 11.5);
-      scene4.classList.toggle('active', currentTimeScrub >= 11.5);
+    } else {
+      video.currentTime = boundedTime;
     }
   }
 
-  function renderLoop() {
-    const diff = targetProgress - smoothProgress;
-    if (Math.abs(diff) > 0.0002) {
-      smoothProgress += diff * 0.16;
-    } else {
-      smoothProgress = targetProgress;
-    }
-
-    applyZoomAndVideo(smoothProgress);
-
-    if (Math.abs(targetProgress - smoothProgress) > 0.0002) {
-      rafId = requestAnimationFrame(renderLoop);
-    } else {
-      rafId = null;
+  function requestTick() {
+    if (!isTicking) {
+      isTicking = true;
+      requestAnimationFrame(renderFrame);
     }
   }
 
-  function updateTarget() {
+  // Smooth scroll listener
+  window.addEventListener('scroll', () => {
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
-    if (maxScroll <= 0) return;
+    const current = Math.min(Math.max(-rect.top, 0), maxScroll);
+    targetProgress = maxScroll > 0 ? current / maxScroll : 0;
+    requestTick();
+  }, { passive: true });
 
-    targetProgress = Math.min(Math.max(-rect.top / maxScroll, 0), 1);
+  // 60FPS Render Loop
+  function renderFrame() {
+    const isMobile = window.innerWidth <= 768;
+    // Responsive lerp: fast tracking with zero drag or stickiness
+    const lerpFactor = isMobile ? 0.35 : 0.28;
+    smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
 
-    if (!rafId) {
-      rafId = requestAnimationFrame(renderLoop);
+    // 1. Centered Window Zooms & Expands into 100% Fullscreen
+    if (windowWrapper) {
+      const zoomPhase = Math.min(smoothProgress / 0.18, 1);
+
+      if (zoomPhase >= 0.88) {
+        windowWrapper.style.width = '100vw';
+        windowWrapper.style.height = '100vh';
+        windowWrapper.style.borderRadius = '0px';
+        windowWrapper.style.boxShadow = 'none';
+        windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
+      } else {
+        const baseW = isMobile ? 88 : 84;
+        const baseH = isMobile ? 62 : 68;
+        const wPct = baseW + zoomPhase * (100 - baseW);
+        const hPct = baseH + zoomPhase * (100 - baseH);
+        const radius = Math.max(0, (isMobile ? 20 : 24) * (1 - zoomPhase * 1.5));
+        const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
+        const scale = 0.90 + zoomPhase * 0.10;
+
+        windowWrapper.style.width = isMobile ? `${wPct.toFixed(1)}vw` : `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
+        windowWrapper.style.height = isMobile ? `${hPct.toFixed(1)}vh` : `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
+        windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
+        windowWrapper.style.boxShadow = shadowAlpha > 0.01 
+          ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
+          : 'none';
+        windowWrapper.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+      }
+    }
+
+    // 2. Video Scrubbing with Calibrated Scene Timeline
+    const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
+    let videoProgress = 0;
+    if (smoothProgress <= 0.82) {
+      // From 0 to 82% scroll, play smoothly from 0s to 14.4s
+      videoProgress = smoothProgress / 0.82;
+    } else {
+      // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
+      videoProgress = 1.0;
+    }
+    const currentTargetTime = videoProgress * videoDuration;
+    scrubToTime(currentTargetTime);
+
+    // 3. Scene Content Overlays Synced to Video Timelines
+    // Window opening (0.0s to 1.6s): Clean window with NO text overlay
+    const scene1 = document.getElementById('scene-ui-1');
+    const scene2 = document.getElementById('scene-ui-2');
+    const scene3 = document.getElementById('scene-ui-3');
+    const scene4 = document.getElementById('scene-ui-4');
+
+    if (scene1 && scene2 && scene3 && scene4) {
+      // Scene 1: Wireframing & UI/UX (1.6s - 4.5s)
+      scene1.classList.toggle('active', currentTargetTime >= 1.6 && currentTargetTime < 4.5);
+      // Scene 2: WordPress, Elementor & PHP Code (4.5s - 7.5s)
+      scene2.classList.toggle('active', currentTargetTime >= 4.5 && currentTargetTime < 7.5);
+      // Scene 3: Fluid Responsiveness Across All Devices (7.5s - 11.0s)
+      scene3.classList.toggle('active', currentTargetTime >= 7.5 && currentTargetTime < 11.0);
+      // Scene 4: 3D Project Showcase & Call to Action (11.0s - 14.4s+)
+      scene4.classList.toggle('active', currentTargetTime >= 11.0);
+    }
+
+    // Continue render loop while lerp is still settling or seeking is pending
+    const diff = Math.abs(targetProgress - smoothProgress);
+    if (diff > 0.0006 || isSeeking || pendingTime !== null) {
+      requestAnimationFrame(renderFrame);
+    } else {
+      isTicking = false;
     }
   }
 
-  window.addEventListener('scroll', updateTarget, { passive: true });
-  window.addEventListener('resize', updateTarget, { passive: true });
-  video.addEventListener('loadedmetadata', updateTarget);
-  updateTarget();
+  video.addEventListener('loadedmetadata', requestTick);
+  if (video.readyState >= 1) {
+    requestTick();
+  } else {
+    video.load();
+    requestTick();
+  }
+  requestTick();
 }
 
 // ============================================================================
