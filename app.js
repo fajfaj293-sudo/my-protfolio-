@@ -306,211 +306,108 @@ function initContinuousZoomStory() {
   const video = document.getElementById('portfolio-scroll-video');
   if (!runway || !video) return;
 
-  let targetProgress = 0;
-  let smoothProgress = 0;
-  let isTicking = false;
-  let isSeeking = false;
-  let pendingTime = null;
+  const VIDEO_URL = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
+  const FALLBACK_DURATION = 14.4;
 
-  // Optimize video configuration
   video.muted = true;
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
-  // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
-  let lastScrubTime = 0;
-  let seekLockTime = 0;
-  let lastMobileScrubTime = 0;
-
-  video.addEventListener('seeked', () => {
-    isSeeking = false;
-    if (pendingTime !== null) {
-      const nextTime = pendingTime;
-      pendingTime = null;
-      scrubToTime(nextTime);
-    }
-  });
-
-  function scrubToTime(t) {
-    if (!video.duration || isNaN(video.duration)) return;
-    const boundedTime = Math.max(0, Math.min(video.duration - 0.02, t));
-    
-    const isMobile = window.innerWidth <= 768;
-    const now = performance.now();
-
-    if (isMobile) {
-      // 2GB RAM Mobile Optimization: Throttle decoder seeking to 10 FPS (90ms)
-      // This prevents video buffer lock and allows 2GB/3GB mobile decoders to run butter-smooth!
-      if (now - lastMobileScrubTime < 90) {
-        pendingTime = boundedTime;
-        return;
-      }
-      if (Math.abs(video.currentTime - boundedTime) < 0.08) return;
-    } else {
-      // Desktop: 60 FPS ultra-fine scrubbing
-      if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
-    }
-
-    // Mobile hardware video decoders need more breathing room to avoid decoder pipeline lock
-    const maxSeekLock = isMobile ? 140 : 40;
-    if (isSeeking && (now - seekLockTime > maxSeekLock)) {
-      isSeeking = false;
-    }
-
-    if (isSeeking) {
-      pendingTime = boundedTime;
-      return;
-    }
-
-    isSeeking = true;
-    seekLockTime = now;
-    lastScrubTime = now;
-    if (isMobile) lastMobileScrubTime = now;
-
-    if (typeof video.fastSeek === 'function') {
-      try {
-        video.fastSeek(boundedTime);
-      } catch (e) {
-        video.currentTime = boundedTime;
-      }
-    } else {
-      video.currentTime = boundedTime;
-    }
+  // Preload video as in-memory Blob for instant 0ms latency scrubbing
+  if (window.fetch && window.URL && window.Blob) {
+    fetch(VIDEO_URL)
+      .then(res => {
+        if (!res.ok) throw new Error('CDN response not ok');
+        return res.blob();
+      })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        video.src = blobUrl;
+        video.load();
+      })
+      .catch(() => {
+        if (!video.src) video.src = VIDEO_URL;
+      });
   }
 
-  let runwayInView = true;
-  if ('IntersectionObserver' in window) {
-    const obs = new IntersectionObserver((entries) => {
-      runwayInView = entries[0].isIntersecting;
-      if (runwayInView) {
-        requestTick();
-      }
-    }, { threshold: 0 });
-    obs.observe(runway);
-  }
+  // Active scene overlays
+  const scene1 = document.getElementById('scene-ui-1');
+  const scene2 = document.getElementById('scene-ui-2');
+  const scene3 = document.getElementById('scene-ui-3');
+  const scene4 = document.getElementById('scene-ui-4');
 
-  function requestTick() {
-    if (!runwayInView) {
-      isTicking = false;
-      return;
-    }
-    if (!isTicking) {
-      isTicking = true;
-      requestAnimationFrame(renderFrame);
-    }
-  }
-
-  // Smooth scroll listener
-  window.addEventListener('scroll', () => {
-    if (!runwayInView) return;
+  function updateZoomAndVideo() {
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
-    const current = Math.min(Math.max(-rect.top, 0), maxScroll);
-    targetProgress = maxScroll > 0 ? current / maxScroll : 0;
-    requestTick();
-  }, { passive: true });
+    if (maxScroll <= 0) return;
 
-  // 60FPS Render Loop
-  function renderFrame() {
-    if (!runwayInView) {
-      isTicking = false;
-      return;
-    }
+    // Linear progress 0.0 to 1.0 throughout the runway
+    const progress = Math.min(Math.max(-rect.top / maxScroll, 0), 1);
 
+    // 1. Window Expansion from Centered Card to Fullscreen
     const isMobile = window.innerWidth <= 768;
-    // Responsive lerp: fast tracking with zero drag or stickiness
-    const lerpFactor = isMobile ? 0.35 : 0.28;
-    smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
+    const zoom = Math.min(progress / 0.20, 1);
 
-    // 1. Centered Window Zooms & Expands into 100% Fullscreen
     if (windowWrapper) {
-      const zoomPhase = Math.min(smoothProgress / 0.18, 1);
-      const isMobile = window.innerWidth <= 768;
-
-      if (zoomPhase >= 0.88) {
-        windowWrapper.style.width = '100vw';
-        windowWrapper.style.height = '100vh';
-        windowWrapper.style.borderRadius = '0px';
-        windowWrapper.style.boxShadow = 'none';
-        windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
+      if (isMobile) {
+        const w = 80 + zoom * 6;
+        const h = (w * 9) / 16;
+        windowWrapper.style.width = `min(${w.toFixed(1)}vw, 340px)`;
+        windowWrapper.style.height = `min(${h.toFixed(1)}vw, 200px)`;
+        windowWrapper.style.borderRadius = '16px';
+        windowWrapper.style.transform = 'translate(-50%, -50%)';
       } else {
-        const baseW = isMobile ? 90 : 84;
-        const wPct = baseW + zoomPhase * (100 - baseW);
-        const radius = Math.max(0, (isMobile ? 18 : 24) * (1 - zoomPhase * 1.5));
-        const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
-        const scale = 0.92 + zoomPhase * 0.08;
-
-        if (isMobile) {
-          const baseH = (baseW * 9) / 16;
-          const currentH = baseH + zoomPhase * (100 - baseH);
-          windowWrapper.style.width = `${wPct.toFixed(1)}vw`;
-          windowWrapper.style.height = zoomPhase > 0.02 ? `${currentH.toFixed(1)}vh` : `min(calc(92vw * 9 / 16), 240px)`;
+        if (zoom >= 0.95) {
+          windowWrapper.style.width = '100vw';
+          windowWrapper.style.height = '100vh';
+          windowWrapper.style.borderRadius = '0px';
+          windowWrapper.style.boxShadow = 'none';
+          windowWrapper.style.transform = 'translate(-50%, -50%)';
         } else {
-          const baseH = 68;
-          const hPct = baseH + zoomPhase * (100 - baseH);
-          windowWrapper.style.width = `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
-          windowWrapper.style.height = `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
+          const w = 84 + zoom * 16;
+          const h = 68 + zoom * 32;
+          const radius = Math.max(0, 24 * (1 - zoom * 1.5));
+          windowWrapper.style.width = `min(${w.toFixed(1)}vw, ${1080 + zoom * 800}px)`;
+          windowWrapper.style.height = `min(${h.toFixed(1)}vh, ${600 + zoom * 800}px)`;
+          windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
+          windowWrapper.style.boxShadow = '0 25px 70px -15px rgba(0, 0, 0, 0.25)';
+          windowWrapper.style.transform = 'translate(-50%, -50%)';
         }
-
-        windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
-        windowWrapper.style.boxShadow = shadowAlpha > 0.01 
-          ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
-          : 'none';
-        windowWrapper.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
       }
     }
 
-    // 2. Video Scrubbing with Calibrated Scene Timeline
-    let currentTargetTime = 0;
-    if (video.duration && !isNaN(video.duration)) {
-      let videoProgress = 0;
-      if (smoothProgress <= 0.82) {
-        // From 0 to 82% scroll, play smoothly from 0s to 14.4s
-        videoProgress = smoothProgress / 0.82;
-      } else {
-        // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
-        videoProgress = 1.0;
-      }
-      currentTargetTime = videoProgress * video.duration;
-      scrubToTime(currentTargetTime);
+    // 2. Direct 1:1 Video Scrubbing
+    const dur = (video.duration && !isNaN(video.duration) && video.duration > 0) ? video.duration : FALLBACK_DURATION;
+    const targetTime = progress * (dur - 0.04);
+    if (Math.abs(video.currentTime - targetTime) > 0.008) {
+      video.currentTime = targetTime;
     }
 
-    // 3. Scene Content Overlays Synced to Video Timelines
-    // Window opening (0.0s to 1.6s): Clean window with NO text overlay
-    const scene1 = document.getElementById('scene-ui-1');
-    const scene2 = document.getElementById('scene-ui-2');
-    const scene3 = document.getElementById('scene-ui-3');
-    const scene4 = document.getElementById('scene-ui-4');
-
+    // 3. Scene Text Overlays Synced to Video Timelines
     if (scene1 && scene2 && scene3 && scene4) {
-      // Scene 1: Wireframing & UI/UX (1.6s - 4.5s)
-      scene1.classList.toggle('active', currentTargetTime >= 1.6 && currentTargetTime < 4.5);
-      // Scene 2: WordPress, Elementor & PHP Code (4.5s - 7.5s)
-      scene2.classList.toggle('active', currentTargetTime >= 4.5 && currentTargetTime < 7.5);
-      // Scene 3: Fluid Responsiveness Across All Devices (7.5s - 11.0s)
-      scene3.classList.toggle('active', currentTargetTime >= 7.5 && currentTargetTime < 11.0);
-      // Scene 4: 3D Project Showcase & Call to Action (11.0s - 14.4s+)
-      scene4.classList.toggle('active', currentTargetTime >= 11.0);
-    }
-
-    // Continue render loop while lerp is still settling or seeking is pending
-    const diff = Math.abs(targetProgress - smoothProgress);
-    if (diff > 0.0006 || isSeeking || pendingTime !== null) {
-      requestAnimationFrame(renderFrame);
-    } else {
-      isTicking = false;
+      scene1.classList.toggle('active', targetTime >= 1.6 && targetTime < 4.5);
+      scene2.classList.toggle('active', targetTime >= 4.5 && targetTime < 7.5);
+      scene3.classList.toggle('active', targetTime >= 7.5 && targetTime < 11.0);
+      scene4.classList.toggle('active', targetTime >= 11.0);
     }
   }
 
-  video.addEventListener('loadedmetadata', requestTick);
-  if (video.readyState >= 1) {
-    requestTick();
-  } else {
-    video.load();
-    requestTick();
+  let ticking = false;
+  function requestUpdate() {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(() => {
+        updateZoomAndVideo();
+        ticking = false;
+      });
+    }
   }
-  requestTick();
+
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate, { passive: true });
+  video.addEventListener('loadedmetadata', requestUpdate);
+  requestUpdate();
 }
 
 // ============================================================================
