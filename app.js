@@ -306,19 +306,20 @@ function initContinuousZoomStory() {
   const video = document.getElementById('portfolio-scroll-video');
   if (!runway || !video) return;
 
-  const VIDEO_URL = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
-  const FALLBACK_DURATION = 14.4;
+  const LOCAL_VIDEO = 'assets/scroll-video.mp4';
+  const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
+  const FALLBACK_DURATION = 14.43;
 
   video.muted = true;
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
-  // Preload video as in-memory Blob for zero-latency local seek
+  // Preload fast local video into Blob for instant 0ms latency hardware scrubbing
   if (window.fetch && window.URL && window.Blob) {
-    fetch(VIDEO_URL)
+    fetch(LOCAL_VIDEO)
       .then(res => {
-        if (!res.ok) throw new Error('CDN response not ok');
+        if (!res.ok) throw new Error('Local video not found, falling back to CDN');
         return res.blob();
       })
       .then(blob => {
@@ -327,7 +328,18 @@ function initContinuousZoomStory() {
         video.load();
       })
       .catch(() => {
-        if (!video.src) video.src = VIDEO_URL;
+        fetch(CDN_FALLBACK)
+          .then(res => res.blob())
+          .then(blob => {
+            const blobUrl = URL.createObjectURL(blob);
+            video.src = blobUrl;
+            video.load();
+          })
+          .catch(() => {
+            if (!video.src || video.src.includes('undefined')) {
+              video.src = CDN_FALLBACK;
+            }
+          });
       });
   }
 
@@ -337,34 +349,29 @@ function initContinuousZoomStory() {
   const scene3 = document.getElementById('scene-ui-3');
   const scene4 = document.getElementById('scene-ui-4');
 
-  // Decoder-friendly seek locking: Never abort in-flight seeks on wheel ticks
+  // Direct, low-latency seek pipeline with safety release
   let isSeeking = false;
-  let pendingTime = null;
+  let targetTime = 0;
 
-  function performSeek(time) {
-    if (isSeeking) {
-      pendingTime = time;
-      return;
-    }
-    if (Math.abs(video.currentTime - time) < 0.02) return;
-
-    isSeeking = true;
-    if (typeof video.fastSeek === 'function') {
-      video.fastSeek(time);
-    } else {
-      video.currentTime = time;
+  function setVideoTime(time) {
+    targetTime = time;
+    if (!isSeeking && Math.abs(video.currentTime - targetTime) > 0.015) {
+      isSeeking = true;
+      video.currentTime = targetTime;
     }
   }
 
   video.addEventListener('seeked', () => {
     isSeeking = false;
-    if (pendingTime !== null) {
-      const nextTime = pendingTime;
-      pendingTime = null;
-      if (Math.abs(video.currentTime - nextTime) >= 0.02) {
-        performSeek(nextTime);
-      }
+    if (Math.abs(video.currentTime - targetTime) > 0.015) {
+      isSeeking = true;
+      video.currentTime = targetTime;
     }
+  });
+
+  video.addEventListener('seeking', () => {
+    // Safety release: Never let isSeeking hang longer than 50ms
+    setTimeout(() => { isSeeking = false; }, 50);
   });
 
   // Smooth interpolated rendering state
@@ -373,12 +380,19 @@ function initContinuousZoomStory() {
   let rafId = null;
 
   function applyZoomAndVideo(progress) {
+    const dur = (video.duration && !isNaN(video.duration) && video.duration > 0) ? video.duration : FALLBACK_DURATION;
+    const maxTime = dur - 0.04;
+    const currentTimeScrub = Math.min(Math.max(progress * maxTime, 0), maxTime);
+
+    // Update video position synchronously
+    setVideoTime(currentTimeScrub);
+
     // -------------------------------------------------------------
-    // PHASE 1: WINDOW OPENING (Progress 0.00 to 0.14)
-    // The centered window card smoothly expands to 100vw x 100vh
+    // PHASE 1: WINDOW OPENING (Progress 0.00 to 0.15)
+    // Synchronized with the video's wooden doors swinging open (0.0s - 2.2s)
     // -------------------------------------------------------------
     const isMobile = window.innerWidth <= 768;
-    const OPEN_END = 0.14;
+    const OPEN_END = 0.15;
     const zoom = Math.min(Math.max(progress / OPEN_END, 0), 1);
 
     if (windowWrapper) {
@@ -418,48 +432,25 @@ function initContinuousZoomStory() {
     }
 
     // -------------------------------------------------------------
-    // PHASE 2: VIDEO SCRUBBING & SCENE SYNC (Progress 0.14 to 1.00)
-    // Starts from 0.0s only AFTER the window is open!
-    // -------------------------------------------------------------
-    const dur = (video.duration && !isNaN(video.duration) && video.duration > 0) ? video.duration : FALLBACK_DURATION;
-    const maxTime = dur - 0.04;
-
-    let targetTime = 0;
-    if (progress >= OPEN_END) {
-      const vProgress = Math.min(Math.max((progress - OPEN_END) / (1.0 - OPEN_END), 0), 1);
-      targetTime = vProgress * maxTime;
-    }
-
-    performSeek(targetTime);
-
-    // -------------------------------------------------------------
-    // PHASE 3: SCENE OVERLAYS (Evenly balanced across 4 quarters)
-    // Each scene matches exactly 3.6s of video with zero lag
+    // PHASE 2 & 3: SCENE OVERLAYS (100% PRECISE VIDEO CONTENT MATCH)
+    // 0.0s - 2.2s: Wooden doors swing open (NO text overlay)
+    // 2.2s - 5.5s: Wireframes & Notebook (Scene 1: Architecture & Wireframing)
+    // 5.5s - 8.6s: Elementor & WordPress (Scene 2: WordPress & Custom Code)
+    // 8.6s - 11.5s: Responsive Multi-Devices (Scene 3: Fluid Responsiveness)
+    // 11.5s - 14.4s: 3D Floating Showcase (Scene 4: Digital Excellence & CTA)
     // -------------------------------------------------------------
     if (scene1 && scene2 && scene3 && scene4) {
-      if (progress < OPEN_END) {
-        // Window opening: Overlays stay clean and hidden
-        scene1.classList.remove('active');
-        scene2.classList.remove('active');
-        scene3.classList.remove('active');
-        scene4.classList.remove('active');
-      } else {
-        // Scene 1: 0.0s to 3.6s (Architecture & Wireframing)
-        scene1.classList.toggle('active', targetTime >= 0.1 && targetTime < 3.6);
-        // Scene 2: 3.6s to 7.2s (WordPress & Custom Code)
-        scene2.classList.toggle('active', targetTime >= 3.6 && targetTime < 7.2);
-        // Scene 3: 7.2s to 10.8s (Fluid Responsiveness)
-        scene3.classList.toggle('active', targetTime >= 7.2 && targetTime < 10.8);
-        // Scene 4: 10.8s to 14.4s (Digital Excellence & CTA)
-        scene4.classList.toggle('active', targetTime >= 10.8);
-      }
+      scene1.classList.toggle('active', currentTimeScrub >= 2.2 && currentTimeScrub < 5.5);
+      scene2.classList.toggle('active', currentTimeScrub >= 5.5 && currentTimeScrub < 8.6);
+      scene3.classList.toggle('active', currentTimeScrub >= 8.6 && currentTimeScrub < 11.5);
+      scene4.classList.toggle('active', currentTimeScrub >= 11.5);
     }
   }
 
   function renderLoop() {
     const diff = targetProgress - smoothProgress;
     if (Math.abs(diff) > 0.0002) {
-      smoothProgress += diff * 0.14; // Silky damped lerp for mouse wheel
+      smoothProgress += diff * 0.16;
     } else {
       smoothProgress = targetProgress;
     }

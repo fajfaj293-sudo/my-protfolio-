@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=15.0" />
+  <link rel="stylesheet" href="styles.css?v=16.0" />
 </head>
 <body>
 
@@ -138,13 +138,13 @@
             <video
               id="portfolio-scroll-video"
               class="portfolio-scrub-video"
-              src="https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4"
+              src="assets/scroll-video.mp4"
               poster="assets/video-poster.webp"
               muted
               playsinline
-              preload="metadata"
-              crossorigin="anonymous"
+              preload="auto"
             >
+              <source src="assets/scroll-video.mp4" type="video/mp4" />
               <source src="https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4" type="video/mp4" />
             </video>
           </div>
@@ -777,7 +777,7 @@
   <canvas id="cursor-spider-canvas" class="cursor-spider-canvas" aria-hidden="true"></canvas>
 
   <!-- Standard defer script (No type="module") so it runs 100% on file:///C:/Users/... -->
-  <script defer src="app.js?v=15.0"></script>
+  <script defer src="app.js?v=16.0"></script>
 
   <!-- Floating Mobile Bottom Navigation Dock (Visible on Mobile Screens < 768px) -->
   <nav class="mobile-bottom-dock" aria-label="Mobile Navigation">
