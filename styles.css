@@ -4358,14 +4358,20 @@ a.channel-item:hover .ci-arrow {
   }
 
   /* When video is in front on mobile, shut down ALL background animations for maximum smoothness */
-  body.mobile-video-active .cursor-spider-canvas {
+  body.mobile-video-active #cursor-spider-canvas,
+  body.mobile-video-active .cursor-spider-canvas,
+  body.mobile-video-active #realms-star-canvas,
+  body.mobile-video-active #footer-star-canvas,
+  body.mobile-video-active .cube-viewport,
+  body.mobile-video-active .cube-canvas {
     display: none !important;
-  }
-  body.mobile-video-active .cube-viewport {
     visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
-  body.mobile-video-active * {
-    animation-play-state: paused !important;
+  body.mobile-video-active *:not(.scroll-story-runway):not(.scroll-story-runway *):not(.mobile-dock):not(.mobile-dock *) {
+    animation: none !important;
+    transition: none !important;
   }
   body.mobile-video-active .portfolio-scrub-video,
   body.mobile-video-active .story-scene-ui,

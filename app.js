@@ -415,25 +415,38 @@ function initContinuousZoomStory() {
     }
   }
 
+  // 100% Reliable In-View Observer for Mobile Video Section
+  function updateMobileVideoState(inView) {
+    const isMobile = window.innerWidth <= 1024;
+    const shouldBeActive = isMobile && inView;
+    if (window.__mobileVideoActive !== shouldBeActive) {
+      window.__mobileVideoActive = shouldBeActive;
+      document.body.classList.toggle('mobile-video-active', shouldBeActive);
+    }
+  }
+
+  if ('IntersectionObserver' in window) {
+    const runwayObs = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        updateMobileVideoState(entry.isIntersecting);
+      });
+    }, {
+      root: null,
+      threshold: [0, 0.05, 0.2, 0.5, 0.8, 1.0]
+    });
+    runwayObs.observe(runway);
+  }
+
   // Smooth scroll listener
   window.addEventListener('scroll', () => {
-    const isMobile = window.innerWidth <= 768;
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
     targetProgress = maxScroll > 0 ? current / maxScroll : 0;
 
     // Detect if video runway is active in viewport on mobile to suspend other animations
-    if (isMobile) {
-      const inView = rect.bottom > 50 && rect.top < (window.innerHeight - 50);
-      if (inView !== window.__mobileVideoActive) {
-        window.__mobileVideoActive = inView;
-        document.body.classList.toggle('mobile-video-active', inView);
-      }
-    } else if (window.__mobileVideoActive) {
-      window.__mobileVideoActive = false;
-      document.body.classList.remove('mobile-video-active');
-    }
+    const inView = rect.bottom > 10 && rect.top < (window.innerHeight - 10);
+    updateMobileVideoState(inView);
 
     requestTick();
   }, { passive: true });
@@ -1908,7 +1921,12 @@ function initCursorSpider() {
 
   function renderSpider(now) {
     // Ultra performance: pause spider IK canvas loop during active scroll or when mobile video is in view
-    if (isPageScrolling || window.__mobileVideoActive) {
+    if (window.__mobileVideoActive) {
+      ctx.clearRect(0, 0, w, h);
+      requestAnimationFrame(renderSpider);
+      return;
+    }
+    if (isPageScrolling) {
       requestAnimationFrame(renderSpider);
       return;
     }
