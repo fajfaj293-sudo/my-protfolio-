@@ -1600,7 +1600,7 @@ function initContactForm() {
 
   async function sendEmail(data) {
     const { name, email, service, budget, details } = data;
-    return fetch('https://formsubmit.co/ajax/fazlulbuisness1@gmail.com', {
+    return fetch('https://formsubmit.co/ajax/fazlulbusiness1@gmail.com', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1642,13 +1642,13 @@ function initContactForm() {
         return;
       }
       toast.style.display = 'block';
-      toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(168, 85, 247, 0.2); border: 1.5px solid #a855f7; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⏳ Sending to fazlulbuisness1@gmail.com...</div>';
+      toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(168, 85, 247, 0.2); border: 1.5px solid #a855f7; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⏳ Sending to fazlulbusiness1@gmail.com...</div>';
       try {
         await sendEmail(data);
-        toast.innerHTML = '<div style="padding: 1.1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">✨ Delivered directly to <strong>fazlulbuisness1@gmail.com</strong>! You will receive a direct reply in &lt;2 hours.</div>';
+        toast.innerHTML = '<div style="padding: 1.1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">✨ Delivered directly to <strong>fazlulbusiness1@gmail.com</strong>! You will receive a direct reply in &lt;2 hours.</div>';
         form.reset();
       } catch (err) {
-        toast.innerHTML = '<div style="padding: 1.1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">✨ Inquiry logged for <strong>fazlulbuisness1@gmail.com</strong>. You will receive a reply in &lt;2 hours.</div>';
+        toast.innerHTML = '<div style="padding: 1.1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">✨ Inquiry logged for <strong>fazlulbusiness1@gmail.com</strong>. You will receive a reply in &lt;2 hours.</div>';
         form.reset();
       }
     });
@@ -1679,7 +1679,7 @@ function initContactForm() {
       toast.innerHTML = `
         <div style="padding: 1.2rem 1.5rem; border-radius: 16px; background: rgba(16, 185, 129, 0.22); border: 1.5px solid #10b981; color: #ffffff; font-family: var(--font-mono); font-size: 0.88rem; margin-top: 1.2rem; box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);">
           ✨ <strong>Success, ${data.name}!</strong><br>
-          1. Delivered directly to Email: <strong>fazlulbuisness1@gmail.com</strong>.<br>
+          1. Delivered directly to Email: <strong>fazlulbusiness1@gmail.com</strong>.<br>
           2. WhatsApp dispatch opened for: <strong>+880 1302-927167</strong>.<br>
           Fazlul Haque will personally respond within 2 hours!
         </div>
@@ -1689,7 +1689,7 @@ function initContactForm() {
       sendToWhatsApp(data);
       toast.innerHTML = `
         <div style="padding: 1.2rem 1.5rem; border-radius: 16px; background: rgba(16, 185, 129, 0.22); border: 1.5px solid #10b981; color: #ffffff; font-family: var(--font-mono); font-size: 0.88rem; margin-top: 1.2rem;">
-          ✨ <strong>Inquiry Logged!</strong> Direct alert sent to <strong>fazlulbuisness1@gmail.com</strong> and WhatsApp chat opened.
+          ✨ <strong>Inquiry Logged!</strong> Direct alert sent to <strong>fazlulbusiness1@gmail.com</strong> and WhatsApp chat opened.
         </div>
       `;
       form.reset();
