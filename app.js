@@ -417,10 +417,24 @@ function initContinuousZoomStory() {
 
   // Smooth scroll listener
   window.addEventListener('scroll', () => {
+    const isMobile = window.innerWidth <= 768;
     const rect = runway.getBoundingClientRect();
     const maxScroll = runway.offsetHeight - window.innerHeight;
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
     targetProgress = maxScroll > 0 ? current / maxScroll : 0;
+
+    // Detect if video runway is active in viewport on mobile to suspend other animations
+    if (isMobile) {
+      const inView = rect.bottom > 50 && rect.top < (window.innerHeight - 50);
+      if (inView !== window.__mobileVideoActive) {
+        window.__mobileVideoActive = inView;
+        document.body.classList.toggle('mobile-video-active', inView);
+      }
+    } else if (window.__mobileVideoActive) {
+      window.__mobileVideoActive = false;
+      document.body.classList.remove('mobile-video-active');
+    }
+
     requestTick();
   }, { passive: true });
 
@@ -1168,8 +1182,8 @@ function initFloating3DCube() {
   window.addEventListener('pointerup', onPointerEnd);
 
   function render(time) {
-    if (!cubeInView) {
-      cubeRafId = null;
+    if (!cubeInView || window.__mobileVideoActive) {
+      cubeRafId = requestAnimationFrame(render);
       return;
     }
     ctx.clearRect(0, 0, W, H);
@@ -1893,8 +1907,8 @@ function initCursorSpider() {
   let activeGaitGroup = 0;
 
   function renderSpider(now) {
-    // Ultra performance: pause spider IK canvas loop during active scroll so 100% GPU is given to video scrubbing
-    if (isPageScrolling) {
+    // Ultra performance: pause spider IK canvas loop during active scroll or when mobile video is in view
+    if (isPageScrolling || window.__mobileVideoActive) {
       requestAnimationFrame(renderSpider);
       return;
     }

@@ -4293,7 +4293,7 @@ a.channel-item:hover .ci-arrow {
 
   /* Story Scene Overlays on Mobile: Perfectly scaled, high readability, beautiful glass scrim */
   .story-scene-ui {
-    padding: 1.5rem 1.2rem !important;
+    padding: 1.2rem 1.1rem calc(5.5rem + env(safe-area-inset-bottom)) !important;
     flex-direction: column !important;
     justify-content: flex-end !important;
     align-items: stretch !important;
@@ -4302,43 +4302,75 @@ a.channel-item:hover .ci-arrow {
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
-    padding: 1rem !important;
+    padding: 1rem 1rem calc(4rem + env(safe-area-inset-bottom)) !important;
   }
   .story-scene-ui.story-ui-top {
     justify-content: flex-start !important;
-    padding-top: 3.5rem !important;
+    padding-top: 4.2rem !important;
+    padding-bottom: 1rem !important;
   }
   .story-text-left {
     max-width: 100% !important;
-    margin-bottom: 0.8rem !important;
+    margin-bottom: 0.4rem !important;
   }
   .story-serif-h2 {
-    font-size: 1.4rem !important;
-    line-height: 1.25 !important;
-    margin-bottom: 0.45rem !important;
+    font-size: 1.15rem !important;
+    line-height: 1.22 !important;
+    margin-bottom: 0.3rem !important;
     text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95) !important;
   }
   .story-sub-p {
-    font-size: 0.82rem !important;
-    line-height: 1.45 !important;
-    margin-bottom: 0.8rem !important;
+    font-size: 0.74rem !important;
+    line-height: 1.35 !important;
+    margin-bottom: 0.45rem !important;
+    max-width: 92% !important;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95) !important;
   }
   .story-step-line {
-    font-size: 0.65rem !important;
-    margin-bottom: 0.4rem !important;
+    font-size: 0.62rem !important;
+    margin-bottom: 0.25rem !important;
   }
   .story-pills-right,
   .story-sliders-right {
+    display: flex !important;
     flex-direction: row !important;
     flex-wrap: wrap !important;
-    gap: 0.5rem !important;
-    margin-bottom: 0.8rem !important;
+    gap: 0.38rem !important;
+    margin-bottom: 0.4rem !important;
   }
   .frosted-meta-pill,
   .frosted-wave-slider {
-    padding: 0.45rem 0.75rem !important;
-    font-size: 0.7rem !important;
+    min-width: unset !important;
+    width: auto !important;
+    padding: 0.32rem 0.65rem !important;
+    font-size: 0.65rem !important;
+    border-radius: 999px !important;
+    gap: 0.45rem !important;
+  }
+  .frosted-meta-pill span {
+    font-size: 0.58rem !important;
+  }
+  .frosted-meta-pill strong {
+    font-size: 0.65rem !important;
+  }
+  .frosted-wave-slider {
+    border-radius: 12px !important;
+  }
+
+  /* When video is in front on mobile, shut down ALL background animations for maximum smoothness */
+  body.mobile-video-active .cursor-spider-canvas {
+    display: none !important;
+  }
+  body.mobile-video-active .cube-viewport {
+    visibility: hidden !important;
+  }
+  body.mobile-video-active * {
+    animation-play-state: paused !important;
+  }
+  body.mobile-video-active .portfolio-scrub-video,
+  body.mobile-video-active .story-scene-ui,
+  body.mobile-video-active .story-scene-ui * {
+    animation-play-state: running !important;
   }
 
   /* Scene 4 Center Box on Mobile: Pure floating transparent text, NO black box */
