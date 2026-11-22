@@ -4061,6 +4061,16 @@ a.channel-item:hover .ci-arrow {
     overflow: visible !important;
     transform-style: flat !important;
   }
+  .realms-star-canvas {
+    display: none !important;
+  }
+  .realms-viewport,
+  .realms-track,
+  .tidalia-realm-card {
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
   .tidalia-realm-card {
     width: 172px !important;
     height: 270px !important;
@@ -4072,7 +4082,7 @@ a.channel-item:hover .ci-arrow {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
-    transition: transform 0.28s ease-out, opacity 0.28s ease-out !important;
+    transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.28s ease-out, visibility 0.28s !important;
     will-change: transform, opacity !important;
     filter: none !important;
   }

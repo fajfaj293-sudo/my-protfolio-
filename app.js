@@ -648,23 +648,32 @@ function initPinnedRealmsCarousel() {
   function applyStackTransform(el, diff) {
     const absDiff = Math.abs(diff);
     const sign = Math.sign(diff);
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth <= 768;
 
     el.classList.toggle('active', diff === 0);
 
     if (isMobile) {
-      // Mobile 60FPS: Only render the front card + 2 adjacent peek cards. All other 8 cards hidden!
+      // Mobile 60FPS: Only show 3 cards (front center + 1 left + 1 right).
+      // All other 7 cards in background are completely hidden (opacity 0, visibility hidden, pointer-events none)
+      // but positioned just offside so sliding transitions in/out are butter-smooth!
       if (absDiff > 1) {
-        el.style.display = 'none';
-        return;
-      }
-      el.style.display = 'flex';
-      if (diff === 0) {
+        const offX = sign * 120;
+        el.style.transform = `translate3d(${offX}px, 0px, 0px) scale(0.72)`;
+        el.style.opacity = '0';
+        el.style.visibility = 'hidden';
+        el.style.pointerEvents = 'none';
+        el.style.zIndex = '5';
+      } else if (diff === 0) {
+        el.style.visibility = 'visible';
+        el.style.display = 'flex';
         el.style.transform = 'translate3d(0px, 0px, 0px) scale(1)';
         el.style.opacity = '1';
         el.style.zIndex = '40';
         el.style.pointerEvents = 'auto';
       } else {
+        // absDiff === 1 (left or right card)
+        el.style.visibility = 'visible';
+        el.style.display = 'flex';
         const offX = sign * 68;
         el.style.transform = `translate3d(${offX}px, 0px, 0px) scale(0.86)`;
         el.style.opacity = '0.65';
@@ -732,12 +741,18 @@ function initPinnedRealmsCarousel() {
     });
 
     if (leftMirrorCard) {
-      const oppIdx = (activeIdx + 5) % total;
-      if (leftMirrorCard.dataset.cachedIdx !== String(oppIdx)) {
-        leftMirrorCard.dataset.cachedIdx = String(oppIdx);
-        leftMirrorCard.innerHTML = cards[oppIdx].innerHTML;
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        leftMirrorCard.style.display = 'none';
+      } else {
+        leftMirrorCard.style.display = '';
+        const oppIdx = (activeIdx + 5) % total;
+        if (leftMirrorCard.dataset.cachedIdx !== String(oppIdx)) {
+          leftMirrorCard.dataset.cachedIdx = String(oppIdx);
+          leftMirrorCard.innerHTML = cards[oppIdx].innerHTML;
+        }
+        applyStackTransform(leftMirrorCard, -5);
       }
-      applyStackTransform(leftMirrorCard, -5);
     }
 
     dots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
@@ -792,42 +807,50 @@ function initPinnedRealmsCarousel() {
   });
 
   // Touch Swipe Gesture on Mobile for 10 Realms Carousel
+  const viewport = document.getElementById('realms-viewport') || track;
   let touchStartX = 0;
   let touchStartY = 0;
   let touchDeltaX = 0;
   let touchDeltaY = 0;
   let isSwiping = false;
+  let didSwipeGesture = false;
 
-  track.addEventListener('touchstart', (e) => {
+  viewport.addEventListener('touchstart', (e) => {
     if (!e.touches || e.touches.length !== 1) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchDeltaX = 0;
     touchDeltaY = 0;
     isSwiping = true;
+    didSwipeGesture = false;
   }, { passive: true });
 
-  track.addEventListener('touchmove', (e) => {
+  viewport.addEventListener('touchmove', (e) => {
     if (!isSwiping || !e.touches || e.touches.length !== 1) return;
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
     touchDeltaX = currentX - touchStartX;
     touchDeltaY = currentY - touchStartY;
 
-    // Only prevent default if horizontal swipe is clearly dominant (> 1.5x vertical)
-    if (Math.abs(touchDeltaX) > Math.abs(touchDeltaY) * 1.5 && Math.abs(touchDeltaX) > 15) {
+    // Only prevent default if horizontal swipe is clearly dominant (> 1.2x vertical)
+    if (Math.abs(touchDeltaX) > Math.abs(touchDeltaY) * 1.2 && Math.abs(touchDeltaX) > 10) {
       if (e.cancelable) e.preventDefault();
     }
   }, { passive: false });
 
-  track.addEventListener('touchend', () => {
+  viewport.addEventListener('touchend', () => {
     if (!isSwiping) return;
     isSwiping = false;
-    const swipeThreshold = 35;
+    const swipeThreshold = 25;
     if (Math.abs(touchDeltaX) > Math.abs(touchDeltaY) && Math.abs(touchDeltaX) > swipeThreshold) {
+      didSwipeGesture = true;
+      setTimeout(() => { didSwipeGesture = false; }, 200);
+
       if (touchDeltaX < 0) {
+        // Swiped left -> advance forward, bring right card to center
         scrollToRealm(activeIdx + 1);
       } else {
+        // Swiped right -> bring left card to center
         scrollToRealm(activeIdx - 1);
       }
     }
@@ -860,11 +883,13 @@ function initPinnedRealmsCarousel() {
   cards.forEach((card, idx) => {
     card.addEventListener('click', (e) => {
       const isMobile = window.innerWidth <= 768;
-      // If user was dragging vertically or swiping on mobile, ignore click so scrolling isn't blocked!
-      if (isMobile && (Math.abs(touchDeltaX) > 8 || Math.abs(touchDeltaY) > 8)) return;
+      // If user was swiping or dragging on mobile, ignore click
+      if (isMobile && didSwipeGesture) return;
 
       // On mobile, if clicking an inactive background card, simply bring it to center first
       if (isMobile && idx !== activeIdx) {
+        e.preventDefault();
+        e.stopPropagation();
         scrollToRealm(idx);
         return;
       }
@@ -935,6 +960,7 @@ function initStarfields() {
   ['realms-star-canvas', 'footer-star-canvas'].forEach((id) => {
     const c = document.getElementById(id);
     if (!c) return;
+    if (isMobile && id === 'realms-star-canvas') return;
     const ctx = c.getContext('2d');
     c.width = isMobile ? 640 : 1280;
     c.height = isMobile ? 360 : 720;
