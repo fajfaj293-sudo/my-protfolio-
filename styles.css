@@ -444,8 +444,8 @@ body {
   border-radius: inherit;
   z-index: 2;
   display: block;
-  image-rendering: -webkit-optimize-contrast;
-  filter: contrast(1.05) saturate(1.06);
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .portal-scenes-stage {

@@ -353,26 +353,38 @@ function initContinuousZoomStory() {
   let lastScrubTime = 0;
   let seekLockTime = 0;
 
-  video.addEventListener('seeked', () => {
+  function handleSeekComplete() {
     isSeeking = false;
     if (pendingTime !== null) {
       const nextTime = pendingTime;
       pendingTime = null;
       scrubToTime(nextTime);
     }
-  });
+  }
+
+  video.addEventListener('seeked', handleSeekComplete);
+
+  if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
+    function onVideoFramePresented() {
+      if (isSeeking) {
+        handleSeekComplete();
+      }
+      video.requestVideoFrameCallback(onVideoFramePresented);
+    }
+    video.requestVideoFrameCallback(onVideoFramePresented);
+  }
 
   function scrubToTime(t) {
     const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
     const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
     
-    // Half-frame precision for ultra-fluid scrubbing
-    if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
+    // Fine sub-frame precision for ultra-fluid scrubbing
+    if (Math.abs(video.currentTime - boundedTime) < 0.008) return;
 
     const now = performance.now();
 
-    // Low-latency seek lock with 60ms deadlock breaker for fluid 20+ FPS scrubbing
-    if (isSeeking && (now - seekLockTime > 60)) {
+    // Fast 50ms deadlock breaker for fluid scrubbing
+    if (isSeeking && (now - seekLockTime > 50)) {
       isSeeking = false;
     }
 
@@ -1855,8 +1867,8 @@ function initCursorSpider() {
   let activeGaitGroup = 0;
 
   function renderSpider(now) {
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile && isPageScrolling) {
+    // Ultra performance: pause spider IK canvas loop during active scroll so 100% GPU is given to video scrubbing
+    if (isPageScrolling) {
       requestAnimationFrame(renderSpider);
       return;
     }
