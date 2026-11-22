@@ -371,12 +371,12 @@ function initContinuousZoomStory() {
 
     const now = performance.now();
 
-    // Deadlock breaker: if seeking has been held for > 350ms, release it
-    if (isSeeking && (now - seekLockTime > 350)) {
+    // Low-latency seek lock with 60ms deadlock breaker for fluid 20+ FPS scrubbing
+    if (isSeeking && (now - seekLockTime > 60)) {
       isSeeking = false;
     }
 
-    if (isSeeking || video.seeking) {
+    if (isSeeking) {
       pendingTime = boundedTime;
       return;
     }
