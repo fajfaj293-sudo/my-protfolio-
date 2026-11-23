@@ -1777,11 +1777,11 @@ function initCursorSpider() {
 
   // Natural Organic Wander: continuous friendly curious strolls
   function handleSpiderIdleWander(now) {
-    if (now - mouse.lastMove < 2400) return;
+    if (now - mouse.lastMove < 1800) return;
 
     if (wanderState === 'idle') {
       if (now > nextSpiderWander) {
-        const wanderRadius = isMobile ? (90 + Math.random() * 110) : (130 + Math.random() * 150);
+        const wanderRadius = isMobile ? (100 + Math.random() * 130) : (140 + Math.random() * 160);
         const wanderAngle = Math.random() * Math.PI * 2;
         
         let tx = spider.x + Math.cos(wanderAngle) * wanderRadius;
@@ -1803,7 +1803,7 @@ function initCursorSpider() {
       const d = Math.hypot(mouse.x - spider.x, mouse.y - spider.y);
       if (d < 22) {
         wanderState = 'idle';
-        nextSpiderWander = now + 1200 + Math.random() * 1600;
+        nextSpiderWander = now + 800 + Math.random() * 1200;
       }
     }
   }
@@ -1954,11 +1954,11 @@ function initCursorSpider() {
     let angleDiff = spider.targetAngle - spider.angle;
     while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-    spider.angle += angleDiff * Math.min(1, dt * 8.5);
+    spider.angle += angleDiff * Math.min(1, dt * 14);
 
-    // Hysteresis deadband: prevents jerky start/stop oscillation!
-    const startDist = isMobile ? 38 : 50;
-    const stopDist = isMobile ? 12 : 16;
+    // Hysteresis deadband: snappy responsive start, clean gentle stop
+    const startDist = isMobile ? 32 : 45;
+    const stopDist = isMobile ? 10 : 14;
 
     if (!isVideoPaused && mouse.active) {
       if (!spider.isWalking) {
@@ -1975,9 +1975,10 @@ function initCursorSpider() {
     }
 
     if (spider.isWalking) {
-      const maxSpd = isMobile ? 195 : 245;
-      const targetSpeed = Math.min(Math.max(45, distToCursor * (isMobile ? 2.4 : 3.0)), maxSpd);
-      spider.speed += (targetSpeed - spider.speed) * Math.min(1, dt * 10);
+      // Brisk, lively jumping spider locomotion speed
+      const maxSpd = isMobile ? 320 : 360;
+      const targetSpeed = Math.min(Math.max(90, distToCursor * (isMobile ? 4.5 : 4.0)), maxSpd);
+      spider.speed += (targetSpeed - spider.speed) * Math.min(1, dt * 14);
 
       spider.vx = Math.cos(spider.angle) * spider.speed;
       spider.vy = Math.sin(spider.angle) * spider.speed;
@@ -2025,7 +2026,7 @@ function initCursorSpider() {
 
     // Step Timing: Alternating Gait (Group 0 vs Group 1)
     if (spider.speed > 5) {
-      stepTimer += dt * Math.max(3.2, spider.speed * 0.035);
+      stepTimer += dt * Math.max(4.5, spider.speed * 0.048);
       if (stepTimer >= 1.0) {
         stepTimer = 0;
         activeGaitGroup = 1 - activeGaitGroup;
@@ -2038,7 +2039,7 @@ function initCursorSpider() {
     // 1. UPDATE STEPPING LEGS: Stepping legs ALWAYS finish their step smoothly!
     legs.forEach((leg) => {
       if (leg.isStepping) {
-        leg.stepProgress += dt * 10;
+        leg.stepProgress += dt * 14;
         if (leg.stepProgress >= 1.0) {
           leg.stepProgress = 1.0;
           leg.isStepping = false;
