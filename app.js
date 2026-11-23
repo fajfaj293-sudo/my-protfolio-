@@ -311,8 +311,10 @@ function initContinuousZoomStory() {
   let isTicking = false;
   let isSeeking = false;
   let pendingTime = null;
+  let lastSeekStart = 0;
+  let isWindowFullscreen = false;
 
-  // Optimize video configuration
+  // Optimize video hardware configuration
   video.muted = true;
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
@@ -329,17 +331,19 @@ function initContinuousZoomStory() {
         return res.blob();
       })
       .then(blob => {
+        const curTime = video.currentTime || 0;
         const blobUrl = URL.createObjectURL(blob);
         video.src = blobUrl;
-        video.load();
+        video.currentTime = curTime;
       })
       .catch(() => {
         fetch(CDN_FALLBACK)
           .then(res => res.blob())
           .then(blob => {
+            const curTime = video.currentTime || 0;
             const blobUrl = URL.createObjectURL(blob);
             video.src = blobUrl;
-            video.load();
+            video.currentTime = curTime;
           })
           .catch(() => {
             if (!video.src || video.src.includes('undefined')) {
@@ -349,16 +353,19 @@ function initContinuousZoomStory() {
       });
   }
 
-  // Listen for seeking completion to deliver butter-smooth 60 FPS transitions
-  let lastScrubTime = 0;
-  let seekLockTime = 0;
-
+  // Smooth seeking with requestVideoFrameCallback and hardware-seek listener
   function handleSeekComplete() {
     isSeeking = false;
     if (pendingTime !== null) {
       const nextTime = pendingTime;
       pendingTime = null;
-      scrubToTime(nextTime);
+      if (Math.abs(video.currentTime - nextTime) >= 0.012) {
+        isSeeking = true;
+        lastSeekStart = performance.now();
+        try {
+          video.currentTime = nextTime;
+        } catch (_) {}
+      }
     }
   }
 
@@ -366,9 +373,7 @@ function initContinuousZoomStory() {
 
   if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
     function onVideoFramePresented() {
-      if (isSeeking) {
-        handleSeekComplete();
-      }
+      handleSeekComplete();
       video.requestVideoFrameCallback(onVideoFramePresented);
     }
     video.requestVideoFrameCallback(onVideoFramePresented);
@@ -378,34 +383,28 @@ function initContinuousZoomStory() {
     const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
     const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
     
-    // Fine sub-frame precision for ultra-fluid scrubbing
-    if (Math.abs(video.currentTime - boundedTime) < 0.008) return;
+    // Fine sub-frame precision: skip redundant seeks
+    if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
 
     const now = performance.now();
 
-    // Fast 50ms deadlock breaker for fluid scrubbing
-    if (isSeeking && (now - seekLockTime > 50)) {
+    // Fast 45ms watchdog: prevents decoder lockup
+    if (isSeeking && (now - lastSeekStart > 45)) {
       isSeeking = false;
     }
 
-    if (isSeeking) {
+    if (isSeeking || video.seeking) {
       pendingTime = boundedTime;
       return;
     }
 
     isSeeking = true;
-    seekLockTime = now;
-    lastScrubTime = now;
+    lastSeekStart = now;
 
-    if (typeof video.fastSeek === 'function') {
-      try {
-        video.fastSeek(boundedTime);
-      } catch (e) {
-        video.currentTime = boundedTime;
-      }
-    } else {
+    // Use direct exact-frame currentTime (avoids fastSeek keyframe jumping on desktop)
+    try {
       video.currentTime = boundedTime;
-    }
+    } catch (_) {}
   }
 
   function requestTick() {
@@ -451,24 +450,31 @@ function initContinuousZoomStory() {
     requestTick();
   }, { passive: true });
 
-  // 60FPS Render Loop
+  // 60FPS Butter-Smooth Render Loop
   function renderFrame() {
     const isMobile = window.innerWidth <= 768;
-    // Responsive lerp: silky smooth exponential glide with zero drag or stickiness
-    const lerpFactor = isMobile ? 0.24 : 0.18;
+    // Desktop: Responsive 0.38 lerp factor follows mouse wheel immediately without sluggish lag
+    // Mobile: 0.25 smooth glide
+    const lerpFactor = isMobile ? 0.25 : 0.38;
     smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
 
-    // 1. Centered Window Zooms & Expands into 100% Fullscreen
+    // 1. Centered Window Zooms & Expands into 100% Fullscreen (State Throttled)
     if (windowWrapper) {
       const zoomPhase = Math.min(smoothProgress / 0.18, 1);
 
-      if (zoomPhase >= 0.88) {
-        windowWrapper.style.width = '100vw';
-        windowWrapper.style.height = '100vh';
-        windowWrapper.style.borderRadius = '0px';
-        windowWrapper.style.boxShadow = 'none';
-        windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
+      if (zoomPhase >= 0.96) {
+        if (!isWindowFullscreen) {
+          isWindowFullscreen = true;
+          windowWrapper.style.width = '100vw';
+          windowWrapper.style.height = '100vh';
+          windowWrapper.style.borderRadius = '0px';
+          windowWrapper.style.boxShadow = 'none';
+          windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
+        }
       } else {
+        if (isWindowFullscreen) {
+          isWindowFullscreen = false;
+        }
         const baseW = isMobile ? 88 : 84;
         const baseH = isMobile ? 62 : 68;
         const wPct = baseW + zoomPhase * (100 - baseW);
@@ -491,36 +497,29 @@ function initContinuousZoomStory() {
     const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
     let videoProgress = 0;
     if (smoothProgress <= 0.82) {
-      // From 0 to 82% scroll, play smoothly from 0s to 14.4s
       videoProgress = smoothProgress / 0.82;
     } else {
-      // Last 18% of scroll remains comfortably pinned on the final 3D showcase carousel!
       videoProgress = 1.0;
     }
     const currentTargetTime = videoProgress * videoDuration;
     scrubToTime(currentTargetTime);
 
     // 3. Scene Content Overlays Synced to Video Timelines
-    // Window opening (0.0s to 1.6s): Clean window with NO text overlay
     const scene1 = document.getElementById('scene-ui-1');
     const scene2 = document.getElementById('scene-ui-2');
     const scene3 = document.getElementById('scene-ui-3');
     const scene4 = document.getElementById('scene-ui-4');
 
     if (scene1 && scene2 && scene3 && scene4) {
-      // Scene 1: Wireframing & UI/UX (1.6s - 4.5s)
       scene1.classList.toggle('active', currentTargetTime >= 1.6 && currentTargetTime < 4.5);
-      // Scene 2: WordPress, Elementor & PHP Code (4.5s - 7.5s)
       scene2.classList.toggle('active', currentTargetTime >= 4.5 && currentTargetTime < 7.5);
-      // Scene 3: Fluid Responsiveness Across All Devices (7.5s - 11.0s)
       scene3.classList.toggle('active', currentTargetTime >= 7.5 && currentTargetTime < 11.0);
-      // Scene 4: 3D Project Showcase & Call to Action (11.0s - 14.4s+)
       scene4.classList.toggle('active', currentTargetTime >= 11.0);
     }
 
     // Continue render loop while lerp is still settling or seeking is pending
     const diff = Math.abs(targetProgress - smoothProgress);
-    if (diff > 0.0006 || isSeeking || pendingTime !== null) {
+    if (diff > 0.0004 || isSeeking || pendingTime !== null) {
       requestAnimationFrame(renderFrame);
     } else {
       isTicking = false;
