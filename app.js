@@ -414,26 +414,17 @@ function initContinuousZoomStory() {
     }
   }
 
-  // 100% Reliable In-View Observer for Mobile Video Section
-  function updateMobileVideoState(inView) {
+  // 100% Reliable In-View Observer for Mobile Video Section (Only when video screen is actually in front!)
+  function updateMobileVideoState() {
     const isMobile = window.innerWidth <= 1024;
-    const shouldBeActive = isMobile && inView;
-    if (window.__mobileVideoActive !== shouldBeActive) {
-      window.__mobileVideoActive = shouldBeActive;
-      document.body.classList.toggle('mobile-video-active', shouldBeActive);
+    const rect = runway.getBoundingClientRect();
+    // Video screen is ONLY in front once hero section has scrolled past and runway takes over the viewport!
+    // In Header & Hero section (rect.top > 60), isVideoInFront is strictly false so spider is fully active!
+    const isVideoInFront = isMobile && rect.top <= 60 && rect.bottom >= (window.innerHeight * 0.3);
+    if (window.__mobileVideoActive !== isVideoInFront) {
+      window.__mobileVideoActive = isVideoInFront;
+      document.body.classList.toggle('mobile-video-active', isVideoInFront);
     }
-  }
-
-  if ('IntersectionObserver' in window) {
-    const runwayObs = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        updateMobileVideoState(entry.isIntersecting);
-      });
-    }, {
-      root: null,
-      threshold: [0, 0.05, 0.2, 0.5, 0.8, 1.0]
-    });
-    runwayObs.observe(runway);
   }
 
   // Smooth scroll listener
@@ -443,12 +434,12 @@ function initContinuousZoomStory() {
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
     targetProgress = maxScroll > 0 ? current / maxScroll : 0;
 
-    // Detect if video runway is active in viewport on mobile to suspend other animations
-    const inView = rect.bottom > 10 && rect.top < (window.innerHeight - 10);
-    updateMobileVideoState(inView);
-
+    updateMobileVideoState();
     requestTick();
   }, { passive: true });
+
+  window.addEventListener('resize', updateMobileVideoState, { passive: true });
+  updateMobileVideoState();
 
   // 60FPS Butter-Smooth Render Loop
   function renderFrame() {
@@ -1958,10 +1949,11 @@ function initCursorSpider() {
       spider.x += spider.vx * dt;
       spider.y += spider.vy * dt;
 
-      // Spin silk thread dragline (desktop only)
-      if (!isMobile && (Math.random() < 0.25 || webSilk.length === 0)) {
-        const abdomenX = spider.x - Math.cos(spider.angle) * 16;
-        const abdomenY = spider.y - Math.sin(spider.angle) * 16;
+      // Spin silk thread dragline on desktop and mobile
+      if (Math.random() < 0.28 || webSilk.length === 0) {
+        const abdomenOffset = isMobile ? 12 : 16;
+        const abdomenX = spider.x - Math.cos(spider.angle) * abdomenOffset;
+        const abdomenY = spider.y - Math.sin(spider.angle) * abdomenOffset;
         webSilk.push({ x: abdomenX, y: abdomenY, life: 1.0 });
         if (webSilk.length > MAX_SILK) webSilk.shift();
       }
@@ -1972,20 +1964,22 @@ function initCursorSpider() {
       spider.vy *= 0.85;
     }
 
-    // Draw Silk Web Dragline (Desktop only: clean and uncluttered on mobile)
-    if (webSilk.length >= 2 && !isMobile) {
+    // Draw Silk Web Dragline on desktop and mobile
+    if (webSilk.length >= 2) {
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(webSilk[0].x, webSilk[0].y);
+      const silkDecay = isMobile ? 0.12 : 0.08;
       for (let i = 1; i < webSilk.length; i++) {
-        webSilk[i].life -= dt * 0.08;
+        webSilk[i].life -= dt * silkDecay;
         ctx.lineTo(webSilk[i].x, webSilk[i].y);
       }
-      const abdomenX = spider.x - Math.cos(spider.angle) * 16;
-      const abdomenY = spider.y - Math.sin(spider.angle) * 16;
+      const abdomenOffset = isMobile ? 12 : 16;
+      const abdomenX = spider.x - Math.cos(spider.angle) * abdomenOffset;
+      const abdomenY = spider.y - Math.sin(spider.angle) * abdomenOffset;
       ctx.lineTo(abdomenX, abdomenY);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.lineWidth = 1.0;
+      ctx.strokeStyle = isMobile ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = isMobile ? 1.2 : 1.0;
       ctx.stroke();
       ctx.restore();
 
