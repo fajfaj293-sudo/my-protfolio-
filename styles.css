@@ -3706,6 +3706,8 @@ a.channel-item:hover .ci-arrow {
   height: 100vh;
   pointer-events: none;
   z-index: 9999;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 

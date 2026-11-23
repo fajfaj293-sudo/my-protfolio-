@@ -1741,11 +1741,16 @@ function initCursorSpider() {
     lastMove: performance.now()
   };
 
+  let wanderState = 'idle';
+  let nextSpiderWander = performance.now() + 1800;
+
   function updateSpiderTarget(x, y) {
     mouse.x = x;
     mouse.y = y;
     mouse.active = true;
     mouse.lastMove = performance.now();
+    wanderState = 'idle';
+    nextSpiderWander = performance.now() + 2800;
   }
 
   // Pointer / Mouse tracking for Desktop
@@ -1770,23 +1775,42 @@ function initCursorSpider() {
     }
   }, { passive: true });
 
-  // Autonomous wandering: Keeps spider alive and charming when user is idle
-  let nextSpiderWander = performance.now() + 2500;
+  // Natural Organic Wander: continuous friendly curious strolls
   function handleSpiderIdleWander(now) {
-    if (now - mouse.lastMove > 2800 && now > nextSpiderWander) {
-      const margin = isMobile ? 45 : 80;
-      mouse.x = margin + Math.random() * (window.innerWidth - margin * 2);
-      const minY = isMobile ? window.innerHeight * 0.16 : margin;
-      const maxY = isMobile ? window.innerHeight * 0.80 : window.innerHeight - margin;
-      mouse.y = minY + Math.random() * (maxY - minY);
-      mouse.active = true;
-      nextSpiderWander = now + (isMobile ? 4200 : 3200) + Math.random() * 3000;
+    if (now - mouse.lastMove < 2400) return;
+
+    if (wanderState === 'idle') {
+      if (now > nextSpiderWander) {
+        const wanderRadius = isMobile ? (90 + Math.random() * 110) : (130 + Math.random() * 150);
+        const wanderAngle = Math.random() * Math.PI * 2;
+        
+        let tx = spider.x + Math.cos(wanderAngle) * wanderRadius;
+        let ty = spider.y + Math.sin(wanderAngle) * wanderRadius;
+
+        const margin = isMobile ? 45 : 80;
+        const minY = isMobile ? window.innerHeight * 0.16 : margin;
+        const maxY = isMobile ? window.innerHeight * 0.80 : window.innerHeight - margin;
+
+        tx = Math.max(margin, Math.min(window.innerWidth - margin, tx));
+        ty = Math.max(minY, Math.min(maxY, ty));
+
+        mouse.x = tx;
+        mouse.y = ty;
+        mouse.active = true;
+        wanderState = 'walking';
+      }
+    } else if (wanderState === 'walking') {
+      const d = Math.hypot(mouse.x - spider.x, mouse.y - spider.y);
+      if (d < 22) {
+        wanderState = 'idle';
+        nextSpiderWander = now + 1200 + Math.random() * 1600;
+      }
     }
   }
 
-  // Silk Web Thread Trail (Desktop only)
+  // Silk Web Thread Trail
   const webSilk = [];
-  const MAX_SILK = 60;
+  const MAX_SILK = 65;
 
   // 8 Jointed Legs Configuration (Salticidae Anatomical Monotonic Rig)
   const legConfigs = [
@@ -1856,7 +1880,6 @@ function initCursorSpider() {
     ctx.lineTo(x1 + nx * width1, y1 + ny * width1);
     ctx.closePath();
 
-    // Golden-yellow fur base gradient
     const grad = ctx.createLinearGradient(x1, y1, x2, y2);
     grad.addColorStop(0, '#eab308');
     grad.addColorStop(0.5, '#ca8a04');
@@ -1864,7 +1887,6 @@ function initCursorSpider() {
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Dark brown/black zebra stripes along leg
     const stripes = 4;
     for (let s = 1; s <= stripes; s++) {
       if (s % 2 === 0) {
@@ -1888,7 +1910,6 @@ function initCursorSpider() {
       }
     }
 
-    // Specular highlight edge
     ctx.beginPath();
     ctx.moveTo(x1 - nx * (width1 * 0.4), y1 - ny * (width1 * 0.4));
     ctx.lineTo(x2 - nx * (width2 * 0.4), y2 - ny * (width2 * 0.4));
@@ -1899,19 +1920,18 @@ function initCursorSpider() {
     ctx.restore();
   }
 
-  // 60FPS Butter-Smooth Animation Loop
+  // 60FPS Continuous Butter-Smooth Animation Loop
   let lastTime = performance.now();
   let stepTimer = 0;
   let activeGaitGroup = 0;
 
   function renderSpider(now) {
-    // When mobile video is active, pause idle wandering so spider stays parked in place
     const isVideoPaused = isMobile && !!window.__mobileVideoActive;
 
     if (!isVideoPaused && typeof handleSpiderIdleWander === "function") {
       handleSpiderIdleWander(now);
     }
-    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    const dt = Math.min(Math.max((now - lastTime) / 1000, 0.001), 0.04);
     lastTime = now;
 
     ctx.clearRect(0, 0, w, h);
@@ -1927,24 +1947,40 @@ function initCursorSpider() {
     const toCursorY = mouse.y - spider.y;
     const distToCursor = Math.hypot(toCursorX, toCursorY);
 
-    if (!isVideoPaused && distToCursor > 25) {
+    if (!isVideoPaused && distToCursor > 18) {
       spider.targetAngle = Math.atan2(toCursorY, toCursorX);
     }
 
     let angleDiff = spider.targetAngle - spider.angle;
     while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-    spider.angle += angleDiff * Math.min(1, dt * 7.5);
+    spider.angle += angleDiff * Math.min(1, dt * 8.5);
 
-    const followRadius = isMobile ? 36 : 52;
-    if (!isVideoPaused && distToCursor > followRadius && mouse.active) {
-      spider.isWalking = true;
-      const maxSpd = isMobile ? 210 : 260;
-      const moveSpeed = Math.min(distToCursor * (isMobile ? 2.8 : 3.5), maxSpd);
+    // Hysteresis deadband: prevents jerky start/stop oscillation!
+    const startDist = isMobile ? 38 : 50;
+    const stopDist = isMobile ? 12 : 16;
 
-      spider.vx = Math.cos(spider.angle) * moveSpeed;
-      spider.vy = Math.sin(spider.angle) * moveSpeed;
-      spider.speed = moveSpeed;
+    if (!isVideoPaused && mouse.active) {
+      if (!spider.isWalking) {
+        if (distToCursor > startDist) {
+          spider.isWalking = true;
+        }
+      } else {
+        if (distToCursor < stopDist) {
+          spider.isWalking = false;
+        }
+      }
+    } else {
+      spider.isWalking = false;
+    }
+
+    if (spider.isWalking) {
+      const maxSpd = isMobile ? 195 : 245;
+      const targetSpeed = Math.min(Math.max(45, distToCursor * (isMobile ? 2.4 : 3.0)), maxSpd);
+      spider.speed += (targetSpeed - spider.speed) * Math.min(1, dt * 10);
+
+      spider.vx = Math.cos(spider.angle) * spider.speed;
+      spider.vy = Math.sin(spider.angle) * spider.speed;
 
       spider.x += spider.vx * dt;
       spider.y += spider.vy * dt;
@@ -1958,10 +1994,9 @@ function initCursorSpider() {
         if (webSilk.length > MAX_SILK) webSilk.shift();
       }
     } else {
-      spider.isWalking = false;
-      spider.speed *= 0.85;
-      spider.vx *= 0.85;
-      spider.vy *= 0.85;
+      spider.speed *= 0.82;
+      spider.vx *= 0.82;
+      spider.vy *= 0.82;
     }
 
     // Draw Silk Web Dragline on desktop and mobile
@@ -1989,8 +2024,8 @@ function initCursorSpider() {
     }
 
     // Step Timing: Alternating Gait (Group 0 vs Group 1)
-    if (spider.isWalking) {
-      stepTimer += dt * Math.max(3.8, spider.speed * 0.038);
+    if (spider.speed > 5) {
+      stepTimer += dt * Math.max(3.2, spider.speed * 0.035);
       if (stepTimer >= 1.0) {
         stepTimer = 0;
         activeGaitGroup = 1 - activeGaitGroup;
@@ -2000,60 +2035,59 @@ function initCursorSpider() {
     const cosA = Math.cos(spider.angle);
     const sinA = Math.sin(spider.angle);
 
-    if (spider.isWalking) {
-      // WALKING: Alternating Tetrapod Gait
-      legs.forEach((leg) => {
+    // 1. UPDATE STEPPING LEGS: Stepping legs ALWAYS finish their step smoothly!
+    legs.forEach((leg) => {
+      if (leg.isStepping) {
+        leg.stepProgress += dt * 10;
+        if (leg.stepProgress >= 1.0) {
+          leg.stepProgress = 1.0;
+          leg.isStepping = false;
+          leg.current.x = leg.target.x;
+          leg.current.y = leg.target.y;
+          leg.current.lift = 0;
+        } else {
+          const t = leg.stepProgress;
+          const easeT = 0.5 - 0.5 * Math.cos(t * Math.PI);
+          leg.current.x = leg.start.x + (leg.target.x - leg.start.x) * easeT;
+          leg.current.y = leg.start.y + (leg.target.y - leg.start.y) * easeT;
+          leg.current.lift = Math.sin(t * Math.PI) * 11;
+        }
+      } else if (!spider.isWalking) {
+        // When spider is not walking and leg is not stepping, smoothly settle to rest stance
         const cfg = leg.cfg;
         const idealX = spider.x + cfg.rest.x * cosA - cfg.rest.y * sinA;
         const idealY = spider.y + cfg.rest.x * sinA + cfg.rest.y * cosA;
-        
-        const ox = spider.x + cfg.root.x * cosA - cfg.root.y * sinA;
-        const oy = spider.y + cfg.root.x * sinA + cfg.root.y * cosA;
-        
-        const distFromIdeal = Math.hypot(leg.current.x - idealX, leg.current.y - idealY);
-        const distFromRoot = Math.hypot(leg.current.x - ox, leg.current.y - oy);
-        const maxAllowedDist = 48;
-
-        if (!leg.isStepping && ((distFromIdeal > 18 && cfg.group === activeGaitGroup) || distFromRoot > maxAllowedDist)) {
-          leg.isStepping = true;
-          leg.stepProgress = 0;
-          leg.start.x = leg.current.x;
-          leg.start.y = leg.current.y;
-          const forwardBiasX = (spider.vx || 0) * 0.16;
-          const forwardBiasY = (spider.vy || 0) * 0.16;
-          leg.target.x = idealX + forwardBiasX;
-          leg.target.y = idealY + forwardBiasY;
-        }
-
-        if (leg.isStepping) {
-          leg.stepProgress += dt * 9.5;
-          if (leg.stepProgress >= 1.0) {
-            leg.stepProgress = 1.0;
-            leg.isStepping = false;
-            leg.current.x = leg.target.x;
-            leg.current.y = leg.target.y;
-            leg.current.lift = 0;
-          } else {
-            const t = leg.stepProgress;
-            const easeT = 0.5 - 0.5 * Math.cos(t * Math.PI);
-            leg.current.x = leg.start.x + (leg.target.x - leg.start.x) * easeT;
-            leg.current.y = leg.start.y + (leg.target.y - leg.start.y) * easeT;
-            leg.current.lift = Math.sin(t * Math.PI) * 11;
-          }
-        }
-      });
-    } else {
-      // STANDING STILL: Lock legs into resting stance smoothly
-      const settleRate = Math.min(1, dt * 14);
-      legs.forEach((leg) => {
-        const cfg = leg.cfg;
-        const idealX = spider.x + cfg.rest.x * cosA - cfg.rest.y * sinA;
-        const idealY = spider.y + cfg.rest.x * sinA + cfg.rest.y * cosA;
+        const settleRate = Math.min(1, dt * 12);
         leg.current.x += (idealX - leg.current.x) * settleRate;
         leg.current.y += (idealY - leg.current.y) * settleRate;
-        leg.current.lift *= 0.7;
-        leg.isStepping = false;
-        leg.stepProgress = 1.0;
+        leg.current.lift *= 0.8;
+      }
+    });
+
+    // 2. TRIGGER NEW STEPS FOR PLANTED LEGS
+    if (spider.isWalking) {
+      legs.forEach((leg) => {
+        if (!leg.isStepping) {
+          const cfg = leg.cfg;
+          const idealX = spider.x + cfg.rest.x * cosA - cfg.rest.y * sinA;
+          const idealY = spider.y + cfg.rest.x * sinA + cfg.rest.y * cosA;
+          const distFromIdeal = Math.hypot(leg.current.x - idealX, leg.current.y - idealY);
+          const maxAllowedDist = 48;
+          const ox = spider.x + cfg.root.x * cosA - cfg.root.y * sinA;
+          const oy = spider.y + cfg.root.x * sinA + cfg.root.y * cosA;
+          const distFromRoot = Math.hypot(leg.current.x - ox, leg.current.y - oy);
+
+          if ((distFromIdeal > 16 && cfg.group === activeGaitGroup) || distFromRoot > maxAllowedDist) {
+            leg.isStepping = true;
+            leg.stepProgress = 0;
+            leg.start.x = leg.current.x;
+            leg.start.y = leg.current.y;
+            const forwardBiasX = (spider.vx || 0) * 0.16;
+            const forwardBiasY = (spider.vy || 0) * 0.16;
+            leg.target.x = idealX + forwardBiasX;
+            leg.target.y = idealY + forwardBiasY;
+          }
+        }
       });
     }
 
