@@ -325,7 +325,7 @@
             type="text"
             id="admin-username"
             class="lock-input"
-            placeholder="fazlulbuisness1@gmail.com or fazlul"
+            placeholder="fazlulbusiness1@gmail.com or fazlul"
             required
             autocomplete="username"
           />
@@ -354,7 +354,7 @@
 
         <div style="margin-top:1.5rem; font-family:var(--font-mono); font-size:0.68rem; color:rgba(255,255,255,0.45); letter-spacing:0.06em; line-height:1.6;">
           🔒 SHA-256 PROTECTED AUTHENTICATION<br>
-          USER/EMAIL: <code>fazlulbuisness1@gmail.com</code> | PASS: <code>fazlul2026</code>
+          USER/EMAIL: <code>fazlulbusiness1@gmail.com</code> | PASS: <code>fazlul2026</code>
         </div>
       </form>
     </div>
@@ -494,7 +494,7 @@
     const PASS_KEY = 'fazlul_admin_master_pass_hash_v1';
     const USER_KEY = 'fazlul_admin_username_v1';
     const DEFAULT_PASS = 'fazlul2026';
-    const DEFAULT_USER = 'fazlulbuisness1@gmail.com';
+    const DEFAULT_USER = 'fazlulbusiness1@gmail.com';
 
     const lockScreen = document.getElementById('admin-lock-screen');
     const mainContainer = document.getElementById('admin-main-container');
@@ -558,7 +558,7 @@
       const isUserValid = (
         enteredUser === storedUser ||
         enteredUser === 'fazlul' ||
-        enteredUser === 'fazlulbuisness1@gmail.com'
+        enteredUser === 'fazlulbusiness1@gmail.com'
       );
       const isPassValid = (enteredHash === targetHash);
 

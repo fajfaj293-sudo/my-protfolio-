@@ -1,2 +1,6 @@
 # All video files (Offloaded to Cloudinary CDN)
 *.mp4
+
+# Sensitive deployment credentials & tokens
+PORTFOLIO_DEPLOYMENT_CREDENTIALS.txt
+*.backup.*

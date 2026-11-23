@@ -1,41 +1,10 @@
-/**
- * FAZLUL HAQUE — TIDALIA-EXACT PORTFOLIO ENGINE (WORKS 100% ON file:// AND http://)
- */
-
-const UNLIMITED_PORTFOLIO_SITES = [
-  {
-    title: "Lumina Luxury WooCommerce Store",
-    category: "WordPress & WooCommerce",
-    speed: "78ms Load • 99 PageSpeed",
-    url: "https://example.com/lumina"
-  },
-  {
-    title: "AetherAI 3D Interactive SaaS",
-    category: "Next.js & 3D WebGL",
-    speed: "64ms Load • 60FPS",
-    url: "https://example.com/aether"
-  },
-  {
-    title: "NexaCorp Enterprise WordPress",
-    category: "Custom WordPress Theme",
-    speed: "82ms Load • 100% Malware-Free",
-    url: "https://example.com/nexa"
-  },
-  {
-    title: "PulseFin Real-Time Web App",
-    category: "React & TypeScript",
-    speed: "71ms Load • Zero Lag",
-    url: "https://example.com/pulsefin"
-  }
-];
-
 // ============================================================================
 // 1. HERO SPOTLIGHT & SNAKE-LIKE WATER TRAIL WITH GRADUAL LETTER DISSOLVE
 // ============================================================================
 function initHeroSpotlight() {
   const heroSection = document.getElementById('hero');
   const container = document.getElementById('hero-img-container');
-  const canvas = document.getElementById('hero-water-canvas') || document.getElementById('hero-dragon-canvas') || document.getElementById('hero-sparkle-canvas');
+  const canvas = document.getElementById('hero-water-canvas');
 
   if (!container) return;
 
@@ -337,34 +306,16 @@ function initContinuousZoomStory() {
   const LOCAL_VIDEO = 'assets/scroll-video.mp4';
   const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
 
-  if (window.fetch && window.URL && window.Blob) {
-    fetch(LOCAL_VIDEO)
-      .then(res => {
-        if (!res.ok) throw new Error('Local video not found, falling back to CDN');
-        return res.blob();
-      })
-      .then(blob => {
-        const curTime = video.currentTime || 0;
-        const blobUrl = URL.createObjectURL(blob);
-        video.src = blobUrl;
-        video.currentTime = curTime;
-      })
-      .catch(() => {
-        fetch(CDN_FALLBACK)
-          .then(res => res.blob())
-          .then(blob => {
-            const curTime = video.currentTime || 0;
-            const blobUrl = URL.createObjectURL(blob);
-            video.src = blobUrl;
-            video.currentTime = curTime;
-          })
-          .catch(() => {
-            if (!video.src || video.src.includes('undefined')) {
-              video.src = CDN_FALLBACK;
-            }
-          });
-      });
+    // Fast native hardware stream: avoids double downloading 6.87MB video into JS memory
+  if (!video.src || video.src.includes('undefined')) {
+    video.src = LOCAL_VIDEO;
   }
+  video.addEventListener('error', () => {
+    if (!video.src.includes('cloudinary')) {
+      video.src = CDN_FALLBACK;
+      try { video.load(); } catch (_) {}
+    }
+  }, { once: true });
 
   // Smooth seeking with requestVideoFrameCallback and hardware-seek listener
   function handleSeekComplete() {
@@ -1199,7 +1150,7 @@ function initFloating3DCube() {
 
   function render(time) {
     if (!cubeInView || window.__mobileVideoActive) {
-      cubeRafId = requestAnimationFrame(render);
+      cubeRafId = null;
       return;
     }
     ctx.clearRect(0, 0, W, H);
@@ -2293,9 +2244,19 @@ function initCursorSpider() {
     ctx.restore(); // Restores DRAW SPIDER BODY
     ctx.restore(); // Restores Top-level canvas state save
 
-    requestAnimationFrame(renderSpider);
+    if (!document.hidden) {
+      requestAnimationFrame(renderSpider);
+    } else {
+      spiderRafId = null;
+    }
   }
-  requestAnimationFrame(renderSpider);
+
+  let spiderRafId = requestAnimationFrame(renderSpider);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !spiderRafId) {
+      spiderRafId = requestAnimationFrame(renderSpider);
+    }
+  });
 }
 
 /* ==========================================================================

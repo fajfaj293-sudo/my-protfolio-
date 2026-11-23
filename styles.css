@@ -4508,9 +4508,13 @@ a.channel-item:hover .ci-arrow {
     opacity: 0 !important;
     pointer-events: none !important;
   }
-  body.mobile-video-active *:not(.scroll-story-runway):not(.scroll-story-runway *):not(.mobile-dock):not(.mobile-dock *) {
-    animation: none !important;
-    transition: none !important;
+  body.mobile-video-active header,
+  body.mobile-video-active #hero,
+  body.mobile-video-active .hero-fullscreen,
+  body.mobile-video-active .realms-pin-runway,
+  body.mobile-video-active .composer-suite,
+  body.mobile-video-active footer {
+    animation-play-state: paused !important;
   }
   body.mobile-video-active .portfolio-scrub-video,
   body.mobile-video-active .story-scene-ui,
