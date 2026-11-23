@@ -818,7 +818,8 @@ body {
   ) !important;
   box-shadow: 0 0 8px rgba(236, 72, 153, 0.8), inset 0 0 3px #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.9) !important;
-  animation: bubbleFloatUp var(--duration, 2.2s) cubic-bezier(0.35, 0, 0.25, 1) infinite !important;
+  /* Lighter, softer bubble float speed */
+  animation: bubbleFloatUp var(--duration, 3.4s) cubic-bezier(0.35, 0, 0.25, 1) infinite !important;
   animation-delay: var(--delay, 0s) !important;
   left: var(--left, 50%) !important;
   width: var(--size, 10px) !important;
@@ -1997,18 +1998,28 @@ body {
   background: radial-gradient(circle at 50% 50%, rgba(219, 39, 119, 0.28) 0%, rgba(9, 8, 18, 0.88) 75%);
   backdrop-filter: blur(18px) saturate(180%);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
   transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .realm-modal-backdrop.open {
-  opacity: 1;
-  pointer-events: auto;
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
+/* Strictly pause and cancel bubble animations when card/modal is NOT open */
+.realm-modal-backdrop:not(.open) .bubble-drop,
+.realm-modal-backdrop:not(.open) .btn-bubble-chamber {
+  animation: none !important;
+  display: none !important;
 }
 
 .realm-modal-card {
@@ -4222,10 +4233,25 @@ a.channel-item:hover .ci-arrow {
   }
 
 
+  /* Disable hero water text dissolve canvas on mobile - active strictly on desktop */
+  .hero-water-canvas {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
   /* Realm Modal Mobile Overhaul: Compact, manageable, within viewport */
   .realm-modal-backdrop {
     padding: 1rem !important;
     z-index: 1200 !important;
+  }
+  .realm-modal-backdrop:not(.open) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  .realm-modal-backdrop:not(.open) .bubble-drop,
+  .realm-modal-backdrop:not(.open) .btn-bubble-chamber {
+    animation: none !important;
+    display: none !important;
   }
   .realm-modal-card {
     width: min(92vw, 400px) !important;

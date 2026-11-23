@@ -44,6 +44,9 @@ function initHeroSpotlight() {
   if (window.innerWidth <= 768) {
     container.style.setProperty('--mx', '50%');
     container.style.setProperty('--my', '40%');
+    if (canvas) {
+      canvas.style.display = 'none';
+    }
     return;
   }
 
@@ -1373,7 +1376,8 @@ function initBubbleGlassButtons() {
         const size = (Math.random() * 6 + 7).toFixed(1);
         const left = (Math.random() * 84 + 8).toFixed(1);
         const delay = (Math.random() * 2.8).toFixed(2);
-        const duration = (Math.random() * 1.2 + 1.8).toFixed(2);
+        // Lighter, softer floating speed as requested
+        const duration = (Math.random() * 1.5 + 3.2).toFixed(2);
         const wobble1 = ((Math.random() - 0.5) * 12).toFixed(1);
         const wobble2 = ((Math.random() - 0.5) * 16).toFixed(1);
         const wobble3 = ((Math.random() - 0.5) * 12).toFixed(1);
