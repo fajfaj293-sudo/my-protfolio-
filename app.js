@@ -37,7 +37,17 @@ function initHeroSpotlight() {
   const container = document.getElementById('hero-img-container');
   const canvas = document.getElementById('hero-water-canvas') || document.getElementById('hero-dragon-canvas') || document.getElementById('hero-sparkle-canvas');
 
-  if (!container || !canvas) return;
+  if (!container) return;
+
+  // Mobile optimization: Shut down heavy 60FPS letter reflow and canvas clear loop on mobile
+  // Sets clean centered spotlight once, eliminating all home page hang/lag on mobile devices!
+  if (window.innerWidth <= 768) {
+    container.style.setProperty('--mx', '50%');
+    container.style.setProperty('--my', '40%');
+    return;
+  }
+
+  if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
   let w = 0, h = 0;
@@ -1887,7 +1897,7 @@ function initCursorSpider() {
     ctx.fillStyle = grad;
     ctx.fill();
 
-    const stripes = 4;
+    const stripes = isMobile ? 2 : 4;
     for (let s = 1; s <= stripes; s++) {
       if (s % 2 === 0) {
         const t1 = (s - 0.75) / stripes;
