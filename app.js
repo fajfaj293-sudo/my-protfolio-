@@ -300,21 +300,51 @@ function initContinuousZoomStory() {
   video.muted = true;
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
-  video.preload = 'auto';
 
-  // Stream 1.56MB optimized video from Cloudinary Global Edge CDN, with local fallback for offline file://
-  const CDN_VIDEO = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
-  const LOCAL_FALLBACK = 'assets/scroll-video.mp4';
+  // Single-download RAM Blob preloader for 73-keyframe scroll-video.mp4 (0ms hardware scrubbing, zero double-fetch)
+  const LOCAL_VIDEO = 'assets/scroll-video.mp4';
+  const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/ki_0.2,q_auto,w_720/protfolio.mp4';
 
-  if (!video.getAttribute('src') || video.src.includes('undefined')) {
-    video.src = CDN_VIDEO;
-  }
-  video.addEventListener('error', () => {
-    if (!video.src.includes('scroll-video.mp4')) {
-      video.src = LOCAL_FALLBACK;
-      try { video.load(); } catch (_) {}
+  function initRamBlobVideo() {
+    if (window.location.protocol === 'file:') {
+      video.preload = 'auto';
+      video.src = LOCAL_VIDEO;
+      return;
     }
-  }, { once: true });
+    if (window.fetch && window.URL && window.Blob) {
+      fetch(LOCAL_VIDEO)
+        .then(res => {
+          if (!res.ok) throw new Error('Local video not found');
+          return res.blob();
+        })
+        .then(blob => {
+          const blobUrl = URL.createObjectURL(blob);
+          video.preload = 'auto';
+          video.src = blobUrl;
+        })
+        .catch(() => {
+          fetch(CDN_FALLBACK)
+            .then(res => res.blob())
+            .then(blob => {
+              const blobUrl = URL.createObjectURL(blob);
+              video.preload = 'auto';
+              video.src = blobUrl;
+            })
+            .catch(() => {
+              video.preload = 'auto';
+              video.src = CDN_FALLBACK;
+            });
+        });
+    } else {
+      video.preload = 'auto';
+      video.src = LOCAL_VIDEO;
+    }
+  }
+
+  // Start single Blob download right after Hero first paint so LCP stays instant
+  requestAnimationFrame(() => {
+    setTimeout(initRamBlobVideo, 50);
+  });
 
   // Smooth seeking with requestVideoFrameCallback and hardware-seek listener
   function handleSeekComplete() {
@@ -343,6 +373,7 @@ function initContinuousZoomStory() {
   }
 
   function scrubToTime(t) {
+    if (!video.src || video.readyState < 1) return;
     const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
     const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
     
@@ -491,7 +522,13 @@ function initContinuousZoomStory() {
     }
   }
 
-  video.addEventListener('loadedmetadata', requestTick, { once: true });
+  const forceSyncFrame = () => {
+    isSeeking = false;
+    isTicking = false;
+    requestTick();
+  };
+  video.addEventListener('loadedmetadata', forceSyncFrame);
+  video.addEventListener('loadeddata', forceSyncFrame);
   requestTick();
 }
 
