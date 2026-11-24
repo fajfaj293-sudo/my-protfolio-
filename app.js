@@ -302,17 +302,16 @@ function initContinuousZoomStory() {
   video.setAttribute('playsinline', '');
   video.preload = 'auto';
 
-  // Preload fast local video into Blob for instant 0ms latency hardware scrubbing
-  const LOCAL_VIDEO = 'assets/scroll-video.mp4';
-  const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
+  // Stream 1.56MB optimized video from Cloudinary Global Edge CDN, with local fallback for offline file://
+  const CDN_VIDEO = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
+  const LOCAL_FALLBACK = 'assets/scroll-video.mp4';
 
-    // Fast native hardware stream: avoids double downloading 6.87MB video into JS memory
-  if (!video.src || video.src.includes('undefined')) {
-    video.src = LOCAL_VIDEO;
+  if (!video.getAttribute('src') || video.src.includes('undefined')) {
+    video.src = CDN_VIDEO;
   }
   video.addEventListener('error', () => {
-    if (!video.src.includes('cloudinary')) {
-      video.src = CDN_FALLBACK;
+    if (!video.src.includes('scroll-video.mp4')) {
+      video.src = LOCAL_FALLBACK;
       try { video.load(); } catch (_) {}
     }
   }, { once: true });
@@ -378,36 +377,52 @@ function initContinuousZoomStory() {
     }
   }
 
+  const scene1 = document.getElementById('scene-ui-1');
+  const scene2 = document.getElementById('scene-ui-2');
+  const scene3 = document.getElementById('scene-ui-3');
+  const scene4 = document.getElementById('scene-ui-4');
+
+  let winW = window.innerWidth;
+  let winH = window.innerHeight;
+  let runwayMaxScroll = Math.max(0, runway.offsetHeight - winH);
+
   // 100% Reliable In-View Observer for Mobile Video Section (Only when video screen is actually in front!)
-  function updateMobileVideoState() {
-    const isMobile = window.innerWidth <= 1024;
-    const rect = runway.getBoundingClientRect();
+  function updateMobileVideoState(rectOverride) {
+    const isMobileTablet = winW <= 1024;
+    const rect = rectOverride || runway.getBoundingClientRect();
     // Video screen is ONLY in front once hero section has scrolled past and runway takes over the viewport!
     // In Header & Hero section (rect.top > 60), isVideoInFront is strictly false so spider is fully active!
-    const isVideoInFront = isMobile && rect.top <= 60 && rect.bottom >= (window.innerHeight * 0.3);
+    const isVideoInFront = isMobileTablet && rect.top <= 60 && rect.bottom >= (winH * 0.3);
     if (window.__mobileVideoActive !== isVideoInFront) {
       window.__mobileVideoActive = isVideoInFront;
       document.body.classList.toggle('mobile-video-active', isVideoInFront);
     }
   }
 
-  // Smooth scroll listener
+  function onStoryResize() {
+    winW = window.innerWidth;
+    winH = window.innerHeight;
+    runwayMaxScroll = Math.max(0, runway.offsetHeight - winH);
+    updateMobileVideoState();
+  }
+
+  // Smooth scroll listener (single batched layout read per scroll frame)
   window.addEventListener('scroll', () => {
     const rect = runway.getBoundingClientRect();
-    const maxScroll = runway.offsetHeight - window.innerHeight;
+    const maxScroll = runwayMaxScroll || Math.max(0, runway.offsetHeight - winH);
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
     targetProgress = maxScroll > 0 ? current / maxScroll : 0;
 
-    updateMobileVideoState();
+    updateMobileVideoState(rect);
     requestTick();
   }, { passive: true });
 
-  window.addEventListener('resize', updateMobileVideoState, { passive: true });
+  window.addEventListener('resize', onStoryResize, { passive: true });
   updateMobileVideoState();
 
   // 60FPS Butter-Smooth Render Loop
   function renderFrame() {
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = winW <= 768;
     // Desktop: Responsive 0.38 lerp factor follows mouse wheel immediately without sluggish lag
     // Mobile: 0.25 smooth glide
     const lerpFactor = isMobile ? 0.25 : 0.38;
@@ -460,11 +475,6 @@ function initContinuousZoomStory() {
     scrubToTime(currentTargetTime);
 
     // 3. Scene Content Overlays Synced to Video Timelines
-    const scene1 = document.getElementById('scene-ui-1');
-    const scene2 = document.getElementById('scene-ui-2');
-    const scene3 = document.getElementById('scene-ui-3');
-    const scene4 = document.getElementById('scene-ui-4');
-
     if (scene1 && scene2 && scene3 && scene4) {
       scene1.classList.toggle('active', currentTargetTime >= 1.6 && currentTargetTime < 4.5);
       scene2.classList.toggle('active', currentTargetTime >= 4.5 && currentTargetTime < 7.5);
@@ -481,13 +491,7 @@ function initContinuousZoomStory() {
     }
   }
 
-  video.addEventListener('loadedmetadata', requestTick);
-  if (video.readyState >= 1) {
-    requestTick();
-  } else {
-    video.load();
-    requestTick();
-  }
+  video.addEventListener('loadedmetadata', requestTick, { once: true });
   requestTick();
 }
 
@@ -527,17 +531,6 @@ function initComposerStudio() {
   const secRange = document.getElementById('sec-range');
   const secVal = document.getElementById('sec-val');
   const genBtn = document.getElementById('generate-solution-btn');
-
-  inspPills.forEach((pill) => {
-    pill.addEventListener('click', () => {
-      inspPills.forEach((p) => p.classList.remove('active'));
-      pill.classList.add('active');
-      const key = pill.getAttribute('data-pain-key') || 'lag';
-      const data = prompts[key] || prompts.lag;
-      if (input) input.value = data.input;
-      if (toast) toast.innerHTML = `<strong>✓ Solution Blueprint:</strong> ${data.toast}`;
-    });
-  });
 
   filterCols.forEach((group) => {
     const btns = group.querySelectorAll('.f-pill');
@@ -751,14 +744,30 @@ function initPinnedRealmsCarousel() {
   // Initialize 3D stacked layout immediately on page load!
   setActiveRealm(0);
 
+  // Pause decorative card shimmer & wave animations when Realms section is outside viewport
+  if ('IntersectionObserver' in window) {
+    const realmsVisObs = new IntersectionObserver((entries) => {
+      runway.classList.toggle('is-offscreen', !entries[0].isIntersecting);
+    }, { threshold: 0 });
+    realmsVisObs.observe(runway);
+  }
+
+  let realmsWinW = window.innerWidth;
+  let realmsWinH = window.innerHeight;
+  let realmsMaxScroll = Math.max(0, runway.offsetHeight - realmsWinH);
+  window.addEventListener('resize', () => {
+    realmsWinW = window.innerWidth;
+    realmsWinH = window.innerHeight;
+    realmsMaxScroll = Math.max(0, runway.offsetHeight - realmsWinH);
+  }, { passive: true });
+
   // Desktop only: Vertical Scroll Automatically Traverses Cards 01/10 -> 10/10!
   window.addEventListener('scroll', () => {
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) return;
+    if (realmsWinW <= 768) return;
 
     const rect = runway.getBoundingClientRect();
-    const maxScroll = runway.offsetHeight - window.innerHeight;
-    if (rect.top <= 0 && rect.bottom >= window.innerHeight && maxScroll > 0) {
+    const maxScroll = realmsMaxScroll || Math.max(0, runway.offsetHeight - realmsWinH);
+    if (rect.top <= 0 && rect.bottom >= realmsWinH && maxScroll > 0) {
       const progress = Math.min(1, Math.max(0, -rect.top / maxScroll));
       const idx = Math.min(total - 1, Math.floor(progress * total));
       if (idx !== activeIdx) {
@@ -920,12 +929,13 @@ function initPinnedRealmsCarousel() {
   const infoBtn = document.getElementById('info-btn');
   const showAboutModal = (e) => {
     if (e) e.preventDefault();
+    const liveProjects = PortfolioManager.getProjects();
     openModal(
-      `ABOUT PAGE • UNLIMITED LIVE PORTFOLIO ENGINE`,
+      `PORTFOLIO ENGINE • FAZLUL HAQUE`,
       `Fazlul Haque — Live Websites Showcase`,
-      `Your About Page is configured to hold an unlimited number of live websites (zero cap). As soon as you provide the About & Contact header images, those pages will go live with this engine:`,
-      UNLIMITED_PORTFOLIO_SITES.map(
-        (s, i) => `<strong>0${i + 1}. ${s.title}</strong> — ${s.category} (${s.speed})`
+      `Explore curated live platforms engineered for sub-100ms speed, hardened WAF security, and bespoke aesthetics on the About & Portfolio page:`,
+      liveProjects.map(
+        (s, i) => `<strong>0${i + 1}. ${escapeHTML(s.title)}</strong> — ${escapeHTML((s.category || 'Web Architecture').toUpperCase())} (⚡ Sub-100ms Live)`
       )
     );
   };
@@ -1355,6 +1365,17 @@ function initBubbleGlassButtons() {
       }, 550);
     });
   });
+
+  if ('IntersectionObserver' in window && buttons.length > 0) {
+    if (!window.__bubbleBtnObserver) {
+      window.__bubbleBtnObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          entry.target.classList.toggle('is-offscreen', !entry.isIntersecting);
+        });
+      }, { threshold: 0 });
+    }
+    buttons.forEach((btn) => window.__bubbleBtnObserver.observe(btn));
+  }
 }
 
 // ============================================================================
@@ -1473,7 +1494,7 @@ function initDynamicPortfolio() {
       <article class="portfolio-project-card shine-card" data-category="${safeCategory}">
         <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="ppc-thumb-link" aria-label="Visit ${safeTitle} live">
           <div class="ppc-thumb">
-            <img src="${safePreview}" alt="${safeTitle} Homepage Preview" class="ppc-hero-preview-img" onerror="this.onerror=null; this.src='assets/scene1.webp';" loading="lazy" />
+            <img src="${safePreview}" alt="${safeTitle} Homepage Preview" class="ppc-hero-preview-img" width="1000" height="650" decoding="async" onerror="this.onerror=null; this.src='assets/scene1.webp';" loading="lazy" />
             <span class="ppc-speed-badge">⚡ Sub-100ms Live</span>
             <span class="ppc-category-tag">${safeCatName}</span>
           </div>

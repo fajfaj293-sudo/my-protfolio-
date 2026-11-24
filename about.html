@@ -25,10 +25,12 @@
   <!-- Google Fonts Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="preload" href="assets/about-hero.webp" as="image" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
 
   <!-- Shared Universal Stylesheet -->
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=36.0" />
 
   <!-- Rich JSON-LD Structured Data for Google Search -->
   <script type="application/ld+json">
@@ -42,7 +44,7 @@
         "jobTitle": "Full-Stack Web & WordPress Architecture Specialist",
         "description": "Expert Web and WordPress Developer crafting sub-100ms ultra-fast websites, WooCommerce stores, and security-hardened systems.",
         "image": "assets/about-hero.webp",
-        "email": "fazlulbuisness1@gmail.com",
+        "email": "fazlulbusiness1@gmail.com",
         "telephone": "+8801302927167",
         "knowsAbout": [
           "WordPress Custom Theme Development",
@@ -159,6 +161,7 @@
                 id="about-hero-img"
                 width="800"
                 height="1000"
+                fetchpriority="high"
                 loading="eager"
               />
               <div class="about-image-scrim"></div>
@@ -242,7 +245,7 @@
     <div class="af-container">
       <div class="af-left">
         <a href="index.html" class="nav-wave-logo" aria-label="Fazlul Haque (FLH) Home">
-          <img src="assets/flh-logo.svg" alt="FLH Logo" class="flh-logo-svg" width="42" height="42" />
+          <img src="assets/flh-logo.svg" alt="FLH Logo" class="flh-logo-svg" width="42" height="42" loading="lazy" decoding="async" />
         </a>
         <span>&copy; 2026 FAZLUL HAQUE • FULL-STACK &amp; WORDPRESS ARCHITECT</span>
       </div>
@@ -283,7 +286,7 @@
   <!-- Interactive Golden Jumping Spider with Silk Thread -->
   <canvas id="cursor-spider-canvas" class="cursor-spider-canvas" aria-hidden="true"></canvas>
 
-  <script defer src="app.js"></script>
+  <script defer src="app.js?v=36.0"></script>
 
   <!-- Floating Mobile Bottom Navigation Dock (Visible on Mobile Screens < 768px) -->
   <nav class="mobile-bottom-dock" aria-label="Mobile Navigation">
