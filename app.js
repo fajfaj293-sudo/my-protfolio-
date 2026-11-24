@@ -301,9 +301,14 @@ function initContinuousZoomStory() {
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
 
-  // Single-download RAM Blob preloader for 73-keyframe scroll-video.mp4 (0ms hardware scrubbing, zero double-fetch)
-  const LOCAL_VIDEO = 'assets/scroll-video.mp4';
+  // Single-download RAM Blob preloader: lightweight 73-keyframe video on mobile (~1.6MB), full HD on desktop
+  const isMobileViewport = window.innerWidth <= 768;
+  const LOCAL_VIDEO = isMobileViewport ? 'assets/scroll-video-mobile.mp4' : 'assets/scroll-video.mp4';
+  const DESKTOP_FALLBACK = 'assets/scroll-video.mp4';
   const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/ki_0.2,q_auto,w_720/protfolio.mp4';
+  if (isMobileViewport) {
+    video.poster = 'assets/video-poster-mob.webp';
+  }
 
   function initRamBlobVideo() {
     if (window.location.protocol === 'file:') {
@@ -323,16 +328,28 @@ function initContinuousZoomStory() {
           video.src = blobUrl;
         })
         .catch(() => {
-          fetch(CDN_FALLBACK)
-            .then(res => res.blob())
+          fetch(DESKTOP_FALLBACK)
+            .then(res => {
+              if (!res.ok) throw new Error('Fallback not found');
+              return res.blob();
+            })
             .then(blob => {
               const blobUrl = URL.createObjectURL(blob);
               video.preload = 'auto';
               video.src = blobUrl;
             })
             .catch(() => {
+              fetch(CDN_FALLBACK)
+            .then(res => res.blob())
+            .then(blob => {
+              const blobUrl = URL.createObjectURL(blob);
               video.preload = 'auto';
-              video.src = CDN_FALLBACK;
+              video.src = blobUrl;
+            })
+                .catch(() => {
+                  video.preload = 'auto';
+                  video.src = CDN_FALLBACK;
+                });
             });
         });
     } else {
@@ -963,6 +980,32 @@ function initPinnedRealmsCarousel() {
     }
   }
 
+  // Lazy-hydrate card background artwork so 641KB does not block initial Hero LCP
+  function hydrateRealmBackgrounds() {
+    if (runway.dataset.bgHydrated === '1') return;
+    runway.dataset.bgHydrated = '1';
+    const suffix = window.innerWidth <= 768 ? '-mob.webp' : '.webp';
+    track.querySelectorAll('.trc-bg[data-scene]').forEach((bgEl) => {
+      const scene = bgEl.getAttribute('data-scene');
+      const grad = bgEl.getAttribute('data-grad');
+      if (scene && grad) {
+        bgEl.style.backgroundImage = `${grad}, url('assets/${scene}${suffix}')`;
+      }
+    });
+  }
+
+  if ('IntersectionObserver' in window) {
+    const bgPreloadObs = new IntersectionObserver((entries, obs) => {
+      if (entries[0].isIntersecting) {
+        hydrateRealmBackgrounds();
+        obs.disconnect();
+      }
+    }, { rootMargin: '800px 0px' });
+    bgPreloadObs.observe(runway);
+  } else {
+    hydrateRealmBackgrounds();
+  }
+
   // Initialize 3D stacked layout immediately on page load!
   setActiveRealm(0);
 
@@ -1304,92 +1347,163 @@ function initFloating3DCube() {
     { v: [0, 1, 5, 4], c: 5 }  // Bottom (-Y: White)
   ];
 
-  let rx = -0.45;
-  let ry = 0.62;
-  let vx = 0;
-  let vy = 0.005;
+  // True 3x3 Orthogonal Trackball Orientation Matrix (Zero gimbal lock, natural 1:1 finger tracking in 360°)
+  const initCy = Math.cos(0.62), initSy = Math.sin(0.62);
+  const initCx = Math.cos(-0.45), initSx = Math.sin(-0.45);
+  let rotMat = [
+    [initCy, 0, initSy],
+    [initSx * initSy, initCx, -initSx * initCy],
+    [-initCx * initSy, initSx, initCx * initCy]
+  ];
+
+  function applyScreenSpaceRotation(dYaw, dPitch) {
+    if (dYaw === 0 && dPitch === 0) return;
+    // 1. Horizontal screen-space yaw (+dYaw moves front +Z toward +X right)
+    if (dYaw !== 0) {
+      const cy = Math.cos(dYaw), sy = Math.sin(dYaw);
+      for (let c = 0; c < 3; c++) {
+        const r0 = rotMat[0][c], r2 = rotMat[2][c];
+        rotMat[0][c] = r0 * cy + r2 * sy;
+        rotMat[2][c] = -r0 * sy + r2 * cy;
+      }
+    }
+    // 2. Vertical screen-space pitch (+dPitch moves front +Z toward +Y down, matching finger 1:1!)
+    if (dPitch !== 0) {
+      const cp = Math.cos(dPitch), sp = Math.sin(dPitch);
+      for (let c = 0; c < 3; c++) {
+        const r1 = rotMat[1][c], r2 = rotMat[2][c];
+        rotMat[1][c] = r1 * cp + r2 * sp;
+        rotMat[2][c] = -r1 * sp + r2 * cp;
+      }
+    }
+    // Re-orthonormalize rows (Gram-Schmidt) so cube stays crisp after thousands of spins
+    let r0x = rotMat[0][0], r0y = rotMat[0][1], r0z = rotMat[0][2];
+    const l0 = Math.hypot(r0x, r0y, r0z) || 1;
+    r0x /= l0; r0y /= l0; r0z /= l0;
+
+    let r1x = rotMat[1][0], r1y = rotMat[1][1], r1z = rotMat[1][2];
+    const dot01 = r0x * r1x + r0y * r1y + r0z * r1z;
+    r1x -= dot01 * r0x; r1y -= dot01 * r0y; r1z -= dot01 * r0z;
+    const l1 = Math.hypot(r1x, r1y, r1z) || 1;
+    r1x /= l1; r1y /= l1; r1z /= l1;
+
+    rotMat[0][0] = r0x; rotMat[0][1] = r0y; rotMat[0][2] = r0z;
+    rotMat[1][0] = r1x; rotMat[1][1] = r1y; rotMat[1][2] = r1z;
+    rotMat[2][0] = r0y * r1z - r0z * r1y;
+    rotMat[2][1] = r0z * r1x - r0x * r1z;
+    rotMat[2][2] = r0x * r1y - r0y * r1x;
+  }
+
+  function transformVert(px, py, pz) {
+    return [
+      rotMat[0][0] * px + rotMat[0][1] * py + rotMat[0][2] * pz,
+      rotMat[1][0] * px + rotMat[1][1] * py + rotMat[1][2] * pz,
+      rotMat[2][0] * px + rotMat[2][1] * py + rotMat[2][2] * pz
+    ];
+  }
+
+  let velYaw = 0.005;
+  let velPitch = 0;
   let dragging = false;
   let lx = 0, ly = 0;
   let lastMoveTime = 0;
-  let trackVelX = 0;
-  let trackVelY = 0;
+  let trackVelYaw = 0;
+  let trackVelPitch = 0;
   let isHovered = false;
 
-  // True spherical 3D rotation matrix allowing complete 360 degree rotation on all axes
-  function rot3D(x, y, z, ax, ay) {
-    // Rotate around Y axis
-    const cy = Math.cos(ay), sy = Math.sin(ay);
-    const x1 = x * cy + z * sy;
-    const z1 = -x * sy + z * cy;
-
-    // Rotate around X axis
-    const cx = Math.cos(ax), sx = Math.sin(ax);
-    const y2 = y * cx - z1 * sx;
-    const z2 = y * sx + z1 * cx;
-
-    return [x1, y2, z2];
+  function beginDrag(clientX, clientY) {
+    dragging = true;
+    lx = clientX;
+    ly = clientY;
+    lastMoveTime = performance.now();
+    trackVelYaw = 0;
+    trackVelPitch = 0;
+    startCubeLoop();
   }
 
-  canvas.addEventListener('pointerenter', () => { isHovered = true; });
-  canvas.addEventListener('pointerleave', () => { if (!dragging) isHovered = false; });
+  function moveDrag(clientX, clientY, isTouchInput) {
+    if (!dragging) return;
+    const now = performance.now();
+    const dt = Math.max(now - lastMoveTime, 1);
+    const dx = clientX - lx;
+    const dy = clientY - ly;
+    lx = clientX;
+    ly = clientY;
+    lastMoveTime = now;
+
+    const sens = isTouchInput ? 0.0165 : 0.0115;
+    const dYaw = dx * sens;
+    const dPitch = dy * sens;
+    applyScreenSpaceRotation(dYaw, dPitch);
+
+    trackVelYaw = (dYaw / dt) * 16;
+    trackVelPitch = (dPitch / dt) * 16;
+    startCubeLoop();
+  }
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    isHovered = false;
+    velYaw = Math.max(-0.08, Math.min(0.08, trackVelYaw * 0.85));
+    velPitch = Math.max(-0.08, Math.min(0.08, trackVelPitch * 0.85));
+  }
+
+  // Desktop hover & mouse dragging
+  canvas.addEventListener('pointerenter', (e) => {
+    if (e.pointerType !== 'touch') isHovered = true;
+  });
+  canvas.addEventListener('pointerleave', (e) => {
+    if (e.pointerType !== 'touch' && !dragging) isHovered = false;
+  });
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') return;
+    isHovered = true;
+    beginDrag(e.clientX, e.clientY);
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch' || !dragging) return;
+    moveDrag(e.clientX, e.clientY, false);
+  });
+
+  const onMouseEnd = (e) => {
+    if (e && e.pointerType === 'touch') return;
+    if (!dragging) return;
+    try { if (e && e.pointerId) canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+    endDrag();
+  };
+  canvas.addEventListener('pointerup', onMouseEnd);
+  canvas.addEventListener('pointercancel', onMouseEnd);
+  window.addEventListener('pointerup', onMouseEnd);
+
+  // Dedicated Mobile Touch Orbiting (prevents scroll hijack & pointercancel on Android/iOS)
+  canvas.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    if (e.cancelable) e.preventDefault();
+    beginDrag(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (!dragging || !e.touches || e.touches.length !== 1) return;
+    if (e.cancelable) e.preventDefault();
+    moveDrag(e.touches[0].clientX, e.touches[0].clientY, true);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => endDrag(), { passive: true });
+  canvas.addEventListener('touchcancel', () => endDrag(), { passive: true });
 
   // Mouse wheel scroll to rotate horizontally or vertically in full 360 degrees
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     if (e.shiftKey) {
-      rx += e.deltaY * 0.004;
+      applyScreenSpaceRotation(0, e.deltaY * 0.004);
     } else {
-      ry += e.deltaY * 0.004;
+      applyScreenSpaceRotation(e.deltaY * 0.004, 0);
     }
   }, { passive: false });
-
-  // Mouse / Touch 360-degree free orbital dragging
-  canvas.addEventListener('pointerdown', (e) => {
-    dragging = true;
-    isHovered = true;
-    lx = e.clientX;
-    ly = e.clientY;
-    lastMoveTime = performance.now();
-    trackVelX = 0;
-    trackVelY = 0;
-    try {
-      canvas.setPointerCapture(e.pointerId);
-    } catch (_) {}
-  });
-
-  canvas.addEventListener('pointermove', (e) => {
-    if (!dragging) return;
-    const now = performance.now();
-    const dt = Math.max(now - lastMoveTime, 1);
-    const dx = e.clientX - lx;
-    const dy = e.clientY - ly;
-    lx = e.clientX;
-    ly = e.clientY;
-    lastMoveTime = now;
-
-    trackVelY = dx / dt;
-    trackVelX = dy / dt;
-
-    // Full, unbounded 360-degree rotation across all axes so every face can come to the front!
-    ry += dx * 0.012;
-    rx += dy * 0.012;
-  });
-
-  const onPointerEnd = (e) => {
-    if (!dragging) return;
-    dragging = false;
-    isHovered = false;
-    try {
-      if (e && e.pointerId) canvas.releasePointerCapture(e.pointerId);
-    } catch (_) {}
-
-    vy = Math.max(-0.05, Math.min(0.05, trackVelY * 0.018));
-    vx = Math.max(-0.05, Math.min(0.05, trackVelX * 0.018));
-  };
-
-  canvas.addEventListener('pointerup', onPointerEnd);
-  canvas.addEventListener('pointercancel', onPointerEnd);
-  window.addEventListener('pointerup', onPointerEnd);
 
   function render(time) {
     if (!cubeInView || window.__mobileVideoActive) {
@@ -1398,18 +1512,14 @@ function initFloating3DCube() {
     }
     ctx.clearRect(0, 0, W, H);
 
-    // Gently auto-rotates horizontally when mouse is NOT on it; pauses when hovered!
+    // Gently auto-rotates horizontally when not touched/hovered; glides with throw inertia after swipe!
     if (!dragging && !isHovered) {
-      ry += vy;
-      rx += vx;
-      vy = vy * 0.96 + 0.005 * 0.04;
-      vx = vx * 0.96;
-    } else if (dragging) {
-      // Direct drag control
-    } else {
-      // Hovered: stays frozen so user can inspect specific face
-      vy *= 0.85;
-      vx *= 0.85;
+      applyScreenSpaceRotation(velYaw, velPitch);
+      velYaw = velYaw * 0.95 + 0.005 * 0.05;
+      velPitch *= 0.94;
+    } else if (!dragging && isHovered) {
+      velYaw *= 0.85;
+      velPitch *= 0.85;
     }
 
     const floatY = Math.sin(time * 0.0018) * 6;
@@ -1427,7 +1537,7 @@ function initFloating3DCube() {
         const px = bx + ux * size;
         const py = by + uy * size;
         const pz = bz + uz * size;
-        return rot3D(px, py, pz, rx, ry);
+        return transformVert(px, py, pz);
       });
 
       for (let f = 0; f < faces.length; f++) {
@@ -1560,8 +1670,8 @@ function initBubbleGlassButtons() {
       chamber.setAttribute('aria-hidden', 'true');
       btn.insertBefore(chamber, btn.firstChild);
 
-      // Reduced density (8 bubbles instead of 20) for a cleaner, high-luxury aesthetic
-      const bubbleCount = 8;
+      // Responsive bubble density: 8 on desktop, 5 on compact mobile buttons
+      const bubbleCount = window.innerWidth <= 768 ? 5 : 8;
       for (let i = 0; i < bubbleCount; i++) {
         const bubble = document.createElement('span');
         bubble.className = 'bubble-drop';
@@ -2002,6 +2112,7 @@ function initCursorSpider() {
   let wanderState = 'idle';
   let nextSpiderWander = performance.now() + 1800;
 
+  let wakeSpiderFn = null;
   function updateSpiderTarget(x, y) {
     mouse.x = x;
     mouse.y = y;
@@ -2009,6 +2120,7 @@ function initCursorSpider() {
     mouse.lastMove = performance.now();
     wanderState = 'idle';
     nextSpiderWander = performance.now() + 2800;
+    if (wakeSpiderFn) wakeSpiderFn();
   }
 
   // Pointer / Mouse tracking for Desktop
@@ -2537,23 +2649,33 @@ function initCursorSpider() {
     ctx.restore(); // Restores DRAW SPIDER BODY
     ctx.restore(); // Restores Top-level canvas state save
 
-    // When mobile video is active and spider has settled into peaceful parked stance,
-    // freeze the painted frame at 0% CPU until video section is exited!
-    const settledForVideo = isVideoPaused && spider.speed < 0.4 && webSilk.length === 0 && !legs.some((l) => l.isStepping);
-    if (!document.hidden && !settledForVideo) {
+    // Zero-CPU idle sleep on mobile: pause redraws when motionless & wake right on next blink/wander/touch
+    const isMotionless = !spider.isWalking && spider.speed < 0.35 && webSilk.length === 0 && !legs.some((l) => l.isStepping);
+    const settledForVideo = isVideoPaused && isMotionless;
+    const settledForMobileIdle = isMobile && !isVideoPaused && isMotionless && spider.blinkProgress === 0 && (now - mouse.lastMove > 450);
+
+    if (!document.hidden && !settledForVideo && !settledForMobileIdle) {
       spiderRafId = requestAnimationFrame(renderSpider);
     } else {
       spiderRafId = null;
+      if (settledForMobileIdle && !document.hidden) {
+        const nextWakeMs = Math.max(80, Math.min(nextSpiderWander - now, spider.nextBlink - now));
+        clearTimeout(spiderIdleTimer);
+        spiderIdleTimer = setTimeout(wakeSpider, Math.min(nextWakeMs, 1500));
+      }
     }
   }
 
+  let spiderIdleTimer = null;
   let spiderRafId = requestAnimationFrame(renderSpider);
   const wakeSpider = () => {
+    clearTimeout(spiderIdleTimer);
     if (!document.hidden && !spiderRafId) {
       lastTime = performance.now();
       spiderRafId = requestAnimationFrame(renderSpider);
     }
   };
+  wakeSpiderFn = wakeSpider;
   document.addEventListener('visibilitychange', wakeSpider);
   const prevExitSpiderHook = window.__onExitMobileVideo;
   window.__onExitMobileVideo = () => {
@@ -2665,19 +2787,57 @@ function initStatCounters() {
   statNumEls.forEach(el => observer.observe(el));
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function yieldToMainThread() {
+  if ('scheduler' in window && typeof window.scheduler.yield === 'function') {
+    return window.scheduler.yield();
+  }
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function initInstantPagePrefetch() {
+  if (window.location.protocol === 'file:') return;
+  if (navigator.connection && (navigator.connection.saveData || /2g/.test(navigator.connection.effectiveType || ''))) {
+    return;
+  }
+  const currentFile = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  ['index.html', 'about.html', 'contact.html'].forEach((page) => {
+    if (page !== currentFile) {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = page;
+      link.as = 'document';
+      document.head.appendChild(link);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Phase 1: Critical above-the-fold interactive UI
   initHeroSpotlight();
   initSoundToggle();
+  initBubbleGlassButtons();
+  initStatCounters();
+
+  // Yield to browser main thread so first paint & touch input respond in <16ms
+  await yieldToMainThread();
+
+  // Phase 2: Scroll story, spider & primary page features
   initContinuousZoomStory();
-  initComposerStudio();
+  initCursorSpider();
+  initDynamicPortfolio();
+  initContactForm();
+
+  await yieldToMainThread();
+
+  // Phase 3: Below-the-fold sections & auxiliary widgets
   initPinnedRealmsCarousel();
+  initComposerStudio();
   initStarfields();
   initFloating3DCube();
   initBackToTop();
-  initBubbleGlassButtons();
-  initDynamicPortfolio();
-  initContactForm();
-  initCursorSpider();
   initFAQAccordion();
-  initStatCounters();
+
+  // Phase 4: Prefetch sibling pages during idle time for 0ms bottom-dock navigation
+  const scheduleIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1400));
+  scheduleIdle(initInstantPagePrefetch);
 });
