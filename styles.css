@@ -33,6 +33,8 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -40,6 +42,8 @@ body {
   color: var(--text-light);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -619,6 +623,7 @@ body {
   inset: 0;
   z-index: 10;
   pointer-events: none;
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -4102,20 +4107,6 @@ a.channel-item:hover .ci-arrow {
   .faq-item {
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
-  }
-
-  /* Window Video Frame Mobile Optimization: Visibly compact & proportional initial frame that smoothly expands */
-  .window-arch-wrapper {
-    width: min(84vw, 340px);
-    height: min(calc(84vw * 9 / 16), 200px);
-    aspect-ratio: 16 / 9;
-    border-radius: 16px;
-    background-image: url('assets/video-poster-mob.webp');
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
-  }
-  .portfolio-scrub-video {
-    object-fit: contain !important;
-    background: #000000 !important;
   }
 
   /* Story Scene Overlays on Mobile: Perfectly scaled, high readability, beautiful glass scrim */

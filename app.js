@@ -301,14 +301,9 @@ function initContinuousZoomStory() {
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
 
-  // Single-download RAM Blob preloader: lightweight 73-keyframe video on mobile (~1.6MB), full HD on desktop
-  const isMobileViewport = window.innerWidth <= 768;
-  const LOCAL_VIDEO = isMobileViewport ? 'assets/scroll-video-mobile.mp4' : 'assets/scroll-video.mp4';
-  const DESKTOP_FALLBACK = 'assets/scroll-video.mp4';
+  // Single-download RAM Blob preloader for 73-keyframe scroll-video.mp4 (0ms hardware scrubbing, zero double-fetch)
+  const LOCAL_VIDEO = 'assets/scroll-video.mp4';
   const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/ki_0.2,q_auto,w_720/protfolio.mp4';
-  if (isMobileViewport) {
-    video.poster = 'assets/video-poster-mob.webp';
-  }
 
   function initRamBlobVideo() {
     if (window.location.protocol === 'file:') {
@@ -328,28 +323,16 @@ function initContinuousZoomStory() {
           video.src = blobUrl;
         })
         .catch(() => {
-          fetch(DESKTOP_FALLBACK)
-            .then(res => {
-              if (!res.ok) throw new Error('Fallback not found');
-              return res.blob();
-            })
-            .then(blob => {
-              const blobUrl = URL.createObjectURL(blob);
-              video.preload = 'auto';
-              video.src = blobUrl;
-            })
-            .catch(() => {
-              fetch(CDN_FALLBACK)
+          fetch(CDN_FALLBACK)
             .then(res => res.blob())
             .then(blob => {
               const blobUrl = URL.createObjectURL(blob);
               video.preload = 'auto';
               video.src = blobUrl;
             })
-                .catch(() => {
-                  video.preload = 'auto';
-                  video.src = CDN_FALLBACK;
-                });
+            .catch(() => {
+              video.preload = 'auto';
+              video.src = CDN_FALLBACK;
             });
         });
     } else {
