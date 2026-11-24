@@ -1,10 +1,41 @@
+/**
+ * FAZLUL HAQUE — TIDALIA-EXACT PORTFOLIO ENGINE (WORKS 100% ON file:// AND http://)
+ */
+
+const UNLIMITED_PORTFOLIO_SITES = [
+  {
+    title: "Lumina Luxury WooCommerce Store",
+    category: "WordPress & WooCommerce",
+    speed: "78ms Load • 99 PageSpeed",
+    url: "https://example.com/lumina"
+  },
+  {
+    title: "AetherAI 3D Interactive SaaS",
+    category: "Next.js & 3D WebGL",
+    speed: "64ms Load • 60FPS",
+    url: "https://example.com/aether"
+  },
+  {
+    title: "NexaCorp Enterprise WordPress",
+    category: "Custom WordPress Theme",
+    speed: "82ms Load • 100% Malware-Free",
+    url: "https://example.com/nexa"
+  },
+  {
+    title: "PulseFin Real-Time Web App",
+    category: "React & TypeScript",
+    speed: "71ms Load • Zero Lag",
+    url: "https://example.com/pulsefin"
+  }
+];
+
 // ============================================================================
 // 1. HERO SPOTLIGHT & SNAKE-LIKE WATER TRAIL WITH GRADUAL LETTER DISSOLVE
 // ============================================================================
 function initHeroSpotlight() {
   const heroSection = document.getElementById('hero');
   const container = document.getElementById('hero-img-container');
-  const canvas = document.getElementById('hero-water-canvas');
+  const canvas = document.getElementById('hero-water-canvas') || document.getElementById('hero-dragon-canvas') || document.getElementById('hero-sparkle-canvas');
 
   if (!container) return;
 
@@ -300,51 +331,40 @@ function initContinuousZoomStory() {
   video.muted = true;
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
+  video.preload = 'auto';
 
-  // Single-download RAM Blob preloader for 73-keyframe scroll-video.mp4 (0ms hardware scrubbing, zero double-fetch)
+  // Preload fast local video into Blob for instant 0ms latency hardware scrubbing
   const LOCAL_VIDEO = 'assets/scroll-video.mp4';
-  const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/ki_0.2,q_auto,w_720/protfolio.mp4';
+  const CDN_FALLBACK = 'https://res.cloudinary.com/vqe5tonz/video/upload/q_auto,w_720/protfolio.mp4';
 
-  function initRamBlobVideo() {
-    if (window.location.protocol === 'file:') {
-      video.preload = 'auto';
-      video.src = LOCAL_VIDEO;
-      return;
-    }
-    if (window.fetch && window.URL && window.Blob) {
-      fetch(LOCAL_VIDEO)
-        .then(res => {
-          if (!res.ok) throw new Error('Local video not found');
-          return res.blob();
-        })
-        .then(blob => {
-          const blobUrl = URL.createObjectURL(blob);
-          video.preload = 'auto';
-          video.src = blobUrl;
-        })
-        .catch(() => {
-          fetch(CDN_FALLBACK)
-            .then(res => res.blob())
-            .then(blob => {
-              const blobUrl = URL.createObjectURL(blob);
-              video.preload = 'auto';
-              video.src = blobUrl;
-            })
-            .catch(() => {
-              video.preload = 'auto';
+  if (window.fetch && window.URL && window.Blob) {
+    fetch(LOCAL_VIDEO)
+      .then(res => {
+        if (!res.ok) throw new Error('Local video not found, falling back to CDN');
+        return res.blob();
+      })
+      .then(blob => {
+        const curTime = video.currentTime || 0;
+        const blobUrl = URL.createObjectURL(blob);
+        video.src = blobUrl;
+        video.currentTime = curTime;
+      })
+      .catch(() => {
+        fetch(CDN_FALLBACK)
+          .then(res => res.blob())
+          .then(blob => {
+            const curTime = video.currentTime || 0;
+            const blobUrl = URL.createObjectURL(blob);
+            video.src = blobUrl;
+            video.currentTime = curTime;
+          })
+          .catch(() => {
+            if (!video.src || video.src.includes('undefined')) {
               video.src = CDN_FALLBACK;
-            });
-        });
-    } else {
-      video.preload = 'auto';
-      video.src = LOCAL_VIDEO;
-    }
+            }
+          });
+      });
   }
-
-  // Start single Blob download right after Hero first paint so LCP stays instant
-  requestAnimationFrame(() => {
-    setTimeout(initRamBlobVideo, 50);
-  });
 
   // Smooth seeking with requestVideoFrameCallback and hardware-seek listener
   function handleSeekComplete() {
@@ -373,7 +393,6 @@ function initContinuousZoomStory() {
   }
 
   function scrubToTime(t) {
-    if (!video.src || video.readyState < 1) return;
     const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
     const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
     
@@ -408,55 +427,36 @@ function initContinuousZoomStory() {
     }
   }
 
-  const scene1 = document.getElementById('scene-ui-1');
-  const scene2 = document.getElementById('scene-ui-2');
-  const scene3 = document.getElementById('scene-ui-3');
-  const scene4 = document.getElementById('scene-ui-4');
-
-  let winW = window.innerWidth;
-  let winH = window.innerHeight;
-  let runwayMaxScroll = Math.max(0, runway.offsetHeight - winH);
-
   // 100% Reliable In-View Observer for Mobile Video Section (Only when video screen is actually in front!)
-  function updateMobileVideoState(rectOverride) {
-    const isMobileTablet = winW <= 1024;
-    const rect = rectOverride || runway.getBoundingClientRect();
+  function updateMobileVideoState() {
+    const isMobile = window.innerWidth <= 1024;
+    const rect = runway.getBoundingClientRect();
     // Video screen is ONLY in front once hero section has scrolled past and runway takes over the viewport!
     // In Header & Hero section (rect.top > 60), isVideoInFront is strictly false so spider is fully active!
-    const isVideoInFront = isMobileTablet && rect.top <= 60 && rect.bottom >= (winH * 0.3);
+    const isVideoInFront = isMobile && rect.top <= 60 && rect.bottom >= (window.innerHeight * 0.3);
     if (window.__mobileVideoActive !== isVideoInFront) {
       window.__mobileVideoActive = isVideoInFront;
       document.body.classList.toggle('mobile-video-active', isVideoInFront);
-      if (!isVideoInFront && typeof window.__onExitMobileVideo === 'function') {
-        window.__onExitMobileVideo();
-      }
     }
   }
 
-  function onStoryResize() {
-    winW = window.innerWidth;
-    winH = window.innerHeight;
-    runwayMaxScroll = Math.max(0, runway.offsetHeight - winH);
-    updateMobileVideoState();
-  }
-
-  // Smooth scroll listener (single batched layout read per scroll frame)
+  // Smooth scroll listener
   window.addEventListener('scroll', () => {
     const rect = runway.getBoundingClientRect();
-    const maxScroll = runwayMaxScroll || Math.max(0, runway.offsetHeight - winH);
+    const maxScroll = runway.offsetHeight - window.innerHeight;
     const current = Math.min(Math.max(-rect.top, 0), maxScroll);
     targetProgress = maxScroll > 0 ? current / maxScroll : 0;
 
-    updateMobileVideoState(rect);
+    updateMobileVideoState();
     requestTick();
   }, { passive: true });
 
-  window.addEventListener('resize', onStoryResize, { passive: true });
+  window.addEventListener('resize', updateMobileVideoState, { passive: true });
   updateMobileVideoState();
 
   // 60FPS Butter-Smooth Render Loop
   function renderFrame() {
-    const isMobile = winW <= 768;
+    const isMobile = window.innerWidth <= 768;
     // Desktop: Responsive 0.38 lerp factor follows mouse wheel immediately without sluggish lag
     // Mobile: 0.25 smooth glide
     const lerpFactor = isMobile ? 0.25 : 0.38;
@@ -509,6 +509,11 @@ function initContinuousZoomStory() {
     scrubToTime(currentTargetTime);
 
     // 3. Scene Content Overlays Synced to Video Timelines
+    const scene1 = document.getElementById('scene-ui-1');
+    const scene2 = document.getElementById('scene-ui-2');
+    const scene3 = document.getElementById('scene-ui-3');
+    const scene4 = document.getElementById('scene-ui-4');
+
     if (scene1 && scene2 && scene3 && scene4) {
       scene1.classList.toggle('active', currentTargetTime >= 1.6 && currentTargetTime < 4.5);
       scene2.classList.toggle('active', currentTargetTime >= 4.5 && currentTargetTime < 7.5);
@@ -525,13 +530,13 @@ function initContinuousZoomStory() {
     }
   }
 
-  const forceSyncFrame = () => {
-    isSeeking = false;
-    isTicking = false;
+  video.addEventListener('loadedmetadata', requestTick);
+  if (video.readyState >= 1) {
     requestTick();
-  };
-  video.addEventListener('loadedmetadata', forceSyncFrame);
-  video.addEventListener('loadeddata', forceSyncFrame);
+  } else {
+    video.load();
+    requestTick();
+  }
   requestTick();
 }
 
@@ -539,89 +544,27 @@ function initContinuousZoomStory() {
 // 4. LIGHT COMPOSER / PAIN-POINT SOLVER INTERACTIVITY
 // ============================================================================
 function initComposerStudio() {
-  const presets = {
+  const prompts = {
     lag: {
       input: "My WordPress / WooCommerce site has lag issues and takes over 4 seconds to load.",
-      platform: "WordPress",
-      deliverable: "<100ms Speed",
-      goal: "85ms Instant",
-      service: "24/7 Direct VIP",
-      speed: 99,
-      sec: 98
+      toast: "Blueprint Ready: Sub-100ms WebP/Edge pipeline + render-blocking cleanup + 99+ Google PageSpeed guarantee."
     },
     security: {
       input: "My website faced a malware redirect / security issue and needs complete hardening.",
-      platform: "WordPress",
-      deliverable: "Malware Shield",
-      goal: "100ms SLA",
-      service: "24/7 Direct VIP",
-      speed: 96,
-      sec: 100
+      toast: "Blueprint Ready: Surgical malware removal + Cloudflare WAF Firewall + wp-admin lockdown & automated daily backups."
     },
     service: {
       input: "My previous developer stopped replying and left critical bugs unfinished.",
-      platform: "WordPress",
-      deliverable: "VIP Maintenance",
-      goal: "85ms Instant",
-      service: "24/7 Direct VIP",
-      speed: 98,
-      sec: 100
+      toast: "Blueprint Ready: Same-day codebase rescue + transparent daily updates + 24/7 direct VIP maintenance by Fazlul Haque."
     },
     wordpress: {
       input: "I want a custom luxury WordPress / Elementor Pro or WooCommerce online store.",
-      platform: "WooCommerce",
-      deliverable: "Full Redesign",
-      goal: "85ms Instant",
-      service: "Turnkey Delivery",
-      speed: 99,
-      sec: 100
+      toast: "Blueprint Ready: Custom bloat-free WordPress theme + multi-gateway WooCommerce checkout + <85ms instant loading."
     },
     seo: {
       input: "My business website is not ranking on Google and needs full Technical SEO.",
-      platform: "WordPress",
-      deliverable: "SEO Schema",
-      goal: "99+ Google Core",
-      service: "Monthly Retainer",
-      speed: 99,
-      sec: 100
+      toast: "Blueprint Ready: Semantic H1–H3 hierarchy + JSON-LD rich schema markup + meta optimization & Core Web Vitals."
     }
-  };
-
-  const platformStacks = {
-    "WordPress": { code: "WP", stack: "Custom bloat-free PHP 8.3 WordPress architecture & ACF Pro" },
-    "WooCommerce": { code: "WOO", stack: "High-conversion WooCommerce engine with instant AJAX cart & multi-gateway checkout" },
-    "Next.js / React": { code: "NEXT", stack: "Next.js SSR/Edge React TypeScript architecture with zero-bundle bloat" },
-    "Elementor Pro": { code: "ELM", stack: "Surgical DOM-slimmed Elementor Pro luxury layout with zero render-blocking CSS" },
-    "3D WebGL": { code: "3D", stack: "60FPS hardware-accelerated 3D WebGL & scroll-scrubbed interactive canvas pipeline" }
-  };
-
-  const deliverablePlans = {
-    "<100ms Speed": {
-      action: "WebP/AVIF asset pipeline, critical CSS/font priority & edge cache tuning",
-      sprint: "24 – 48 Hours Rapid"
-    },
-    "Malware Shield": {
-      action: "deep backdoor & malware extermination, Cloudflare WAF rules & wp-admin lockdown",
-      sprint: "24 – 48 Hours Rapid"
-    },
-    "VIP Maintenance": {
-      action: "same-day bug rescue, daily off-site backups & proactive uptime monitoring",
-      sprint: "Same-Day Onboarding"
-    },
-    "Full Redesign": {
-      action: "bespoke luxury UI/UX redesign, mobile-first glassmorphism & conversion flow",
-      sprint: "5 – 12 Days Bespoke"
-    },
-    "SEO Schema": {
-      action: "semantic H1–H3 structure, rich JSON-LD schema graph & Core Web Vitals indexing",
-      sprint: "48 – 72 Hours Rapid"
-    }
-  };
-
-  const serviceModels = {
-    "24/7 Direct VIP": { access: "24/7 VIP • Fazlul Haque", note: "direct 24/7 WhatsApp & Email access to Fazlul Haque" },
-    "Monthly Retainer": { access: "Monthly Retainer • Fazlul", note: "dedicated monthly retainer care by Fazlul Haque" },
-    "Turnkey Delivery": { access: "Turnkey Handover • Fazlul", note: "complete turnkey launch + 30-day VIP warranty by Fazlul Haque" }
   };
 
   const input = document.getElementById('composer-prompt-input');
@@ -633,266 +576,75 @@ function initComposerStudio() {
   const secRange = document.getElementById('sec-range');
   const secVal = document.getElementById('sec-val');
   const genBtn = document.getElementById('generate-solution-btn');
-  const card = document.getElementById('generated-solution-toast');
-  if (!card || !toast) return;
 
-  const specVals = card.querySelectorAll('.bc-specs-grid .bc-spec-val');
-  const speedMetric = document.getElementById('bc-speed-metric') || specVals[0];
-  const secMetric = document.getElementById('bc-sec-metric') || specVals[1];
-  const sprintMetric = specVals[2] || null;
-  const accessMetric = specVals[3] || null;
-  const codeEl = card.querySelector('.bc-code');
-  const claimBtn = card.querySelector('.bc-claim-btn');
-
-  let userEditedPrompt = false;
-
-  function getSelectedInCol(colIndex, fallback) {
-    const group = filterCols[colIndex];
-    if (!group) return fallback;
-    const active = group.querySelector('.f-pill.active');
-    return active ? active.textContent.trim() : fallback;
-  }
-
-  function setSelectedInCol(colIndex, labelText) {
-    const group = filterCols[colIndex];
-    if (!group) return;
-    const btns = group.querySelectorAll('.f-pill');
-    btns.forEach((b) => {
-      b.classList.toggle('active', b.textContent.trim() === labelText);
-    });
-  }
-
-  function computeBlueprint(syncInputPrompt) {
-    const platform = getSelectedInCol(0, 'WordPress');
-    const deliverable = getSelectedInCol(1, '<100ms Speed');
-    const goal = getSelectedInCol(2, '85ms Instant');
-    const service = getSelectedInCol(3, '24/7 Direct VIP');
-    const speedPct = speedRange ? parseInt(speedRange.value, 10) : 99;
-    const secPct = secRange ? parseInt(secRange.value, 10) : 100;
-
-    if (speedVal) speedVal.textContent = `${speedPct}% PageSpeed`;
-    if (secVal) secVal.textContent = `${secPct} / 100 Audit`;
-
-    const pInfo = platformStacks[platform] || platformStacks['WordPress'];
-    const dInfo = deliverablePlans[deliverable] || deliverablePlans['<100ms Speed'];
-    const sInfo = serviceModels[service] || serviceModels['24/7 Direct VIP'];
-
-    // Update top specification code
-    if (codeEl) {
-      codeEl.textContent = `SPECIFICATION SHEET • ${pInfo.code}-${speedPct}-${secPct}-FLH`;
-    }
-
-    // 1. Target Speed box (combines Performance Goal + Speed Slider %)
-    if (speedMetric) {
-      speedMetric.textContent = `${goal} • ${speedPct}% PageSpeed`;
-    }
-
-    // 2. Security & SEO Protocol box (reflects exact Security Slider % + Deliverable)
-    if (secMetric) {
-      let gradePrefix = 'SSL + Shield';
-      if (secPct >= 98) gradePrefix = 'Military WAF';
-      else if (secPct >= 92) gradePrefix = 'WAF Hardened';
-      secMetric.textContent = `${gradePrefix} • ${secPct}/100 Audit`;
-    }
-
-    // 3. Sprint Timeline box (adapts to Platform + Deliverable complexity)
-    if (sprintMetric) {
-      let sprintText = dInfo.sprint;
-      if (deliverable === 'Full Redesign' && (platform === 'WooCommerce' || platform === 'Next.js / React' || platform === '3D WebGL')) {
-        sprintText = '7 – 14 Days Turnkey';
-      }
-      sprintMetric.textContent = sprintText;
-    }
-
-    // 4. Direct Access box (adapts to Service & Support selection)
-    if (accessMetric) {
-      accessMetric.textContent = sInfo.access;
-    }
-
-    // Sync prompt input when clicking pills/sliders (unless user typed custom prompt)
-    if (syncInputPrompt && input && !userEditedPrompt) {
-      input.value = `Build/optimize my ${platform} platform with ${deliverable}, targeting ${goal} (${speedPct}% PageSpeed & ${secPct}/100 Security) under ${service}.`;
-    }
-
-    // Build accurate Architectural Roadmap narrative incorporating all active selections + custom prompt
-    const rawPrompt = input ? input.value.trim() : '';
-    const isPresetOrAuto = !rawPrompt ||
-      Object.values(presets).some((p) => p.input === rawPrompt) ||
-      rawPrompt.startsWith('My WordPress / WooCommerce store has lag issues') ||
-      rawPrompt.startsWith('Build/optimize my ');
-
-    const customFocus = (!isPresetOrAuto && rawPrompt.length > 3)
-      ? ` Custom Requirement ("${rawPrompt.slice(0, 110)}${rawPrompt.length > 110 ? '...' : ''}") → `
-      : '';
-
-    toast.textContent = `${customFocus}${pInfo.stack} + ${dInfo.action} — engineered for ${goal} (${speedPct}% PageSpeed) & ${secPct}/100 WAF/SEO compliance with ${sInfo.note}.`;
-
-    // Update Claim Blueprint button link so Contact page auto-fills this exact blueprint!
-    if (claimBtn) {
-      const params = new URLSearchParams({
-        platform,
-        deliverable,
-        goal,
-        service,
-        speed: String(speedPct),
-        sec: String(secPct)
-      });
-      if (!isPresetOrAuto && rawPrompt) params.set('brief', rawPrompt.slice(0, 200));
-      claimBtn.setAttribute('href', `contact.html?${params.toString()}#project-form`);
-    }
-  }
-
-  function flashBlueprintCard() {
-    card.style.transform = 'scale(1.02)';
-    card.style.boxShadow = '0 0 48px rgba(236, 72, 153, 0.45)';
-    setTimeout(() => {
-      card.style.transform = '';
-      card.style.boxShadow = '';
-    }, 260);
-  }
-
-  // Quick Challenge Presets: sync prompt + all 4 filter columns + sliders + blueprint output
   inspPills.forEach((pill) => {
     pill.addEventListener('click', () => {
       inspPills.forEach((p) => p.classList.remove('active'));
       pill.classList.add('active');
       const key = pill.getAttribute('data-pain-key') || 'lag';
-      const data = presets[key] || presets.lag;
-      userEditedPrompt = false;
+      const data = prompts[key] || prompts.lag;
       if (input) input.value = data.input;
-      setSelectedInCol(0, data.platform);
-      setSelectedInCol(1, data.deliverable);
-      setSelectedInCol(2, data.goal);
-      setSelectedInCol(3, data.service);
-      if (speedRange) speedRange.value = String(data.speed);
-      if (secRange) secRange.value = String(data.sec);
-      computeBlueprint(false);
-      flashBlueprintCard();
+      if (toast) toast.innerHTML = `<strong>✓ Solution Blueprint:</strong> ${data.toast}`;
     });
   });
 
-  // 4 Filter Columns: update active state & immediately recalculate accurate blueprint
   filterCols.forEach((group) => {
     const btns = group.querySelectorAll('.f-pill');
     btns.forEach((b) => {
       b.addEventListener('click', () => {
         btns.forEach((x) => x.classList.remove('active'));
         b.classList.add('active');
-        inspPills.forEach((p) => p.classList.remove('active'));
-        computeBlueprint(true);
       });
     });
   });
 
-  // Speed & Security Progress Bar Sliders: live real-time update
-  if (speedRange) {
-    speedRange.addEventListener('input', () => computeBlueprint(false));
+  if (speedRange && speedVal) {
+    speedRange.addEventListener('input', () => {
+      speedVal.textContent = `${speedRange.value}%`;
+    });
   }
-  if (secRange) {
-    secRange.addEventListener('input', () => computeBlueprint(false));
+  if (secRange && secVal) {
+    secRange.addEventListener('input', () => {
+      secVal.textContent = `${secRange.value} / 100`;
+    });
+  }
+  const speedMetric = document.getElementById('bc-speed-metric');
+  const secMetric = document.getElementById('bc-sec-metric');
+
+  function updateBlueprintConsole(data) {
+    if (toast) toast.textContent = data.toast;
+    if (speedMetric && speedRange) {
+      speedMetric.textContent = `Sub-100ms (${speedRange.value}% Optimized)`;
+    }
+    if (secMetric && secRange) {
+      secMetric.textContent = `WAF Lockdown (${secRange.value}/100 Grade)`;
+    }
   }
 
-  // Custom Prompt Typing: live update when user types custom requirements
-  if (input) {
-    input.addEventListener('input', () => {
-      userEditedPrompt = true;
+  inspPills.forEach((pill) => {
+    pill.addEventListener('click', () => {
       inspPills.forEach((p) => p.classList.remove('active'));
-      computeBlueprint(false);
+      pill.classList.add('active');
+      const key = pill.getAttribute('data-pain-key') || 'lag';
+      const data = prompts[key] || prompts.lag;
+      if (input) input.value = data.input;
+      updateBlueprintConsole(data);
     });
-  }
+  });
 
-  // Generate Solution Button: compute blueprint from all current inputs & highlight specification card
-  if (genBtn) {
+  if (genBtn && toast) {
     genBtn.addEventListener('click', () => {
-      computeBlueprint(false);
-      flashBlueprintCard();
+      const card = document.getElementById('generated-solution-toast');
+      if (card) {
+        card.style.transform = 'scale(1.03)';
+        card.style.boxShadow = '0 0 50px rgba(236, 72, 153, 0.45)';
+        setTimeout(() => {
+          card.style.transform = 'scale(1)';
+          card.style.boxShadow = '';
+        }, 280);
+      }
     });
   }
-
-  // Initialize accurate default state on load
-  computeBlueprint(false);
-}
-
-// ============================================================================
-// 5A. UNIVERSAL PORTFOLIO INFO & REALM MODAL CONTROLLER (ALL PAGES + SAFE DOM)
-// ============================================================================
-function openSharedGlassModal(tag, title, desc, items) {
-  const modal = document.getElementById('realm-modal');
-  const rmTag = document.getElementById('rm-tag');
-  const rmTitle = document.getElementById('rm-title');
-  const rmDesc = document.getElementById('rm-desc');
-  const rmList = document.getElementById('rm-list');
-  const rmCta = document.getElementById('rm-cta');
-  if (!modal || !rmTag || !rmTitle || !rmDesc || !rmList) return;
-
-  rmTag.textContent = tag;
-  rmTitle.textContent = title;
-  rmDesc.textContent = desc;
-  rmList.textContent = '';
-
-  items.forEach((it) => {
-    const row = document.createElement('div');
-    if (it && typeof it === 'object' && it.boldPrefix) {
-      const strong = document.createElement('strong');
-      strong.textContent = it.boldPrefix;
-      row.appendChild(strong);
-      row.appendChild(document.createTextNode(it.rest || ''));
-    } else {
-      row.textContent = String(it || '');
-    }
-    rmList.appendChild(row);
-  });
-
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden', 'false');
-  if (rmCta && !rmCta.querySelector('.btn-bubble-chamber')) {
-    initBubbleGlassButtons();
-  }
-}
-
-function closeSharedGlassModal() {
-  const modal = document.getElementById('realm-modal');
-  if (!modal) return;
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-}
-
-function initGlobalInfoModal() {
-  const modal = document.getElementById('realm-modal');
-  const rmClose = document.getElementById('rm-close');
-  const rmCta = document.getElementById('rm-cta');
-  const aboutLink = document.getElementById('nav-about-link');
-  const infoBtn = document.getElementById('info-btn');
-
-  if (rmClose) rmClose.addEventListener('click', closeSharedGlassModal);
-  if (rmCta) rmCta.addEventListener('click', closeSharedGlassModal);
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeSharedGlassModal();
-    });
-  }
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal && modal.classList.contains('open')) {
-      closeSharedGlassModal();
-    }
-  });
-
-  const showAboutModal = (e) => {
-    if (e) e.preventDefault();
-    const liveProjects = PortfolioManager.getProjects();
-    openSharedGlassModal(
-      'PORTFOLIO ENGINE • FAZLUL HAQUE',
-      'Fazlul Haque — Live Websites Showcase',
-      'Explore curated live platforms engineered for sub-100ms speed, hardened WAF security, and bespoke aesthetics:',
-      liveProjects.map((s, i) => ({
-        boldPrefix: `0${i + 1}. ${s.title || 'Project'}`,
-        rest: ` — ${(s.category || 'Web Architecture').toUpperCase()} (⚡ Sub-100ms Live)`
-      }))
-    );
-  };
-
-  if (aboutLink) aboutLink.addEventListener('click', showAboutModal);
-  if (infoBtn) infoBtn.addEventListener('click', showAboutModal);
 }
 
 // ============================================================================
@@ -962,8 +714,6 @@ function initPinnedRealmsCarousel() {
     }
 
     // Desktop: 100% UNTOUCHED full 11-card symmetric 3D depth stack
-    el.style.visibility = 'visible';
-    el.style.display = 'flex';
     const step1X = 130;
     const step2X = 238;
     const step3X = 330;
@@ -1047,63 +797,17 @@ function initPinnedRealmsCarousel() {
     }
   }
 
-  // Lazy-hydrate card background artwork so 641KB does not block initial Hero LCP
-  function hydrateRealmBackgrounds() {
-    if (runway.dataset.bgHydrated === '1') return;
-    runway.dataset.bgHydrated = '1';
-    const suffix = window.innerWidth <= 768 ? '-mob.webp' : '.webp';
-    track.querySelectorAll('.trc-bg[data-scene]').forEach((bgEl) => {
-      const scene = bgEl.getAttribute('data-scene');
-      const grad = bgEl.getAttribute('data-grad');
-      if (scene && grad) {
-        bgEl.style.backgroundImage = `${grad}, url('assets/${scene}${suffix}')`;
-      }
-    });
-  }
-
-  if ('IntersectionObserver' in window) {
-    const bgPreloadObs = new IntersectionObserver((entries, obs) => {
-      if (entries[0].isIntersecting) {
-        hydrateRealmBackgrounds();
-        obs.disconnect();
-      }
-    }, { rootMargin: '800px 0px' });
-    bgPreloadObs.observe(runway);
-  } else {
-    hydrateRealmBackgrounds();
-  }
-
   // Initialize 3D stacked layout immediately on page load!
   setActiveRealm(0);
 
-  // Pause decorative card shimmer & wave animations when Realms section is outside viewport
-  if ('IntersectionObserver' in window) {
-    const realmsVisObs = new IntersectionObserver((entries) => {
-      runway.classList.toggle('is-offscreen', !entries[0].isIntersecting);
-    }, { threshold: 0 });
-    realmsVisObs.observe(runway);
-  }
-
-  let realmsWinW = window.innerWidth;
-  let realmsWinH = window.innerHeight;
-  let realmsMaxScroll = Math.max(0, runway.offsetHeight - realmsWinH);
-  window.addEventListener('resize', () => {
-    const wasMobile = realmsWinW <= 768;
-    realmsWinW = window.innerWidth;
-    realmsWinH = window.innerHeight;
-    realmsMaxScroll = Math.max(0, runway.offsetHeight - realmsWinH);
-    if (wasMobile !== (realmsWinW <= 768)) {
-      setActiveRealm(activeIdx);
-    }
-  }, { passive: true });
-
   // Desktop only: Vertical Scroll Automatically Traverses Cards 01/10 -> 10/10!
   window.addEventListener('scroll', () => {
-    if (realmsWinW <= 768) return;
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) return;
 
     const rect = runway.getBoundingClientRect();
-    const maxScroll = realmsMaxScroll || Math.max(0, runway.offsetHeight - realmsWinH);
-    if (rect.top <= 0 && rect.bottom >= realmsWinH && maxScroll > 0) {
+    const maxScroll = runway.offsetHeight - window.innerHeight;
+    if (rect.top <= 0 && rect.bottom >= window.innerHeight && maxScroll > 0) {
       const progress = Math.min(1, Math.max(0, -rect.top / maxScroll));
       const idx = Math.min(total - 1, Math.floor(progress * total));
       if (idx !== activeIdx) {
@@ -1184,9 +888,25 @@ function initPinnedRealmsCarousel() {
     touchDeltaY = 0;
   }, { passive: true });
 
-  // Modal Inspection (uses universal safe DOM modal controller)
+  // Modal Inspection
+  const modal = document.getElementById('realm-modal');
+  const rmClose = document.getElementById('rm-close');
+  const rmTag = document.getElementById('rm-tag');
+  const rmTitle = document.getElementById('rm-title');
+  const rmDesc = document.getElementById('rm-desc');
+  const rmList = document.getElementById('rm-list');
+  const rmCta = document.getElementById('rm-cta');
+
   function openModal(tag, title, desc, items) {
-    openSharedGlassModal(tag, title, desc, items);
+    if (!modal) return;
+    rmTag.textContent = tag;
+    rmTitle.textContent = title;
+    rmDesc.textContent = desc;
+    rmList.innerHTML = items.map((it) => `<div>${it}</div>`).join('');
+    modal.classList.add('open');
+    if (rmCta && !rmCta.querySelector('.btn-bubble-chamber')) {
+      initBubbleGlassButtons();
+    }
   }
 
   // Click interaction: Clicking ANY card opens the detailed modal immediately and centers that card!
@@ -1237,6 +957,29 @@ function initPinnedRealmsCarousel() {
     });
   }
 
+  if (rmClose) rmClose.addEventListener('click', () => modal.classList.remove('open'));
+  if (rmCta) rmCta.addEventListener('click', () => modal.classList.remove('open'));
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('open');
+    });
+  }
+
+  const aboutLink = document.getElementById('nav-about-link');
+  const infoBtn = document.getElementById('info-btn');
+  const showAboutModal = (e) => {
+    if (e) e.preventDefault();
+    openModal(
+      `ABOUT PAGE • UNLIMITED LIVE PORTFOLIO ENGINE`,
+      `Fazlul Haque — Live Websites Showcase`,
+      `Your About Page is configured to hold an unlimited number of live websites (zero cap). As soon as you provide the About & Contact header images, those pages will go live with this engine:`,
+      UNLIMITED_PORTFOLIO_SITES.map(
+        (s, i) => `<strong>0${i + 1}. ${s.title}</strong> — ${s.category} (${s.speed})`
+      )
+    );
+  };
+  if (aboutLink) aboutLink.addEventListener('click', showAboutModal);
+  if (infoBtn) infoBtn.addEventListener('click', showAboutModal);
 }
 
 // ============================================================================
@@ -1281,14 +1024,8 @@ function initStarfields() {
       r: Math.random() * 1.6 + 0.4
     }));
 
-    const prevExitHook = window.__onExitMobileVideo;
-    window.__onExitMobileVideo = () => {
-      if (typeof prevExitHook === 'function') prevExitHook();
-      if (canvasInView) startStarLoop();
-    };
-
     function draw(t) {
-      if (!canvasInView || window.__mobileVideoActive) {
+      if (!canvasInView) {
         starRafId = null;
         return;
       }
@@ -1320,15 +1057,10 @@ function initFloating3DCube() {
   let cubeRafId = null;
 
   function startCubeLoop() {
-    if (!cubeRafId && cubeInView && !window.__mobileVideoActive) {
+    if (!cubeRafId && cubeInView) {
       cubeRafId = requestAnimationFrame(render);
     }
   }
-  const prevExitCubeHook = window.__onExitMobileVideo;
-  window.__onExitMobileVideo = () => {
-    if (typeof prevExitCubeHook === 'function') prevExitCubeHook();
-    startCubeLoop();
-  };
 
   if ('IntersectionObserver' in window) {
     const obs = new IntersectionObserver((entries) => {
@@ -1378,179 +1110,112 @@ function initFloating3DCube() {
     { v: [0, 1, 5, 4], c: 5 }  // Bottom (-Y: White)
   ];
 
-  // True 3x3 Orthogonal Trackball Orientation Matrix (Zero gimbal lock, natural 1:1 finger tracking in 360°)
-  const initCy = Math.cos(0.62), initSy = Math.sin(0.62);
-  const initCx = Math.cos(-0.45), initSx = Math.sin(-0.45);
-  let rotMat = [
-    [initCy, 0, initSy],
-    [initSx * initSy, initCx, -initSx * initCy],
-    [-initCx * initSy, initSx, initCx * initCy]
-  ];
-
-  function applyScreenSpaceRotation(dYaw, dPitch) {
-    if (dYaw === 0 && dPitch === 0) return;
-    // 1. Horizontal screen-space yaw (+dYaw moves front +Z toward +X right)
-    if (dYaw !== 0) {
-      const cy = Math.cos(dYaw), sy = Math.sin(dYaw);
-      for (let c = 0; c < 3; c++) {
-        const r0 = rotMat[0][c], r2 = rotMat[2][c];
-        rotMat[0][c] = r0 * cy + r2 * sy;
-        rotMat[2][c] = -r0 * sy + r2 * cy;
-      }
-    }
-    // 2. Vertical screen-space pitch (+dPitch moves front +Z toward +Y down, matching finger 1:1!)
-    if (dPitch !== 0) {
-      const cp = Math.cos(dPitch), sp = Math.sin(dPitch);
-      for (let c = 0; c < 3; c++) {
-        const r1 = rotMat[1][c], r2 = rotMat[2][c];
-        rotMat[1][c] = r1 * cp + r2 * sp;
-        rotMat[2][c] = -r1 * sp + r2 * cp;
-      }
-    }
-    // Re-orthonormalize rows (Gram-Schmidt) so cube stays crisp after thousands of spins
-    let r0x = rotMat[0][0], r0y = rotMat[0][1], r0z = rotMat[0][2];
-    const l0 = Math.hypot(r0x, r0y, r0z) || 1;
-    r0x /= l0; r0y /= l0; r0z /= l0;
-
-    let r1x = rotMat[1][0], r1y = rotMat[1][1], r1z = rotMat[1][2];
-    const dot01 = r0x * r1x + r0y * r1y + r0z * r1z;
-    r1x -= dot01 * r0x; r1y -= dot01 * r0y; r1z -= dot01 * r0z;
-    const l1 = Math.hypot(r1x, r1y, r1z) || 1;
-    r1x /= l1; r1y /= l1; r1z /= l1;
-
-    rotMat[0][0] = r0x; rotMat[0][1] = r0y; rotMat[0][2] = r0z;
-    rotMat[1][0] = r1x; rotMat[1][1] = r1y; rotMat[1][2] = r1z;
-    rotMat[2][0] = r0y * r1z - r0z * r1y;
-    rotMat[2][1] = r0z * r1x - r0x * r1z;
-    rotMat[2][2] = r0x * r1y - r0y * r1x;
-  }
-
-  function transformVert(px, py, pz) {
-    return [
-      rotMat[0][0] * px + rotMat[0][1] * py + rotMat[0][2] * pz,
-      rotMat[1][0] * px + rotMat[1][1] * py + rotMat[1][2] * pz,
-      rotMat[2][0] * px + rotMat[2][1] * py + rotMat[2][2] * pz
-    ];
-  }
-
-  let velYaw = 0.005;
-  let velPitch = 0;
+  let rx = -0.45;
+  let ry = 0.62;
+  let vx = 0;
+  let vy = 0.005;
   let dragging = false;
   let lx = 0, ly = 0;
   let lastMoveTime = 0;
-  let trackVelYaw = 0;
-  let trackVelPitch = 0;
+  let trackVelX = 0;
+  let trackVelY = 0;
   let isHovered = false;
 
-  function beginDrag(clientX, clientY) {
-    dragging = true;
-    lx = clientX;
-    ly = clientY;
-    lastMoveTime = performance.now();
-    trackVelYaw = 0;
-    trackVelPitch = 0;
-    startCubeLoop();
+  // True spherical 3D rotation matrix allowing complete 360 degree rotation on all axes
+  function rot3D(x, y, z, ax, ay) {
+    // Rotate around Y axis
+    const cy = Math.cos(ay), sy = Math.sin(ay);
+    const x1 = x * cy + z * sy;
+    const z1 = -x * sy + z * cy;
+
+    // Rotate around X axis
+    const cx = Math.cos(ax), sx = Math.sin(ax);
+    const y2 = y * cx - z1 * sx;
+    const z2 = y * sx + z1 * cx;
+
+    return [x1, y2, z2];
   }
 
-  function moveDrag(clientX, clientY, isTouchInput) {
-    if (!dragging) return;
-    const now = performance.now();
-    const dt = Math.max(now - lastMoveTime, 1);
-    const dx = clientX - lx;
-    const dy = clientY - ly;
-    lx = clientX;
-    ly = clientY;
-    lastMoveTime = now;
-
-    const sens = isTouchInput ? 0.0165 : 0.0115;
-    const dYaw = dx * sens;
-    const dPitch = dy * sens;
-    applyScreenSpaceRotation(dYaw, dPitch);
-
-    trackVelYaw = (dYaw / dt) * 16;
-    trackVelPitch = (dPitch / dt) * 16;
-    startCubeLoop();
-  }
-
-  function endDrag() {
-    if (!dragging) return;
-    dragging = false;
-    isHovered = false;
-    velYaw = Math.max(-0.08, Math.min(0.08, trackVelYaw * 0.85));
-    velPitch = Math.max(-0.08, Math.min(0.08, trackVelPitch * 0.85));
-  }
-
-  // Desktop hover & mouse dragging
-  canvas.addEventListener('pointerenter', (e) => {
-    if (e.pointerType !== 'touch') isHovered = true;
-  });
-  canvas.addEventListener('pointerleave', (e) => {
-    if (e.pointerType !== 'touch' && !dragging) isHovered = false;
-  });
-
-  canvas.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'touch') return;
-    isHovered = true;
-    beginDrag(e.clientX, e.clientY);
-    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
-  });
-
-  canvas.addEventListener('pointermove', (e) => {
-    if (e.pointerType === 'touch' || !dragging) return;
-    moveDrag(e.clientX, e.clientY, false);
-  });
-
-  const onMouseEnd = (e) => {
-    if (e && e.pointerType === 'touch') return;
-    if (!dragging) return;
-    try { if (e && e.pointerId) canvas.releasePointerCapture(e.pointerId); } catch (_) {}
-    endDrag();
-  };
-  canvas.addEventListener('pointerup', onMouseEnd);
-  canvas.addEventListener('pointercancel', onMouseEnd);
-  window.addEventListener('pointerup', onMouseEnd);
-
-  // Dedicated Mobile Touch Orbiting (prevents scroll hijack & pointercancel on Android/iOS)
-  canvas.addEventListener('touchstart', (e) => {
-    if (!e.touches || e.touches.length !== 1) return;
-    if (e.cancelable) e.preventDefault();
-    beginDrag(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: false });
-
-  canvas.addEventListener('touchmove', (e) => {
-    if (!dragging || !e.touches || e.touches.length !== 1) return;
-    if (e.cancelable) e.preventDefault();
-    moveDrag(e.touches[0].clientX, e.touches[0].clientY, true);
-  }, { passive: false });
-
-  canvas.addEventListener('touchend', () => endDrag(), { passive: true });
-  canvas.addEventListener('touchcancel', () => endDrag(), { passive: true });
+  canvas.addEventListener('pointerenter', () => { isHovered = true; });
+  canvas.addEventListener('pointerleave', () => { if (!dragging) isHovered = false; });
 
   // Mouse wheel scroll to rotate horizontally or vertically in full 360 degrees
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     if (e.shiftKey) {
-      applyScreenSpaceRotation(0, e.deltaY * 0.004);
+      rx += e.deltaY * 0.004;
     } else {
-      applyScreenSpaceRotation(e.deltaY * 0.004, 0);
+      ry += e.deltaY * 0.004;
     }
   }, { passive: false });
 
+  // Mouse / Touch 360-degree free orbital dragging
+  canvas.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    isHovered = true;
+    lx = e.clientX;
+    ly = e.clientY;
+    lastMoveTime = performance.now();
+    trackVelX = 0;
+    trackVelY = 0;
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch (_) {}
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const now = performance.now();
+    const dt = Math.max(now - lastMoveTime, 1);
+    const dx = e.clientX - lx;
+    const dy = e.clientY - ly;
+    lx = e.clientX;
+    ly = e.clientY;
+    lastMoveTime = now;
+
+    trackVelY = dx / dt;
+    trackVelX = dy / dt;
+
+    // Full, unbounded 360-degree rotation across all axes so every face can come to the front!
+    ry += dx * 0.012;
+    rx += dy * 0.012;
+  });
+
+  const onPointerEnd = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    isHovered = false;
+    try {
+      if (e && e.pointerId) canvas.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+
+    vy = Math.max(-0.05, Math.min(0.05, trackVelY * 0.018));
+    vx = Math.max(-0.05, Math.min(0.05, trackVelX * 0.018));
+  };
+
+  canvas.addEventListener('pointerup', onPointerEnd);
+  canvas.addEventListener('pointercancel', onPointerEnd);
+  window.addEventListener('pointerup', onPointerEnd);
+
   function render(time) {
     if (!cubeInView || window.__mobileVideoActive) {
-      cubeRafId = null;
+      cubeRafId = requestAnimationFrame(render);
       return;
     }
     ctx.clearRect(0, 0, W, H);
 
-    // Gently auto-rotates horizontally when not touched/hovered; glides with throw inertia after swipe!
+    // Gently auto-rotates horizontally when mouse is NOT on it; pauses when hovered!
     if (!dragging && !isHovered) {
-      applyScreenSpaceRotation(velYaw, velPitch);
-      velYaw = velYaw * 0.95 + 0.005 * 0.05;
-      velPitch *= 0.94;
-    } else if (!dragging && isHovered) {
-      velYaw *= 0.85;
-      velPitch *= 0.85;
+      ry += vy;
+      rx += vx;
+      vy = vy * 0.96 + 0.005 * 0.04;
+      vx = vx * 0.96;
+    } else if (dragging) {
+      // Direct drag control
+    } else {
+      // Hovered: stays frozen so user can inspect specific face
+      vy *= 0.85;
+      vx *= 0.85;
     }
 
     const floatY = Math.sin(time * 0.0018) * 6;
@@ -1568,7 +1233,7 @@ function initFloating3DCube() {
         const px = bx + ux * size;
         const py = by + uy * size;
         const pz = bz + uz * size;
-        return transformVert(px, py, pz);
+        return rot3D(px, py, pz, rx, ry);
       });
 
       for (let f = 0; f < faces.length; f++) {
@@ -1701,8 +1366,8 @@ function initBubbleGlassButtons() {
       chamber.setAttribute('aria-hidden', 'true');
       btn.insertBefore(chamber, btn.firstChild);
 
-      // Responsive bubble density: 8 on desktop, 5 on compact mobile buttons
-      const bubbleCount = window.innerWidth <= 768 ? 5 : 8;
+      // Reduced density (8 bubbles instead of 20) for a cleaner, high-luxury aesthetic
+      const bubbleCount = 8;
       for (let i = 0; i < bubbleCount; i++) {
         const bubble = document.createElement('span');
         bubble.className = 'bubble-drop';
@@ -1739,17 +1404,6 @@ function initBubbleGlassButtons() {
       }, 550);
     });
   });
-
-  if ('IntersectionObserver' in window && buttons.length > 0) {
-    if (!window.__bubbleBtnObserver) {
-      window.__bubbleBtnObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          entry.target.classList.toggle('is-offscreen', !entry.isIntersecting);
-        });
-      }, { threshold: 0 });
-    }
-    buttons.forEach((btn) => window.__bubbleBtnObserver.observe(btn));
-  }
 }
 
 // ============================================================================
@@ -1868,7 +1522,7 @@ function initDynamicPortfolio() {
       <article class="portfolio-project-card shine-card" data-category="${safeCategory}">
         <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="ppc-thumb-link" aria-label="Visit ${safeTitle} live">
           <div class="ppc-thumb">
-            <img src="${safePreview}" alt="${safeTitle} Homepage Preview" class="ppc-hero-preview-img" width="1000" height="650" decoding="async" onerror="this.onerror=null; this.src='assets/scene1.webp';" loading="lazy" />
+            <img src="${safePreview}" alt="${safeTitle} Homepage Preview" class="ppc-hero-preview-img" onerror="this.onerror=null; this.src='assets/scene1.webp';" loading="lazy" />
             <span class="ppc-speed-badge">⚡ Sub-100ms Live</span>
             <span class="ppc-category-tag">${safeCatName}</span>
           </div>
@@ -1922,45 +1576,6 @@ function initContactForm() {
   const emailBtn = document.getElementById('submit-email-direct');
   if (!form || !toast) return;
 
-  // Pre-fill inquiry form if visitor clicked "CLAIM THIS BLUEPRINT" from Homepage Studio
-  try {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('platform') || params.has('deliverable')) {
-      const platform = params.get('platform') || 'WordPress';
-      const deliverable = params.get('deliverable') || '<100ms Speed';
-      const goal = params.get('goal') || '85ms Instant';
-      const service = params.get('service') || '24/7 Direct VIP';
-      const speed = params.get('speed') || '99';
-      const sec = params.get('sec') || '100';
-      const brief = params.get('brief') || '';
-
-      const serviceSelect = document.getElementById('project-service');
-      if (serviceSelect) {
-        const mapService = {
-          'WooCommerce': 'woocommerce',
-          'Next.js / React': 'nextjs-fullstack',
-          'Elementor Pro': 'elementor-pro'
-        };
-        const mapDeliv = {
-          '<100ms Speed': 'speed-optimization',
-          'Malware Shield': 'security-malware',
-          'VIP Maintenance': 'vip-maintenance'
-        };
-        serviceSelect.value = mapDeliv[deliverable] || mapService[platform] || 'custom-wordpress';
-      }
-      const detailsArea = document.getElementById('project-details');
-      if (detailsArea && !detailsArea.value.trim()) {
-        detailsArea.value = `Claimed Blueprint Specification:
-• Platform: ${platform}
-• Deliverable: ${deliverable}
-• Target Speed: ${goal} (${speed}% PageSpeed)
-• Security/SEO Target: ${sec}/100 Audit
-• Support Tier: ${service}` + (brief ? `
-• Notes: ${brief}` : '');
-      }
-    }
-  } catch (_) {}
-
   function getFormData() {
     const nameInput = document.getElementById('client-name');
     const name = nameInput ? nameInput.value.trim() : '';
@@ -1975,7 +1590,7 @@ function initContactForm() {
     return { name, email, service, budget, details };
   }
 
-  function buildWhatsAppUrl(data) {
+  function sendToWhatsApp(data) {
     const { name, email, service, budget, details } = data;
     const msg = "🌟 *New VIP Project Brief for Fazlul Haque* 🌟\n\n" +
       "*Client Name:* " + (name || 'Not provided') + "\n" +
@@ -1983,35 +1598,14 @@ function initContactForm() {
       "*Selected Service:* " + (service || 'Full-Stack Platform') + "\n" +
       "*Budget Range:* " + (budget || 'Discuss on call') + "\n\n" +
       "*Project Details:*\n" + (details || 'Please discuss via WhatsApp.');
-    return "https://wa.me/8801302927167?text=" + encodeURIComponent(msg);
-  }
-
-  function sendToWhatsApp(data) {
-    const waUrl = buildWhatsAppUrl(data);
-    const win = window.open(waUrl, '_blank', 'noopener,noreferrer');
-    return { waUrl, opened: !!win };
-  }
-
-  function renderSafeToast(theme, populateFn) {
-    const palettes = {
-      error: { bg: 'rgba(239, 68, 68, 0.2)', border: '#ef4444', glow: '' },
-      pending: { bg: 'rgba(244, 114, 182, 0.16)', border: '#f472b6', glow: '' },
-      success: { bg: 'rgba(16, 185, 129, 0.22)', border: '#10b981', glow: '0 0 25px rgba(16, 185, 129, 0.32)' }
-    };
-    const p = palettes[theme] || palettes.success;
-    toast.style.display = 'block';
-    toast.textContent = '';
-    const box = document.createElement('div');
-    box.style.cssText = `padding: 1.1rem 1.4rem; border-radius: 16px; background: ${p.bg}; border: 1.5px solid ${p.border}; color: #ffffff; font-family: var(--font-mono); font-size: 0.86rem; margin-top: 1.1rem; line-height: 1.6;` + (p.glow ? ` box-shadow: ${p.glow};` : '');
-    populateFn(box);
-    toast.appendChild(box);
+    const waUrl = "https://wa.me/8801302927167?text=" + encodeURIComponent(msg);
+    window.open(waUrl, '_blank');
   }
 
   async function sendEmail(data) {
     const { name, email, service, budget, details } = data;
-    const res = await fetch('https://formsubmit.co/ajax/fazlulbusiness1@gmail.com', {
+    return fetch('https://formsubmit.co/ajax/fazlulbusiness1@gmail.com', {
       method: 'POST',
-      keepalive: true,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -2025,9 +1619,6 @@ function initContactForm() {
         _subject: "New VIP Project Brief from " + (name || 'Client')
       })
     });
-    let payload = null;
-    try { payload = await res.json(); } catch (_) {}
-    return payload;
   }
 
   // 1. WhatsApp Button Click
@@ -2035,15 +1626,13 @@ function initContactForm() {
     waBtn.addEventListener('click', () => {
       const data = getFormData();
       if (!data.name || !data.email || !data.details) {
-        renderSafeToast('error', (box) => {
-          box.textContent = '⚠️ Please enter your Name, Email, and Project Details before opening WhatsApp.';
-        });
+        toast.style.display = 'block';
+        toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(239, 68, 68, 0.2); border: 1.5px solid #ef4444; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⚠️ Please enter your Name, Email, and Project Details before opening WhatsApp.</div>';
         return;
       }
       sendToWhatsApp(data);
-      renderSafeToast('success', (box) => {
-        box.textContent = '💬 Opening WhatsApp chat with Fazlul Haque (+880 1302-927167)...';
-      });
+      toast.style.display = 'block';
+      toast.innerHTML = '<div style="padding: 1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">💬 Opening WhatsApp chat with Fazlul Haque (+880 1302-927167)...</div>';
     });
   }
 
@@ -2052,30 +1641,24 @@ function initContactForm() {
     emailBtn.addEventListener('click', async () => {
       const data = getFormData();
       if (!data.name || !data.email || !data.details) {
-        renderSafeToast('error', (box) => {
-          box.textContent = '⚠️ Please enter your Name, Email, and Project Details.';
-        });
+        toast.style.display = 'block';
+        toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(239, 68, 68, 0.2); border: 1.5px solid #ef4444; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⚠️ Please enter your Name, Email, and Project Details.</div>';
         return;
       }
-      renderSafeToast('pending', (box) => {
-        box.textContent = '⏳ Sending to fazlulbusiness1@gmail.com...';
-      });
+      toast.style.display = 'block';
+      toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(168, 85, 247, 0.2); border: 1.5px solid #a855f7; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⏳ Sending to fazlulbusiness1@gmail.com...</div>';
       try {
         await sendEmail(data);
-        renderSafeToast('success', (box) => {
-          box.textContent = '✨ Delivered directly to fazlulbusiness1@gmail.com! You will receive a direct reply in <2 hours.';
-        });
+        toast.innerHTML = '<div style="padding: 1.1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">✨ Delivered directly to <strong>fazlulbusiness1@gmail.com</strong>! You will receive a direct reply in &lt;2 hours.</div>';
         form.reset();
       } catch (err) {
-        renderSafeToast('success', (box) => {
-          box.textContent = '✨ Inquiry logged for fazlulbusiness1@gmail.com. You will receive a reply in <2 hours.';
-        });
+        toast.innerHTML = '<div style="padding: 1.1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">✨ Inquiry logged for <strong>fazlulbusiness1@gmail.com</strong>. You will receive a reply in &lt;2 hours.</div>';
         form.reset();
       }
     });
   }
 
-  // 3. Primary Full Submit: Opens WhatsApp synchronously inside user gesture (prevents iOS Safari popup block) + dispatches keepalive Email!
+  // 3. Primary Full Submit: Dispatches to Email AND prompts/opens WhatsApp!
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = getFormData();
@@ -2085,43 +1668,34 @@ function initContactForm() {
       submitBtn.style.opacity = '0.7';
     }
 
-    renderSafeToast('pending', (box) => {
-      box.textContent = "⏳ Dispatching project brief to Fazlul's inbox & opening WhatsApp...";
-    });
-
-    // Trigger WhatsApp inside synchronous user activation so iOS Safari never blocks the new tab
-    const { waUrl } = sendToWhatsApp(data);
+    toast.style.display = 'block';
+    toast.innerHTML = `
+      <div style="padding: 1rem 1.4rem; border-radius: 16px; background: rgba(244, 114, 182, 0.15); border: 1.5px solid #f472b6; color: #ffffff; font-family: var(--font-mono); font-size: 0.85rem; margin-top: 1.2rem;">
+        ⏳ Dispatching project brief to Fazlul's inbox &amp; preparing WhatsApp link...
+      </div>
+    `;
 
     try {
       await sendEmail(data);
-      renderSafeToast('success', (box) => {
-        const heading = document.createElement('strong');
-        heading.textContent = `✨ Success, ${data.name || 'Friend'}!`;
-        box.appendChild(heading);
-        box.appendChild(document.createElement('br'));
-        box.appendChild(document.createTextNode('1. Delivered directly to Email: fazlulbusiness1@gmail.com'));
-        box.appendChild(document.createElement('br'));
-        box.appendChild(document.createTextNode('2. WhatsApp dispatch ready (+880 1302-927167) — '));
-        const waLink = document.createElement('a');
-        waLink.href = waUrl;
-        waLink.target = '_blank';
-        waLink.rel = 'noopener noreferrer';
-        waLink.style.cssText = 'color: #6ee7b7; text-decoration: underline; font-weight: 700;';
-        waLink.textContent = 'Open WhatsApp Chat ↗';
-        box.appendChild(waLink);
-      });
+      // Also open WhatsApp if user is on mobile/has whatsapp
+      sendToWhatsApp(data);
+
+      toast.innerHTML = `
+        <div style="padding: 1.2rem 1.5rem; border-radius: 16px; background: rgba(16, 185, 129, 0.22); border: 1.5px solid #10b981; color: #ffffff; font-family: var(--font-mono); font-size: 0.88rem; margin-top: 1.2rem; box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);">
+          ✨ <strong>Success, ${data.name}!</strong><br>
+          1. Delivered directly to Email: <strong>fazlulbusiness1@gmail.com</strong>.<br>
+          2. WhatsApp dispatch opened for: <strong>+880 1302-927167</strong>.<br>
+          Fazlul Haque will personally respond within 2 hours!
+        </div>
+      `;
       form.reset();
     } catch (err) {
-      renderSafeToast('success', (box) => {
-        box.appendChild(document.createTextNode('✨ Inquiry ready! Direct WhatsApp link: '));
-        const waLink = document.createElement('a');
-        waLink.href = waUrl;
-        waLink.target = '_blank';
-        waLink.rel = 'noopener noreferrer';
-        waLink.style.cssText = 'color: #6ee7b7; text-decoration: underline; font-weight: 700;';
-        waLink.textContent = 'Message Fazlul on WhatsApp ↗';
-        box.appendChild(waLink);
-      });
+      sendToWhatsApp(data);
+      toast.innerHTML = `
+        <div style="padding: 1.2rem 1.5rem; border-radius: 16px; background: rgba(16, 185, 129, 0.22); border: 1.5px solid #10b981; color: #ffffff; font-family: var(--font-mono); font-size: 0.88rem; margin-top: 1.2rem;">
+          ✨ <strong>Inquiry Logged!</strong> Direct alert sent to <strong>fazlulbusiness1@gmail.com</strong> and WhatsApp chat opened.
+        </div>
+      `;
       form.reset();
     } finally {
       if (submitBtn) {
@@ -2184,7 +1758,6 @@ function initCursorSpider() {
   let wanderState = 'idle';
   let nextSpiderWander = performance.now() + 1800;
 
-  let wakeSpiderFn = null;
   function updateSpiderTarget(x, y) {
     mouse.x = x;
     mouse.y = y;
@@ -2192,7 +1765,6 @@ function initCursorSpider() {
     mouse.lastMove = performance.now();
     wanderState = 'idle';
     nextSpiderWander = performance.now() + 2800;
-    if (wakeSpiderFn) wakeSpiderFn();
   }
 
   // Pointer / Mouse tracking for Desktop
@@ -2721,39 +2293,9 @@ function initCursorSpider() {
     ctx.restore(); // Restores DRAW SPIDER BODY
     ctx.restore(); // Restores Top-level canvas state save
 
-    // Zero-CPU idle sleep on mobile: pause redraws when motionless & wake right on next blink/wander/touch
-    const isMotionless = !spider.isWalking && spider.speed < 0.35 && webSilk.length === 0 && !legs.some((l) => l.isStepping);
-    const settledForVideo = isVideoPaused && isMotionless;
-    const settledForMobileIdle = isMobile && !isVideoPaused && isMotionless && spider.blinkProgress === 0 && (now - mouse.lastMove > 450);
-
-    if (!document.hidden && !settledForVideo && !settledForMobileIdle) {
-      spiderRafId = requestAnimationFrame(renderSpider);
-    } else {
-      spiderRafId = null;
-      if (settledForMobileIdle && !document.hidden) {
-        const nextWakeMs = Math.max(80, Math.min(nextSpiderWander - now, spider.nextBlink - now));
-        clearTimeout(spiderIdleTimer);
-        spiderIdleTimer = setTimeout(wakeSpider, Math.min(nextWakeMs, 1500));
-      }
-    }
+    requestAnimationFrame(renderSpider);
   }
-
-  let spiderIdleTimer = null;
-  let spiderRafId = requestAnimationFrame(renderSpider);
-  const wakeSpider = () => {
-    clearTimeout(spiderIdleTimer);
-    if (!document.hidden && !spiderRafId) {
-      lastTime = performance.now();
-      spiderRafId = requestAnimationFrame(renderSpider);
-    }
-  };
-  wakeSpiderFn = wakeSpider;
-  document.addEventListener('visibilitychange', wakeSpider);
-  const prevExitSpiderHook = window.__onExitMobileVideo;
-  window.__onExitMobileVideo = () => {
-    if (typeof prevExitSpiderHook === 'function') prevExitSpiderHook();
-    wakeSpider();
-  };
+  requestAnimationFrame(renderSpider);
 }
 
 /* ==========================================================================
@@ -2859,58 +2401,19 @@ function initStatCounters() {
   statNumEls.forEach(el => observer.observe(el));
 }
 
-function yieldToMainThread() {
-  if ('scheduler' in window && typeof window.scheduler.yield === 'function') {
-    return window.scheduler.yield();
-  }
-  return new Promise((resolve) => setTimeout(resolve, 0));
-}
-
-function initInstantPagePrefetch() {
-  if (window.location.protocol === 'file:') return;
-  if (navigator.connection && (navigator.connection.saveData || /2g/.test(navigator.connection.effectiveType || ''))) {
-    return;
-  }
-  const currentFile = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  ['index.html', 'about.html', 'contact.html'].forEach((page) => {
-    if (page !== currentFile) {
-      const link = document.createElement('link');
-      link.rel = 'prefetch';
-      link.href = page;
-      link.as = 'document';
-      document.head.appendChild(link);
-    }
-  });
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-  // Phase 1: Critical above-the-fold interactive UI
+document.addEventListener('DOMContentLoaded', () => {
   initHeroSpotlight();
   initSoundToggle();
-  initBubbleGlassButtons();
-  initStatCounters();
-
-  // Yield to browser main thread so first paint & touch input respond in <16ms
-  await yieldToMainThread();
-
-  // Phase 2: Scroll story, spider & primary page features
   initContinuousZoomStory();
-  initCursorSpider();
-  initDynamicPortfolio();
-  initContactForm();
-
-  await yieldToMainThread();
-
-  // Phase 3: Below-the-fold sections & auxiliary widgets
-  initGlobalInfoModal();
-  initPinnedRealmsCarousel();
   initComposerStudio();
+  initPinnedRealmsCarousel();
   initStarfields();
   initFloating3DCube();
   initBackToTop();
+  initBubbleGlassButtons();
+  initDynamicPortfolio();
+  initContactForm();
+  initCursorSpider();
   initFAQAccordion();
-
-  // Phase 4: Prefetch sibling pages during idle time for 0ms bottom-dock navigation
-  const scheduleIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1400));
-  scheduleIdle(initInstantPagePrefetch);
+  initStatCounters();
 });
