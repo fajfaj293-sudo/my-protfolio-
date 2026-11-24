@@ -315,6 +315,7 @@ function initSoundToggle() {
 // ============================================================================
 function initContinuousZoomStory() {
   const runway = document.getElementById('scroll-story-runway');
+  const stickyViewport = document.getElementById('story-sticky-viewport');
   const windowWrapper = document.getElementById('window-arch-wrapper');
   const video = document.getElementById('portfolio-scroll-video');
   if (!runway || !video) return;
@@ -466,11 +467,25 @@ function initContinuousZoomStory() {
     if (windowWrapper) {
       const zoomPhase = Math.min(smoothProgress / 0.18, 1);
 
+      // Smoothly blend sticky viewport background from white to black so there is NEVER white space around or below video!
+      if (stickyViewport) {
+        if (zoomPhase >= 0.96) {
+          stickyViewport.style.backgroundColor = '#000000';
+        } else if (zoomPhase <= 0.02) {
+          stickyViewport.style.backgroundColor = '#ffffff';
+        } else {
+          const v = Math.round(255 * (1 - zoomPhase));
+          stickyViewport.style.backgroundColor = `rgb(${v}, ${v}, ${v})`;
+        }
+      }
+
       if (zoomPhase >= 0.96) {
         if (!isWindowFullscreen) {
           isWindowFullscreen = true;
           windowWrapper.style.width = '100vw';
           windowWrapper.style.height = '100vh';
+          windowWrapper.style.height = '100dvh';
+          windowWrapper.style.aspectRatio = 'auto';
           windowWrapper.style.borderRadius = '0px';
           windowWrapper.style.boxShadow = 'none';
           windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
@@ -483,10 +498,11 @@ function initContinuousZoomStory() {
         const baseH = isMobile ? 62 : 68;
         const wPct = baseW + zoomPhase * (100 - baseW);
         const hPct = baseH + zoomPhase * (100 - baseH);
-        const radius = Math.max(0, (isMobile ? 20 : 24) * (1 - zoomPhase * 1.5));
+        const radius = Math.max(0, (isMobile ? 16 : 24) * (1 - zoomPhase * 1.5));
         const shadowAlpha = Math.max(0, 0.25 * (1 - zoomPhase * 1.5));
         const scale = 0.90 + zoomPhase * 0.10;
 
+        windowWrapper.style.aspectRatio = 'auto';
         windowWrapper.style.width = isMobile ? `${wPct.toFixed(1)}vw` : `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
         windowWrapper.style.height = isMobile ? `${hPct.toFixed(1)}vh` : `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
         windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;

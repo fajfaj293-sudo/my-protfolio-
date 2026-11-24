@@ -33,6 +33,8 @@
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100vw;
 }
 
 body {
@@ -41,6 +43,7 @@ body {
   font-family: var(--font-sans);
   overflow-x: clip;
   width: 100%;
+  max-width: 100vw;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -4424,13 +4427,18 @@ a.channel-item:hover .ci-arrow {
   .window-arch-wrapper {
     width: min(84vw, 340px);
     height: min(calc(84vw * 9 / 16), 200px);
-    aspect-ratio: 16 / 9;
     border-radius: 16px;
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
   }
   .portfolio-scrub-video {
     object-fit: contain !important;
     background: #000000 !important;
+  }
+  .top-nav-bar {
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding: 1.1rem 1.2rem !important;
+    box-sizing: border-box !important;
   }
 
   /* Story Scene Overlays on Mobile: Perfectly scaled, high readability, beautiful glass scrim */
