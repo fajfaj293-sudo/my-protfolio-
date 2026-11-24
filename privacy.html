@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Fazlul Haque | Web &amp; WordPress Architect</title>
+  <meta name="description" content="Privacy Policy for Fazlul Haque's web engineering portfolio. Transparent details on data handling, client confidentiality, and security standards." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://fazlul-haque-portfolio.onrender.com/privacy.html" />
+
+  <!-- Open Graph & Social Meta -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Privacy Policy — Fazlul Haque" />
+  <meta property="og:description" content="Transparent details on data privacy, client confidentiality, and security standards by Fazlul Haque." />
+  <meta property="og:url" content="https://fazlul-haque-portfolio.onrender.com/privacy.html" />
+  <meta property="og:image" content="https://fazlul-haque-portfolio.onrender.com/assets/about-hero.webp" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/flh-logo.svg" />
+
+  <!-- Preconnect & Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css?v=40.0" />
+
+  <!-- Dedicated Simple Clean Styling (Zero Heavy Animation) -->
+  <style>
+    .privacy-page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #06060c;
+      color: #e2e8f0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+    .privacy-header {
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 10, 18, 0.85);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .privacy-header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .privacy-header-left span {
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: 0.05em;
+    }
+    .privacy-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      background: rgba(168, 85, 247, 0.12);
+      color: #d8b4fe;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .privacy-back-btn:hover {
+      background: rgba(168, 85, 247, 0.25);
+      border-color: rgba(168, 85, 247, 0.6);
+      color: #fff;
+    }
+    .privacy-main {
+      flex: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+      width: 100%;
+    }
+    .privacy-meta-tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #a855f7;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 12px;
+    }
+    .privacy-title {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    .privacy-subtitle {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .privacy-section {
+      margin-bottom: 36px;
+    }
+    .privacy-section h2 {
+      font-size: 1.28rem;
+      color: #f1f5f9;
+      margin-bottom: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .privacy-section h2 span.sec-num {
+      color: #a855f7;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+    }
+    .privacy-section p {
+      color: #94a3b8;
+      line-height: 1.75;
+      font-size: 0.96rem;
+      margin-bottom: 12px;
+    }
+    .privacy-section ul {
+      margin: 12px 0 16px 24px;
+      color: #cbd5e1;
+      line-height: 1.7;
+      font-size: 0.94rem;
+    }
+    .privacy-section ul li {
+      margin-bottom: 6px;
+    }
+    .privacy-highlight-box {
+      background: rgba(168, 85, 247, 0.06);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .privacy-highlight-box p {
+      color: #e2e8f0;
+      margin: 0;
+      font-size: 0.94rem;
+      line-height: 1.65;
+    }
+    .privacy-contact-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .privacy-contact-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .privacy-contact-card:hover {
+      border-color: rgba(168, 85, 247, 0.5);
+      background: rgba(168, 85, 247, 0.1);
+    }
+  </style>
+
+  <!-- Structured Data / Schema for Privacy Page -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "https://fazlul-haque-portfolio.onrender.com/privacy.html#webpage",
+    "url": "https://fazlul-haque-portfolio.onrender.com/privacy.html",
+    "name": "Privacy Policy — Fazlul Haque",
+    "description": "Privacy policy and client confidentiality practices of Fazlul Haque, Web & WordPress Architecture Specialist.",
+    "isPartOf": {
+      "@type": "WebSite",
+      "@id": "https://fazlul-haque-portfolio.onrender.com/#website",
+      "name": "Fazlul Haque Portfolio",
+      "url": "https://fazlul-haque-portfolio.onrender.com/"
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://fazlul-haque-portfolio.onrender.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Privacy Policy",
+          "item": "https://fazlul-haque-portfolio.onrender.com/privacy.html"
+        }
+      ]
+    }
+  }
+  </script>
+</head>
+<body class="privacy-page-wrapper">
+
+  <header class="privacy-header">
+    <a href="index.html" class="privacy-header-left" aria-label="Fazlul Haque Home">
+      <img src="assets/flh-logo.svg" alt="FLH Logo" width="36" height="36" />
+      <span>FAZLUL HAQUE</span>
+    </a>
+    <a href="index.html" class="privacy-back-btn">
+      <span>&larr; Back to Home</span>
+    </a>
+  </header>
+
+  <main class="privacy-main">
+    <span class="privacy-meta-tag">LEGAL &bull; DATA PROTECTION &bull; CONFIDENTIALITY</span>
+    <h1 class="privacy-title">Privacy Policy</h1>
+    <div class="privacy-subtitle">
+      Effective Date: January 1, 2026 &bull; Last Reviewed: 2026 &bull; Author: Fazlul Haque
+    </div>
+
+    <div class="privacy-section">
+      <h2><span class="sec-num">01.</span> Overview &amp; Scope</h2>
+      <p>
+        This Privacy Policy outlines how Fazlul Haque ("I", "me", "my", or "Architect") handles personal information, project briefs, and technical specifications collected through this portfolio website (<strong>https://fazlul-haque-portfolio.onrender.com</strong>).
+      </p>
+      <p>
+        I am committed to protecting your privacy, maintaining professional integrity, and safeguarding all information you entrust to me when inquiring about or contracting web engineering, WordPress development, speed optimization, and cybersecurity services.
+      </p>
+    </div>
+
+    <div class="privacy-section">
+      <h2><span class="sec-num">02.</span> Information Collected</h2>
+      <p>
+        I only collect information that you explicitly provide when contacting me through the project inquiry form, email, or direct messaging:
+      </p>
+      <ul>
+        <li><strong>Identity &amp; Contact Information:</strong> Full name, email address, phone/WhatsApp number.</li>
+        <li><strong>Project Details:</strong> Required services (e.g., WordPress architecture, &lt;100ms speed optimization, malware cleanup), estimated budget range, website URL, and project notes.</li>
+        <li><strong>Technical Communication:</strong> Any logs, error traces, or credentials you securely provide during active project engagements.</li>
+      </ul>
+      <p>
+        This website does <strong>not</strong> use third-party behavioral trackers, invasive surveillance cookies, or data-brokering scripts.
+      </p>
+    </div>
+
+    <div class="privacy-section">
+      <h2><span class="sec-num">03.</span> How Information Is Used</h2>
+      <p>
+        Your data is used solely for professional business purposes:
+      </p>
+      <ul>
+        <li>To review and respond to your project inquiries with accurate architectural specifications and cost estimates.</li>
+        <li>To execute contracted web engineering deliverables (theme development, Core Web Vitals optimization, server hardening).</li>
+        <li>To provide ongoing VIP maintenance and technical support if requested.</li>
+      </ul>
+    </div>
+
+    <div class="privacy-section">
+      <h2><span class="sec-num">04.</span> Client Confidentiality &amp; NDA Standard</h2>
+      <div class="privacy-highlight-box">
+        <p>
+          <strong>Strict Non-Disclosure Standard:</strong> Any proprietary code, server access credentials, database content, or business strategies shared during a consultation or contract are treated under strict confidentiality. Your credentials and assets are never shared, published, or sold to any third party.
+        </p>
+      </div>
+    </div>
+
+    <div class="privacy-section">
+      <h2><span class="sec-num">05.</span> Third-Party Service Providers</h2>
+      <p>
+        To deliver a dependable and responsive communication experience, this site interfaces with select third-party services:
+      </p>
+      <ul>
+        <li><strong>FormSubmit API:</strong> Form submissions are encrypted and forwarded directly to my dedicated inbox (<code>fazlulbusiness1@gmail.com</code>).</li>
+        <li><strong>WhatsApp Direct API:</strong> Clicking the direct contact button routes your message directly through WhatsApp end-to-end encrypted messaging.</li>
+        <li><strong>Render Cloud Hosting:</strong> Standard server access logs (IP address, user-agent) are processed automatically for DDoS defense and security auditing.</li>
+      </ul>
+    </div>
+
+    <div class="privacy-section">
+      <h2><span class="sec-num">06.</span> Cookies &amp; Local Storage</h2>
+      <p>
+        This website does not utilize advertising or cross-site tracking cookies. Browser <code>localStorage</code> is used strictly for harmless user-experience preferences (such as saving local draft projects in the client demonstration studio).
+      </p>
+    </div>
+
+    <div class="privacy-section">
+      <h2><span class="sec-num">07.</span> Data Retention &amp; Your Rights</h2>
+      <p>
+        Project inquiries and correspondence are retained only as long as necessary to facilitate ongoing communication and fulfill project commitments. You have the right to request a copy of your records or demand complete deletion of your contact data from my records at any time.
+      </p>
+    </div>
+
+    <div class="privacy-section">
+      <h2><span class="sec-num">08.</span> Direct Contact Information</h2>
+      <p>
+        If you have questions regarding this Privacy Policy or wish to request data removal, please contact me directly:
+      </p>
+      <div class="privacy-contact-links">
+        <a href="mailto:fazlulbusiness1@gmail.com" class="privacy-contact-card">
+          <span>✉</span>
+          <span>fazlulbusiness1@gmail.com</span>
+        </a>
+        <a href="https://wa.me/8801302927167" target="_blank" rel="noopener noreferrer" class="privacy-contact-card">
+          <span>💬</span>
+          <span>WhatsApp: +880 1302-927167</span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Universal Footer Bar Matching All Pages -->
+  <footer class="about-footer-bar">
+    <div class="af-container">
+      <div class="af-left">
+        <a href="index.html" class="nav-wave-logo" aria-label="Fazlul Haque Home">
+          <img src="assets/flh-logo.svg" alt="FLH Logo" class="flh-logo-svg" width="42" height="42" loading="lazy" decoding="async" />
+        </a>
+        <span>&copy; 2026 FAZLUL HAQUE &bull; FULL-STACK &amp; WORDPRESS ARCHITECT</span>
+      </div>
+
+      <nav class="af-links" aria-label="Footer Navigation">
+        <a href="index.html">HOME</a>
+        <a href="about.html">ABOUT &amp; PORTFOLIO</a>
+        <a href="contact.html">CONTACT</a>
+        <a href="index.html#realms-section">10 REALMS</a>
+        <a href="privacy.html" class="active">PRIVACY POLICY</a>
+      </nav>
+
+      <div class="af-right">
+        <div class="footer-social-wrap">
+          <a href="https://www.linkedin.com/in/mdfazlulhaque003/" target="_blank" rel="noopener noreferrer" class="social-footer-btn" aria-label="Fazlul Haque LinkedIn" title="LinkedIn Profile">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+            </svg>
+          </a>
+          <a href="https://www.facebook.com/profile.php?id=61572731453253" target="_blank" rel="noopener noreferrer" class="social-footer-btn" aria-label="Fazlul Haque Facebook" title="Facebook Page">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/>
+            </svg>
+          </a>
+        </div>
+        <a href="contact.html" class="btn-shine pill-btn-purple bubble-glass-btn">
+          <span class="btn-label-text">HIRE FAZLUL &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
