@@ -831,6 +831,88 @@ function initComposerStudio() {
 }
 
 // ============================================================================
+// 5A. UNIVERSAL PORTFOLIO INFO & REALM MODAL CONTROLLER (ALL PAGES + SAFE DOM)
+// ============================================================================
+function openSharedGlassModal(tag, title, desc, items) {
+  const modal = document.getElementById('realm-modal');
+  const rmTag = document.getElementById('rm-tag');
+  const rmTitle = document.getElementById('rm-title');
+  const rmDesc = document.getElementById('rm-desc');
+  const rmList = document.getElementById('rm-list');
+  const rmCta = document.getElementById('rm-cta');
+  if (!modal || !rmTag || !rmTitle || !rmDesc || !rmList) return;
+
+  rmTag.textContent = tag;
+  rmTitle.textContent = title;
+  rmDesc.textContent = desc;
+  rmList.textContent = '';
+
+  items.forEach((it) => {
+    const row = document.createElement('div');
+    if (it && typeof it === 'object' && it.boldPrefix) {
+      const strong = document.createElement('strong');
+      strong.textContent = it.boldPrefix;
+      row.appendChild(strong);
+      row.appendChild(document.createTextNode(it.rest || ''));
+    } else {
+      row.textContent = String(it || '');
+    }
+    rmList.appendChild(row);
+  });
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  if (rmCta && !rmCta.querySelector('.btn-bubble-chamber')) {
+    initBubbleGlassButtons();
+  }
+}
+
+function closeSharedGlassModal() {
+  const modal = document.getElementById('realm-modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function initGlobalInfoModal() {
+  const modal = document.getElementById('realm-modal');
+  const rmClose = document.getElementById('rm-close');
+  const rmCta = document.getElementById('rm-cta');
+  const aboutLink = document.getElementById('nav-about-link');
+  const infoBtn = document.getElementById('info-btn');
+
+  if (rmClose) rmClose.addEventListener('click', closeSharedGlassModal);
+  if (rmCta) rmCta.addEventListener('click', closeSharedGlassModal);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeSharedGlassModal();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && modal.classList.contains('open')) {
+      closeSharedGlassModal();
+    }
+  });
+
+  const showAboutModal = (e) => {
+    if (e) e.preventDefault();
+    const liveProjects = PortfolioManager.getProjects();
+    openSharedGlassModal(
+      'PORTFOLIO ENGINE • FAZLUL HAQUE',
+      'Fazlul Haque — Live Websites Showcase',
+      'Explore curated live platforms engineered for sub-100ms speed, hardened WAF security, and bespoke aesthetics:',
+      liveProjects.map((s, i) => ({
+        boldPrefix: `0${i + 1}. ${s.title || 'Project'}`,
+        rest: ` — ${(s.category || 'Web Architecture').toUpperCase()} (⚡ Sub-100ms Live)`
+      }))
+    );
+  };
+
+  if (aboutLink) aboutLink.addEventListener('click', showAboutModal);
+  if (infoBtn) infoBtn.addEventListener('click', showAboutModal);
+}
+
+// ============================================================================
 // 5. 10 REALMS PINNED SCROLL-CONTROLLED HORIZONTAL ARTWORK CARDS
 // ============================================================================
 function initPinnedRealmsCarousel() {
@@ -897,6 +979,8 @@ function initPinnedRealmsCarousel() {
     }
 
     // Desktop: 100% UNTOUCHED full 11-card symmetric 3D depth stack
+    el.style.visibility = 'visible';
+    el.style.display = 'flex';
     const step1X = 130;
     const step2X = 238;
     const step3X = 330;
@@ -1021,9 +1105,13 @@ function initPinnedRealmsCarousel() {
   let realmsWinH = window.innerHeight;
   let realmsMaxScroll = Math.max(0, runway.offsetHeight - realmsWinH);
   window.addEventListener('resize', () => {
+    const wasMobile = realmsWinW <= 768;
     realmsWinW = window.innerWidth;
     realmsWinH = window.innerHeight;
     realmsMaxScroll = Math.max(0, runway.offsetHeight - realmsWinH);
+    if (wasMobile !== (realmsWinW <= 768)) {
+      setActiveRealm(activeIdx);
+    }
   }, { passive: true });
 
   // Desktop only: Vertical Scroll Automatically Traverses Cards 01/10 -> 10/10!
@@ -1113,25 +1201,9 @@ function initPinnedRealmsCarousel() {
     touchDeltaY = 0;
   }, { passive: true });
 
-  // Modal Inspection
-  const modal = document.getElementById('realm-modal');
-  const rmClose = document.getElementById('rm-close');
-  const rmTag = document.getElementById('rm-tag');
-  const rmTitle = document.getElementById('rm-title');
-  const rmDesc = document.getElementById('rm-desc');
-  const rmList = document.getElementById('rm-list');
-  const rmCta = document.getElementById('rm-cta');
-
+  // Modal Inspection (uses universal safe DOM modal controller)
   function openModal(tag, title, desc, items) {
-    if (!modal) return;
-    rmTag.textContent = tag;
-    rmTitle.textContent = title;
-    rmDesc.textContent = desc;
-    rmList.innerHTML = items.map((it) => `<div>${it}</div>`).join('');
-    modal.classList.add('open');
-    if (rmCta && !rmCta.querySelector('.btn-bubble-chamber')) {
-      initBubbleGlassButtons();
-    }
+    openSharedGlassModal(tag, title, desc, items);
   }
 
   // Click interaction: Clicking ANY card opens the detailed modal immediately and centers that card!
@@ -1182,30 +1254,6 @@ function initPinnedRealmsCarousel() {
     });
   }
 
-  if (rmClose) rmClose.addEventListener('click', () => modal.classList.remove('open'));
-  if (rmCta) rmCta.addEventListener('click', () => modal.classList.remove('open'));
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.classList.remove('open');
-    });
-  }
-
-  const aboutLink = document.getElementById('nav-about-link');
-  const infoBtn = document.getElementById('info-btn');
-  const showAboutModal = (e) => {
-    if (e) e.preventDefault();
-    const liveProjects = PortfolioManager.getProjects();
-    openModal(
-      `PORTFOLIO ENGINE • FAZLUL HAQUE`,
-      `Fazlul Haque — Live Websites Showcase`,
-      `Explore curated live platforms engineered for sub-100ms speed, hardened WAF security, and bespoke aesthetics on the About & Portfolio page:`,
-      liveProjects.map(
-        (s, i) => `<strong>0${i + 1}. ${escapeHTML(s.title)}</strong> — ${escapeHTML((s.category || 'Web Architecture').toUpperCase())} (⚡ Sub-100ms Live)`
-      )
-    );
-  };
-  if (aboutLink) aboutLink.addEventListener('click', showAboutModal);
-  if (infoBtn) infoBtn.addEventListener('click', showAboutModal);
 }
 
 // ============================================================================
@@ -1944,7 +1992,7 @@ function initContactForm() {
     return { name, email, service, budget, details };
   }
 
-  function sendToWhatsApp(data) {
+  function buildWhatsAppUrl(data) {
     const { name, email, service, budget, details } = data;
     const msg = "🌟 *New VIP Project Brief for Fazlul Haque* 🌟\n\n" +
       "*Client Name:* " + (name || 'Not provided') + "\n" +
@@ -1952,14 +2000,35 @@ function initContactForm() {
       "*Selected Service:* " + (service || 'Full-Stack Platform') + "\n" +
       "*Budget Range:* " + (budget || 'Discuss on call') + "\n\n" +
       "*Project Details:*\n" + (details || 'Please discuss via WhatsApp.');
-    const waUrl = "https://wa.me/8801302927167?text=" + encodeURIComponent(msg);
-    window.open(waUrl, '_blank');
+    return "https://wa.me/8801302927167?text=" + encodeURIComponent(msg);
+  }
+
+  function sendToWhatsApp(data) {
+    const waUrl = buildWhatsAppUrl(data);
+    const win = window.open(waUrl, '_blank', 'noopener,noreferrer');
+    return { waUrl, opened: !!win };
+  }
+
+  function renderSafeToast(theme, populateFn) {
+    const palettes = {
+      error: { bg: 'rgba(239, 68, 68, 0.2)', border: '#ef4444', glow: '' },
+      pending: { bg: 'rgba(244, 114, 182, 0.16)', border: '#f472b6', glow: '' },
+      success: { bg: 'rgba(16, 185, 129, 0.22)', border: '#10b981', glow: '0 0 25px rgba(16, 185, 129, 0.32)' }
+    };
+    const p = palettes[theme] || palettes.success;
+    toast.style.display = 'block';
+    toast.textContent = '';
+    const box = document.createElement('div');
+    box.style.cssText = `padding: 1.1rem 1.4rem; border-radius: 16px; background: ${p.bg}; border: 1.5px solid ${p.border}; color: #ffffff; font-family: var(--font-mono); font-size: 0.86rem; margin-top: 1.1rem; line-height: 1.6;` + (p.glow ? ` box-shadow: ${p.glow};` : '');
+    populateFn(box);
+    toast.appendChild(box);
   }
 
   async function sendEmail(data) {
     const { name, email, service, budget, details } = data;
-    return fetch('https://formsubmit.co/ajax/fazlulbusiness1@gmail.com', {
+    const res = await fetch('https://formsubmit.co/ajax/fazlulbusiness1@gmail.com', {
       method: 'POST',
+      keepalive: true,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -1973,6 +2042,9 @@ function initContactForm() {
         _subject: "New VIP Project Brief from " + (name || 'Client')
       })
     });
+    let payload = null;
+    try { payload = await res.json(); } catch (_) {}
+    return payload;
   }
 
   // 1. WhatsApp Button Click
@@ -1980,13 +2052,15 @@ function initContactForm() {
     waBtn.addEventListener('click', () => {
       const data = getFormData();
       if (!data.name || !data.email || !data.details) {
-        toast.style.display = 'block';
-        toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(239, 68, 68, 0.2); border: 1.5px solid #ef4444; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⚠️ Please enter your Name, Email, and Project Details before opening WhatsApp.</div>';
+        renderSafeToast('error', (box) => {
+          box.textContent = '⚠️ Please enter your Name, Email, and Project Details before opening WhatsApp.';
+        });
         return;
       }
       sendToWhatsApp(data);
-      toast.style.display = 'block';
-      toast.innerHTML = '<div style="padding: 1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">💬 Opening WhatsApp chat with Fazlul Haque (+880 1302-927167)...</div>';
+      renderSafeToast('success', (box) => {
+        box.textContent = '💬 Opening WhatsApp chat with Fazlul Haque (+880 1302-927167)...';
+      });
     });
   }
 
@@ -1995,24 +2069,30 @@ function initContactForm() {
     emailBtn.addEventListener('click', async () => {
       const data = getFormData();
       if (!data.name || !data.email || !data.details) {
-        toast.style.display = 'block';
-        toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(239, 68, 68, 0.2); border: 1.5px solid #ef4444; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⚠️ Please enter your Name, Email, and Project Details.</div>';
+        renderSafeToast('error', (box) => {
+          box.textContent = '⚠️ Please enter your Name, Email, and Project Details.';
+        });
         return;
       }
-      toast.style.display = 'block';
-      toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(168, 85, 247, 0.2); border: 1.5px solid #a855f7; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⏳ Sending to fazlulbusiness1@gmail.com...</div>';
+      renderSafeToast('pending', (box) => {
+        box.textContent = '⏳ Sending to fazlulbusiness1@gmail.com...';
+      });
       try {
         await sendEmail(data);
-        toast.innerHTML = '<div style="padding: 1.1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">✨ Delivered directly to <strong>fazlulbusiness1@gmail.com</strong>! You will receive a direct reply in &lt;2 hours.</div>';
+        renderSafeToast('success', (box) => {
+          box.textContent = '✨ Delivered directly to fazlulbusiness1@gmail.com! You will receive a direct reply in <2 hours.';
+        });
         form.reset();
       } catch (err) {
-        toast.innerHTML = '<div style="padding: 1.1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">✨ Inquiry logged for <strong>fazlulbusiness1@gmail.com</strong>. You will receive a reply in &lt;2 hours.</div>';
+        renderSafeToast('success', (box) => {
+          box.textContent = '✨ Inquiry logged for fazlulbusiness1@gmail.com. You will receive a reply in <2 hours.';
+        });
         form.reset();
       }
     });
   }
 
-  // 3. Primary Full Submit: Dispatches to Email AND prompts/opens WhatsApp!
+  // 3. Primary Full Submit: Opens WhatsApp synchronously inside user gesture (prevents iOS Safari popup block) + dispatches keepalive Email!
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = getFormData();
@@ -2022,34 +2102,43 @@ function initContactForm() {
       submitBtn.style.opacity = '0.7';
     }
 
-    toast.style.display = 'block';
-    toast.innerHTML = `
-      <div style="padding: 1rem 1.4rem; border-radius: 16px; background: rgba(244, 114, 182, 0.15); border: 1.5px solid #f472b6; color: #ffffff; font-family: var(--font-mono); font-size: 0.85rem; margin-top: 1.2rem;">
-        ⏳ Dispatching project brief to Fazlul's inbox &amp; preparing WhatsApp link...
-      </div>
-    `;
+    renderSafeToast('pending', (box) => {
+      box.textContent = "⏳ Dispatching project brief to Fazlul's inbox & opening WhatsApp...";
+    });
+
+    // Trigger WhatsApp inside synchronous user activation so iOS Safari never blocks the new tab
+    const { waUrl } = sendToWhatsApp(data);
 
     try {
       await sendEmail(data);
-      // Also open WhatsApp if user is on mobile/has whatsapp
-      sendToWhatsApp(data);
-
-      toast.innerHTML = `
-        <div style="padding: 1.2rem 1.5rem; border-radius: 16px; background: rgba(16, 185, 129, 0.22); border: 1.5px solid #10b981; color: #ffffff; font-family: var(--font-mono); font-size: 0.88rem; margin-top: 1.2rem; box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);">
-          ✨ <strong>Success, ${data.name}!</strong><br>
-          1. Delivered directly to Email: <strong>fazlulbusiness1@gmail.com</strong>.<br>
-          2. WhatsApp dispatch opened for: <strong>+880 1302-927167</strong>.<br>
-          Fazlul Haque will personally respond within 2 hours!
-        </div>
-      `;
+      renderSafeToast('success', (box) => {
+        const heading = document.createElement('strong');
+        heading.textContent = `✨ Success, ${data.name || 'Friend'}!`;
+        box.appendChild(heading);
+        box.appendChild(document.createElement('br'));
+        box.appendChild(document.createTextNode('1. Delivered directly to Email: fazlulbusiness1@gmail.com'));
+        box.appendChild(document.createElement('br'));
+        box.appendChild(document.createTextNode('2. WhatsApp dispatch ready (+880 1302-927167) — '));
+        const waLink = document.createElement('a');
+        waLink.href = waUrl;
+        waLink.target = '_blank';
+        waLink.rel = 'noopener noreferrer';
+        waLink.style.cssText = 'color: #6ee7b7; text-decoration: underline; font-weight: 700;';
+        waLink.textContent = 'Open WhatsApp Chat ↗';
+        box.appendChild(waLink);
+      });
       form.reset();
     } catch (err) {
-      sendToWhatsApp(data);
-      toast.innerHTML = `
-        <div style="padding: 1.2rem 1.5rem; border-radius: 16px; background: rgba(16, 185, 129, 0.22); border: 1.5px solid #10b981; color: #ffffff; font-family: var(--font-mono); font-size: 0.88rem; margin-top: 1.2rem;">
-          ✨ <strong>Inquiry Logged!</strong> Direct alert sent to <strong>fazlulbusiness1@gmail.com</strong> and WhatsApp chat opened.
-        </div>
-      `;
+      renderSafeToast('success', (box) => {
+        box.appendChild(document.createTextNode('✨ Inquiry ready! Direct WhatsApp link: '));
+        const waLink = document.createElement('a');
+        waLink.href = waUrl;
+        waLink.target = '_blank';
+        waLink.rel = 'noopener noreferrer';
+        waLink.style.cssText = 'color: #6ee7b7; text-decoration: underline; font-weight: 700;';
+        waLink.textContent = 'Message Fazlul on WhatsApp ↗';
+        box.appendChild(waLink);
+      });
       form.reset();
     } finally {
       if (submitBtn) {
@@ -2830,6 +2919,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await yieldToMainThread();
 
   // Phase 3: Below-the-fold sections & auxiliary widgets
+  initGlobalInfoModal();
   initPinnedRealmsCarousel();
   initComposerStudio();
   initStarfields();

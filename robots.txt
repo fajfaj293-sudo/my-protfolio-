@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://fazlulhaque.dev/sitemap.xml
+Sitemap: https://fazlul-haque-portfolio.onrender.com/sitemap.xml
