@@ -4162,19 +4162,23 @@ a.channel-item:hover .ci-arrow {
   /* When video is in front on mobile, shut down background star/cube canvases for maximum smoothness (spider stays parked peacefully) */
   body.mobile-video-active #realms-star-canvas,
   body.mobile-video-active #footer-star-canvas,
-  body.mobile-video-active .cube-viewport,
-  body.mobile-video-active .cube-canvas {
+  body.mobile-video-active #voyage-3d-cube,
+  body.mobile-video-active .cube-floating-stage {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
   }
   body.mobile-video-active header,
+  body.mobile-video-active header *,
   body.mobile-video-active #hero,
-  body.mobile-video-active .hero-fullscreen,
+  body.mobile-video-active #hero *,
   body.mobile-video-active .realms-pin-runway,
-  body.mobile-video-active .composer-suite,
-  body.mobile-video-active footer {
+  body.mobile-video-active .realms-pin-runway *,
+  body.mobile-video-active .light-composer-section,
+  body.mobile-video-active .light-composer-section *,
+  body.mobile-video-active footer,
+  body.mobile-video-active footer * {
     animation-play-state: paused !important;
   }
   body.mobile-video-active .portfolio-scrub-video,

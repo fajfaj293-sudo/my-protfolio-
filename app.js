@@ -427,6 +427,9 @@ function initContinuousZoomStory() {
     if (window.__mobileVideoActive !== isVideoInFront) {
       window.__mobileVideoActive = isVideoInFront;
       document.body.classList.toggle('mobile-video-active', isVideoInFront);
+      if (!isVideoInFront && typeof window.__onExitMobileVideo === 'function') {
+        window.__onExitMobileVideo();
+      }
     }
   }
 
@@ -536,27 +539,89 @@ function initContinuousZoomStory() {
 // 4. LIGHT COMPOSER / PAIN-POINT SOLVER INTERACTIVITY
 // ============================================================================
 function initComposerStudio() {
-  const prompts = {
+  const presets = {
     lag: {
       input: "My WordPress / WooCommerce site has lag issues and takes over 4 seconds to load.",
-      toast: "Blueprint Ready: Sub-100ms WebP/Edge pipeline + render-blocking cleanup + 99+ Google PageSpeed guarantee."
+      platform: "WordPress",
+      deliverable: "<100ms Speed",
+      goal: "85ms Instant",
+      service: "24/7 Direct VIP",
+      speed: 99,
+      sec: 98
     },
     security: {
       input: "My website faced a malware redirect / security issue and needs complete hardening.",
-      toast: "Blueprint Ready: Surgical malware removal + Cloudflare WAF Firewall + wp-admin lockdown & automated daily backups."
+      platform: "WordPress",
+      deliverable: "Malware Shield",
+      goal: "100ms SLA",
+      service: "24/7 Direct VIP",
+      speed: 96,
+      sec: 100
     },
     service: {
       input: "My previous developer stopped replying and left critical bugs unfinished.",
-      toast: "Blueprint Ready: Same-day codebase rescue + transparent daily updates + 24/7 direct VIP maintenance by Fazlul Haque."
+      platform: "WordPress",
+      deliverable: "VIP Maintenance",
+      goal: "85ms Instant",
+      service: "24/7 Direct VIP",
+      speed: 98,
+      sec: 100
     },
     wordpress: {
       input: "I want a custom luxury WordPress / Elementor Pro or WooCommerce online store.",
-      toast: "Blueprint Ready: Custom bloat-free WordPress theme + multi-gateway WooCommerce checkout + <85ms instant loading."
+      platform: "WooCommerce",
+      deliverable: "Full Redesign",
+      goal: "85ms Instant",
+      service: "Turnkey Delivery",
+      speed: 99,
+      sec: 100
     },
     seo: {
       input: "My business website is not ranking on Google and needs full Technical SEO.",
-      toast: "Blueprint Ready: Semantic H1–H3 hierarchy + JSON-LD rich schema markup + meta optimization & Core Web Vitals."
+      platform: "WordPress",
+      deliverable: "SEO Schema",
+      goal: "99+ Google Core",
+      service: "Monthly Retainer",
+      speed: 99,
+      sec: 100
     }
+  };
+
+  const platformStacks = {
+    "WordPress": { code: "WP", stack: "Custom bloat-free PHP 8.3 WordPress architecture & ACF Pro" },
+    "WooCommerce": { code: "WOO", stack: "High-conversion WooCommerce engine with instant AJAX cart & multi-gateway checkout" },
+    "Next.js / React": { code: "NEXT", stack: "Next.js SSR/Edge React TypeScript architecture with zero-bundle bloat" },
+    "Elementor Pro": { code: "ELM", stack: "Surgical DOM-slimmed Elementor Pro luxury layout with zero render-blocking CSS" },
+    "3D WebGL": { code: "3D", stack: "60FPS hardware-accelerated 3D WebGL & scroll-scrubbed interactive canvas pipeline" }
+  };
+
+  const deliverablePlans = {
+    "<100ms Speed": {
+      action: "WebP/AVIF asset pipeline, critical CSS/font priority & edge cache tuning",
+      sprint: "24 – 48 Hours Rapid"
+    },
+    "Malware Shield": {
+      action: "deep backdoor & malware extermination, Cloudflare WAF rules & wp-admin lockdown",
+      sprint: "24 – 48 Hours Rapid"
+    },
+    "VIP Maintenance": {
+      action: "same-day bug rescue, daily off-site backups & proactive uptime monitoring",
+      sprint: "Same-Day Onboarding"
+    },
+    "Full Redesign": {
+      action: "bespoke luxury UI/UX redesign, mobile-first glassmorphism & conversion flow",
+      sprint: "5 – 12 Days Bespoke"
+    },
+    "SEO Schema": {
+      action: "semantic H1–H3 structure, rich JSON-LD schema graph & Core Web Vitals indexing",
+      sprint: "48 – 72 Hours Rapid"
+    }
+  };
+
+  const serviceModels = {
+    "24/7 Direct VIP": { access: "24/7 VIP • Fazlul Haque", note: "direct 24/7 WhatsApp & Email access to Fazlul Haque" },
+    "Monthly Retainer": { access: "Monthly Retainer • Fazlul", note: "dedicated monthly retainer care by Fazlul Haque" },
+    "Turnkey Delivery": { access: "Turnkey Handover • Fazlul", note: "complete turnkey launch + 30-day VIP warranty by Fazlul Haque" }
   };
 
   const input = document.getElementById('composer-prompt-input');
@@ -568,64 +633,184 @@ function initComposerStudio() {
   const secRange = document.getElementById('sec-range');
   const secVal = document.getElementById('sec-val');
   const genBtn = document.getElementById('generate-solution-btn');
+  const card = document.getElementById('generated-solution-toast');
+  if (!card || !toast) return;
 
+  const specVals = card.querySelectorAll('.bc-specs-grid .bc-spec-val');
+  const speedMetric = document.getElementById('bc-speed-metric') || specVals[0];
+  const secMetric = document.getElementById('bc-sec-metric') || specVals[1];
+  const sprintMetric = specVals[2] || null;
+  const accessMetric = specVals[3] || null;
+  const codeEl = card.querySelector('.bc-code');
+  const claimBtn = card.querySelector('.bc-claim-btn');
+
+  let userEditedPrompt = false;
+
+  function getSelectedInCol(colIndex, fallback) {
+    const group = filterCols[colIndex];
+    if (!group) return fallback;
+    const active = group.querySelector('.f-pill.active');
+    return active ? active.textContent.trim() : fallback;
+  }
+
+  function setSelectedInCol(colIndex, labelText) {
+    const group = filterCols[colIndex];
+    if (!group) return;
+    const btns = group.querySelectorAll('.f-pill');
+    btns.forEach((b) => {
+      b.classList.toggle('active', b.textContent.trim() === labelText);
+    });
+  }
+
+  function computeBlueprint(syncInputPrompt) {
+    const platform = getSelectedInCol(0, 'WordPress');
+    const deliverable = getSelectedInCol(1, '<100ms Speed');
+    const goal = getSelectedInCol(2, '85ms Instant');
+    const service = getSelectedInCol(3, '24/7 Direct VIP');
+    const speedPct = speedRange ? parseInt(speedRange.value, 10) : 99;
+    const secPct = secRange ? parseInt(secRange.value, 10) : 100;
+
+    if (speedVal) speedVal.textContent = `${speedPct}% PageSpeed`;
+    if (secVal) secVal.textContent = `${secPct} / 100 Audit`;
+
+    const pInfo = platformStacks[platform] || platformStacks['WordPress'];
+    const dInfo = deliverablePlans[deliverable] || deliverablePlans['<100ms Speed'];
+    const sInfo = serviceModels[service] || serviceModels['24/7 Direct VIP'];
+
+    // Update top specification code
+    if (codeEl) {
+      codeEl.textContent = `SPECIFICATION SHEET • ${pInfo.code}-${speedPct}-${secPct}-FLH`;
+    }
+
+    // 1. Target Speed box (combines Performance Goal + Speed Slider %)
+    if (speedMetric) {
+      speedMetric.textContent = `${goal} • ${speedPct}% PageSpeed`;
+    }
+
+    // 2. Security & SEO Protocol box (reflects exact Security Slider % + Deliverable)
+    if (secMetric) {
+      let gradePrefix = 'SSL + Shield';
+      if (secPct >= 98) gradePrefix = 'Military WAF';
+      else if (secPct >= 92) gradePrefix = 'WAF Hardened';
+      secMetric.textContent = `${gradePrefix} • ${secPct}/100 Audit`;
+    }
+
+    // 3. Sprint Timeline box (adapts to Platform + Deliverable complexity)
+    if (sprintMetric) {
+      let sprintText = dInfo.sprint;
+      if (deliverable === 'Full Redesign' && (platform === 'WooCommerce' || platform === 'Next.js / React' || platform === '3D WebGL')) {
+        sprintText = '7 – 14 Days Turnkey';
+      }
+      sprintMetric.textContent = sprintText;
+    }
+
+    // 4. Direct Access box (adapts to Service & Support selection)
+    if (accessMetric) {
+      accessMetric.textContent = sInfo.access;
+    }
+
+    // Sync prompt input when clicking pills/sliders (unless user typed custom prompt)
+    if (syncInputPrompt && input && !userEditedPrompt) {
+      input.value = `Build/optimize my ${platform} platform with ${deliverable}, targeting ${goal} (${speedPct}% PageSpeed & ${secPct}/100 Security) under ${service}.`;
+    }
+
+    // Build accurate Architectural Roadmap narrative incorporating all active selections + custom prompt
+    const rawPrompt = input ? input.value.trim() : '';
+    const isPresetOrAuto = !rawPrompt ||
+      Object.values(presets).some((p) => p.input === rawPrompt) ||
+      rawPrompt.startsWith('My WordPress / WooCommerce store has lag issues') ||
+      rawPrompt.startsWith('Build/optimize my ');
+
+    const customFocus = (!isPresetOrAuto && rawPrompt.length > 3)
+      ? ` Custom Requirement ("${rawPrompt.slice(0, 110)}${rawPrompt.length > 110 ? '...' : ''}") → `
+      : '';
+
+    toast.textContent = `${customFocus}${pInfo.stack} + ${dInfo.action} — engineered for ${goal} (${speedPct}% PageSpeed) & ${secPct}/100 WAF/SEO compliance with ${sInfo.note}.`;
+
+    // Update Claim Blueprint button link so Contact page auto-fills this exact blueprint!
+    if (claimBtn) {
+      const params = new URLSearchParams({
+        platform,
+        deliverable,
+        goal,
+        service,
+        speed: String(speedPct),
+        sec: String(secPct)
+      });
+      if (!isPresetOrAuto && rawPrompt) params.set('brief', rawPrompt.slice(0, 200));
+      claimBtn.setAttribute('href', `contact.html?${params.toString()}#project-form`);
+    }
+  }
+
+  function flashBlueprintCard() {
+    card.style.transform = 'scale(1.02)';
+    card.style.boxShadow = '0 0 48px rgba(236, 72, 153, 0.45)';
+    setTimeout(() => {
+      card.style.transform = '';
+      card.style.boxShadow = '';
+    }, 260);
+  }
+
+  // Quick Challenge Presets: sync prompt + all 4 filter columns + sliders + blueprint output
+  inspPills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      inspPills.forEach((p) => p.classList.remove('active'));
+      pill.classList.add('active');
+      const key = pill.getAttribute('data-pain-key') || 'lag';
+      const data = presets[key] || presets.lag;
+      userEditedPrompt = false;
+      if (input) input.value = data.input;
+      setSelectedInCol(0, data.platform);
+      setSelectedInCol(1, data.deliverable);
+      setSelectedInCol(2, data.goal);
+      setSelectedInCol(3, data.service);
+      if (speedRange) speedRange.value = String(data.speed);
+      if (secRange) secRange.value = String(data.sec);
+      computeBlueprint(false);
+      flashBlueprintCard();
+    });
+  });
+
+  // 4 Filter Columns: update active state & immediately recalculate accurate blueprint
   filterCols.forEach((group) => {
     const btns = group.querySelectorAll('.f-pill');
     btns.forEach((b) => {
       b.addEventListener('click', () => {
         btns.forEach((x) => x.classList.remove('active'));
         b.classList.add('active');
+        inspPills.forEach((p) => p.classList.remove('active'));
+        computeBlueprint(true);
       });
     });
   });
 
-  if (speedRange && speedVal) {
-    speedRange.addEventListener('input', () => {
-      speedVal.textContent = `${speedRange.value}%`;
-    });
+  // Speed & Security Progress Bar Sliders: live real-time update
+  if (speedRange) {
+    speedRange.addEventListener('input', () => computeBlueprint(false));
   }
-  if (secRange && secVal) {
-    secRange.addEventListener('input', () => {
-      secVal.textContent = `${secRange.value} / 100`;
-    });
-  }
-  const speedMetric = document.getElementById('bc-speed-metric');
-  const secMetric = document.getElementById('bc-sec-metric');
-
-  function updateBlueprintConsole(data) {
-    if (toast) toast.textContent = data.toast;
-    if (speedMetric && speedRange) {
-      speedMetric.textContent = `Sub-100ms (${speedRange.value}% Optimized)`;
-    }
-    if (secMetric && secRange) {
-      secMetric.textContent = `WAF Lockdown (${secRange.value}/100 Grade)`;
-    }
+  if (secRange) {
+    secRange.addEventListener('input', () => computeBlueprint(false));
   }
 
-  inspPills.forEach((pill) => {
-    pill.addEventListener('click', () => {
+  // Custom Prompt Typing: live update when user types custom requirements
+  if (input) {
+    input.addEventListener('input', () => {
+      userEditedPrompt = true;
       inspPills.forEach((p) => p.classList.remove('active'));
-      pill.classList.add('active');
-      const key = pill.getAttribute('data-pain-key') || 'lag';
-      const data = prompts[key] || prompts.lag;
-      if (input) input.value = data.input;
-      updateBlueprintConsole(data);
-    });
-  });
-
-  if (genBtn && toast) {
-    genBtn.addEventListener('click', () => {
-      const card = document.getElementById('generated-solution-toast');
-      if (card) {
-        card.style.transform = 'scale(1.03)';
-        card.style.boxShadow = '0 0 50px rgba(236, 72, 153, 0.45)';
-        setTimeout(() => {
-          card.style.transform = 'scale(1)';
-          card.style.boxShadow = '';
-        }, 280);
-      }
+      computeBlueprint(false);
     });
   }
+
+  // Generate Solution Button: compute blueprint from all current inputs & highlight specification card
+  if (genBtn) {
+    genBtn.addEventListener('click', () => {
+      computeBlueprint(false);
+      flashBlueprintCard();
+    });
+  }
+
+  // Initialize accurate default state on load
+  computeBlueprint(false);
 }
 
 // ============================================================================
@@ -1022,8 +1207,14 @@ function initStarfields() {
       r: Math.random() * 1.6 + 0.4
     }));
 
+    const prevExitHook = window.__onExitMobileVideo;
+    window.__onExitMobileVideo = () => {
+      if (typeof prevExitHook === 'function') prevExitHook();
+      if (canvasInView) startStarLoop();
+    };
+
     function draw(t) {
-      if (!canvasInView) {
+      if (!canvasInView || window.__mobileVideoActive) {
         starRafId = null;
         return;
       }
@@ -1055,10 +1246,15 @@ function initFloating3DCube() {
   let cubeRafId = null;
 
   function startCubeLoop() {
-    if (!cubeRafId && cubeInView) {
+    if (!cubeRafId && cubeInView && !window.__mobileVideoActive) {
       cubeRafId = requestAnimationFrame(render);
     }
   }
+  const prevExitCubeHook = window.__onExitMobileVideo;
+  window.__onExitMobileVideo = () => {
+    if (typeof prevExitCubeHook === 'function') prevExitCubeHook();
+    startCubeLoop();
+  };
 
   if ('IntersectionObserver' in window) {
     const obs = new IntersectionObserver((entries) => {
@@ -1584,6 +1780,45 @@ function initContactForm() {
   const waBtn = document.getElementById('submit-whatsapp-direct');
   const emailBtn = document.getElementById('submit-email-direct');
   if (!form || !toast) return;
+
+  // Pre-fill inquiry form if visitor clicked "CLAIM THIS BLUEPRINT" from Homepage Studio
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('platform') || params.has('deliverable')) {
+      const platform = params.get('platform') || 'WordPress';
+      const deliverable = params.get('deliverable') || '<100ms Speed';
+      const goal = params.get('goal') || '85ms Instant';
+      const service = params.get('service') || '24/7 Direct VIP';
+      const speed = params.get('speed') || '99';
+      const sec = params.get('sec') || '100';
+      const brief = params.get('brief') || '';
+
+      const serviceSelect = document.getElementById('project-service');
+      if (serviceSelect) {
+        const mapService = {
+          'WooCommerce': 'woocommerce',
+          'Next.js / React': 'nextjs-fullstack',
+          'Elementor Pro': 'elementor-pro'
+        };
+        const mapDeliv = {
+          '<100ms Speed': 'speed-optimization',
+          'Malware Shield': 'security-malware',
+          'VIP Maintenance': 'vip-maintenance'
+        };
+        serviceSelect.value = mapDeliv[deliverable] || mapService[platform] || 'custom-wordpress';
+      }
+      const detailsArea = document.getElementById('project-details');
+      if (detailsArea && !detailsArea.value.trim()) {
+        detailsArea.value = `Claimed Blueprint Specification:
+• Platform: ${platform}
+• Deliverable: ${deliverable}
+• Target Speed: ${goal} (${speed}% PageSpeed)
+• Security/SEO Target: ${sec}/100 Audit
+• Support Tier: ${service}` + (brief ? `
+• Notes: ${brief}` : '');
+      }
+    }
+  } catch (_) {}
 
   function getFormData() {
     const nameInput = document.getElementById('client-name');
@@ -2302,19 +2537,29 @@ function initCursorSpider() {
     ctx.restore(); // Restores DRAW SPIDER BODY
     ctx.restore(); // Restores Top-level canvas state save
 
-    if (!document.hidden) {
-      requestAnimationFrame(renderSpider);
+    // When mobile video is active and spider has settled into peaceful parked stance,
+    // freeze the painted frame at 0% CPU until video section is exited!
+    const settledForVideo = isVideoPaused && spider.speed < 0.4 && webSilk.length === 0 && !legs.some((l) => l.isStepping);
+    if (!document.hidden && !settledForVideo) {
+      spiderRafId = requestAnimationFrame(renderSpider);
     } else {
       spiderRafId = null;
     }
   }
 
   let spiderRafId = requestAnimationFrame(renderSpider);
-  document.addEventListener('visibilitychange', () => {
+  const wakeSpider = () => {
     if (!document.hidden && !spiderRafId) {
+      lastTime = performance.now();
       spiderRafId = requestAnimationFrame(renderSpider);
     }
-  });
+  };
+  document.addEventListener('visibilitychange', wakeSpider);
+  const prevExitSpiderHook = window.__onExitMobileVideo;
+  window.__onExitMobileVideo = () => {
+    if (typeof prevExitSpiderHook === 'function') prevExitSpiderHook();
+    wakeSpider();
+  };
 }
 
 /* ==========================================================================
