@@ -4520,12 +4520,11 @@ a.channel-item:hover .ci-arrow {
     border-radius: 12px !important;
   }
 
-  /* When video is in front on mobile, shut down background star/cube/spider canvases for maximum smoothness */
+  /* When video is in front on mobile, shut down background star/cube canvases for maximum smoothness */
   body.mobile-video-active #realms-star-canvas,
   body.mobile-video-active #footer-star-canvas,
   body.mobile-video-active #voyage-3d-cube,
-  body.mobile-video-active .cube-floating-stage,
-  body.mobile-video-active #cursor-spider-canvas {
+  body.mobile-video-active .cube-floating-stage {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;

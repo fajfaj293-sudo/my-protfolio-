@@ -1889,7 +1889,7 @@ function initCursorSpider() {
     const nx = -dy / len;
     const ny = dx / len;
 
-    ctx.save();
+    if (!isMobile) ctx.save();
     ctx.beginPath();
     ctx.moveTo(x1 - nx * width1, y1 - ny * width1);
     ctx.lineTo(x2 - nx * width2, y2 - ny * width2);
@@ -1897,11 +1897,15 @@ function initCursorSpider() {
     ctx.lineTo(x1 + nx * width1, y1 + ny * width1);
     ctx.closePath();
 
-    const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-    grad.addColorStop(0, '#eab308');
-    grad.addColorStop(0.5, '#ca8a04');
-    grad.addColorStop(1, '#a16207');
-    ctx.fillStyle = grad;
+    if (isMobile) {
+      ctx.fillStyle = '#ca8a04';
+    } else {
+      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+      grad.addColorStop(0, '#eab308');
+      grad.addColorStop(0.5, '#ca8a04');
+      grad.addColorStop(1, '#a16207');
+      ctx.fillStyle = grad;
+    }
     ctx.fill();
 
     const stripes = isMobile ? 2 : 4;
@@ -1927,14 +1931,16 @@ function initCursorSpider() {
       }
     }
 
-    ctx.beginPath();
-    ctx.moveTo(x1 - nx * (width1 * 0.4), y1 - ny * (width1 * 0.4));
-    ctx.lineTo(x2 - nx * (width2 * 0.4), y2 - ny * (width2 * 0.4));
-    ctx.strokeStyle = 'rgba(254, 240, 138, 0.5)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    if (!isMobile) {
+      ctx.beginPath();
+      ctx.moveTo(x1 - nx * (width1 * 0.4), y1 - ny * (width1 * 0.4));
+      ctx.lineTo(x2 - nx * (width2 * 0.4), y2 - ny * (width2 * 0.4));
+      ctx.strokeStyle = 'rgba(254, 240, 138, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-    ctx.restore();
+      ctx.restore();
+    }
   }
 
   // 60FPS Continuous Butter-Smooth Animation Loop
@@ -1944,22 +1950,7 @@ function initCursorSpider() {
 
   let spiderRafId = null;
 
-  window.addEventListener('mobile-video-state', (e) => {
-    if (!e.detail.active && !spiderRafId) {
-      lastTime = performance.now();
-      spiderRafId = requestAnimationFrame(renderSpider);
-    }
-  });
-
   function renderSpider(now) {
-    const isVideoPaused = isMobile && !!window.__mobileVideoActive;
-
-    if (isVideoPaused) {
-      ctx.clearRect(0, 0, w, h);
-      spiderRafId = null;
-      return;
-    }
-
     if (typeof handleSpiderIdleWander === "function") {
       handleSpiderIdleWander(now);
     }
