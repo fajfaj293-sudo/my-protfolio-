@@ -33,8 +33,6 @@
 
 html {
   scroll-behavior: smooth;
-  width: 100%;
-  max-width: 100vw;
 }
 
 body {
@@ -42,8 +40,6 @@ body {
   color: var(--text-light);
   font-family: var(--font-sans);
   overflow-x: hidden;
-  width: 100%;
-  max-width: 100vw;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -4424,6 +4420,10 @@ a.channel-item:hover .ci-arrow {
   }
 
   /* Window Video Frame Mobile Optimization: Visibly compact & proportional initial frame that smoothly expands */
+  .story-sticky-viewport {
+    height: 100vh !important;
+    height: 100dvh !important;
+  }
   .window-arch-wrapper {
     width: min(84vw, 340px);
     height: min(calc(84vw * 9 / 16), 200px);
@@ -4517,14 +4517,17 @@ a.channel-item:hover .ci-arrow {
     opacity: 0 !important;
     pointer-events: none !important;
   }
-  body.mobile-video-active *:not(.scroll-story-runway):not(.scroll-story-runway *):not(.mobile-dock):not(.mobile-dock *) {
-    animation: none !important;
-    transition: none !important;
-  }
-  body.mobile-video-active .portfolio-scrub-video,
-  body.mobile-video-active .story-scene-ui,
-  body.mobile-video-active .story-scene-ui * {
-    animation-play-state: running !important;
+  body.mobile-video-active header,
+  body.mobile-video-active header *,
+  body.mobile-video-active #hero,
+  body.mobile-video-active #hero *,
+  body.mobile-video-active .realms-pin-runway,
+  body.mobile-video-active .realms-pin-runway *,
+  body.mobile-video-active .light-composer-section,
+  body.mobile-video-active .light-composer-section *,
+  body.mobile-video-active footer,
+  body.mobile-video-active footer * {
+    animation-play-state: paused !important;
   }
 
   /* Scene 4 Center Box on Mobile: Pure floating transparent text, NO black box */

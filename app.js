@@ -469,8 +469,8 @@ function initContinuousZoomStory() {
       if (zoomPhase >= 0.96) {
         if (!isWindowFullscreen) {
           isWindowFullscreen = true;
-          windowWrapper.style.width = '100vw';
-          windowWrapper.style.height = '100vh';
+          windowWrapper.style.width = isMobile ? '100%' : '100vw';
+          windowWrapper.style.height = isMobile ? '100%' : '100vh';
           windowWrapper.style.borderRadius = '0px';
           windowWrapper.style.boxShadow = 'none';
           windowWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
@@ -488,8 +488,8 @@ function initContinuousZoomStory() {
         const scale = 0.90 + zoomPhase * 0.10;
 
         windowWrapper.style.aspectRatio = 'auto';
-        windowWrapper.style.width = isMobile ? `${wPct.toFixed(1)}vw` : `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
-        windowWrapper.style.height = isMobile ? `${hPct.toFixed(1)}vh` : `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
+        windowWrapper.style.width = isMobile ? `${wPct.toFixed(1)}%` : `min(${wPct.toFixed(1)}vw, ${1080 + zoomPhase * 800}px)`;
+        windowWrapper.style.height = isMobile ? `${hPct.toFixed(1)}%` : `min(${hPct.toFixed(1)}vh, ${600 + zoomPhase * 800}px)`;
         windowWrapper.style.borderRadius = `${radius.toFixed(0)}px`;
         windowWrapper.style.boxShadow = shadowAlpha > 0.01 
           ? `0 25px 70px -15px rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})` 
