@@ -12,7 +12,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
   <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
 
-  <link rel="stylesheet" href="styles.css?v=51.0" />
+  <link rel="stylesheet" href="styles.css?v=52.0" />
 
   <style>
     /* Security Overlay & Lock Screen */
@@ -481,18 +481,30 @@
 
     </div>
 
+    <!-- CLIENT INQUIRIES FROM CONTACT PAGE -->
+    <section class="admin-card shine-card" style="margin-top:2rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <div>
+          <div class="rh-eyebrow">
+            <span class="dot-purple"></span>
+            <span>SUPABASE LIVE LEADS</span>
+          </div>
+          <h2 style="font-family:var(--font-serif); font-size:1.8rem; color:#fff; margin:0.3rem 0;">CLIENT INQUIRIES (<span id="inq-count">0</span>)</h2>
+        </div>
+      </div>
+      <div class="admin-projects-list" id="admin-inquiries-list"></div>
+    </section>
+
   </main>
 
-  <script src="app.js?v=51.0"></script>
+  <script src="app.js?v=52.0"></script>
   <script>
     // =========================================================================
-    // SECURITY LOGIN & SESSION GUARD (EMAIL + PASSWORD)
+    // SUPABASE AUTHENTICATION & SESSION GUARD (ZERO HARDCODED PASSWORDS)
     // =========================================================================
-    const AUTH_KEY = 'fazlul_admin_session_auth_v1';
-    const PASS_KEY = 'fazlul_admin_master_pass_hash_v1';
-    const USER_KEY = 'fazlul_admin_username_v1';
-    const DEFAULT_PASS = 'fazlul2026';
-    const DEFAULT_USER = 'fazlulbusiness1@gmail.com';
+    const SB_URL = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) || 'https://ydszdsuerudmjrbzdnuc.supabase.co';
+    const SB_ANON = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.anonKey) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlkc3pkc3VlcnVkbWpyYnpkbnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2NTM2NjUsImV4cCI6MjExMTIyOTY2NX0.i1rb9oLcVkolLyeGMrW6CTZnjta5LnBOP5kJa9H2bqg';
+    const TOKEN_KEY = 'fazlul_sb_access_token_v1';
 
     const lockScreen = document.getElementById('admin-lock-screen');
     const mainContainer = document.getElementById('admin-main-container');
@@ -503,33 +515,32 @@
     const eyeBtn = document.getElementById('lock-eye-btn');
     const logoutBtn = document.getElementById('btn-logout');
 
-    function getStoredUser() {
-      return (localStorage.getItem(USER_KEY) || DEFAULT_USER).trim().toLowerCase();
+    function getAuthToken() {
+      return sessionStorage.getItem(TOKEN_KEY) || '';
     }
 
-    // SHA-256 Hashing helper
-    async function hashPassword(str) {
-      const buffer = new TextEncoder().encode(str + '_salt_fazlul_secure');
-      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function getStoredPassHash() {
-      let stored = localStorage.getItem(PASS_KEY);
-      if (!stored) {
-        stored = await hashPassword(DEFAULT_PASS);
-        localStorage.setItem(PASS_KEY, stored);
+    async function sbFetch(path, options = {}) {
+      const token = getAuthToken();
+      const headers = Object.assign({
+        apikey: SB_ANON,
+        Authorization: `Bearer ${token || SB_ANON}`,
+        'Content-Type': 'application/json'
+      }, options.headers || {});
+      const res = await fetch(`${SB_URL}${path}`, Object.assign({}, options, { headers }));
+      if (res.status === 401 && token) {
+        sessionStorage.removeItem(TOKEN_KEY);
+        checkAuthSession();
       }
-      return stored;
+      return res;
     }
 
-    // Check if session is already active in this tab
     async function checkAuthSession() {
-      const isAuth = sessionStorage.getItem(AUTH_KEY);
-      if (isAuth === 'true') {
+      const token = getAuthToken();
+      if (token) {
         lockScreen.style.display = 'none';
         mainContainer.style.display = 'block';
-        renderAdminList();
+        await renderAdminList();
+        await renderInquiriesList();
       } else {
         lockScreen.style.display = 'flex';
         mainContainer.style.display = 'none';
@@ -537,93 +548,73 @@
       }
     }
 
-    // Toggle password eye
     eyeBtn.addEventListener('click', () => {
       passInput.type = passInput.type === 'password' ? 'text' : 'password';
       eyeBtn.textContent = passInput.type === 'password' ? '👁️' : '🔒';
     });
 
-    // Handle Login submission
     lockForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const enteredUser = (userInput.value || '').trim().toLowerCase();
+      let enteredUser = (userInput.value || '').trim().toLowerCase();
+      if (enteredUser === 'fazlul') enteredUser = 'fazlulbusiness1@gmail.com';
       const enteredPass = passInput.value.trim();
-      const enteredHash = await hashPassword(enteredPass);
-      const targetHash = await getStoredPassHash();
-      const storedUser = getStoredUser();
 
-      // Allowed usernames: custom stored user, default email, or alias 'fazlul'
-      const isUserValid = (
-        enteredUser === storedUser ||
-        enteredUser === 'fazlul' ||
-        enteredUser === 'fazlulbusiness1@gmail.com'
-      );
-      const isPassValid = (enteredHash === targetHash);
-
-      if (isUserValid && isPassValid) {
-        sessionStorage.setItem(AUTH_KEY, 'true');
-        errorMsg.style.display = 'none';
-        lockScreen.style.display = 'none';
-        mainContainer.style.display = 'block';
-        renderAdminList();
-      } else {
-        if (!isUserValid && !isPassValid) {
-          errorMsg.textContent = '❌ Access Denied: Incorrect email/username and password.';
-        } else if (!isUserValid) {
-          errorMsg.textContent = '❌ Access Denied: Incorrect administrator email or username.';
+      try {
+        const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: { apikey: SB_ANON, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: enteredUser, password: enteredPass })
+        });
+        const data = await res.json();
+        if (res.ok && data.access_token) {
+          sessionStorage.setItem(TOKEN_KEY, data.access_token);
+          errorMsg.style.display = 'none';
+          lockScreen.style.display = 'none';
+          mainContainer.style.display = 'block';
+          await renderAdminList();
+          await renderInquiriesList();
         } else {
-          errorMsg.textContent = '❌ Access Denied: Incorrect administrator password.';
+          errorMsg.textContent = '❌ Access Denied: Incorrect email or password.';
+          errorMsg.style.display = 'block';
+          passInput.value = '';
+          passInput.focus();
         }
+      } catch (err) {
+        errorMsg.textContent = '❌ Network error connecting to Supabase.';
         errorMsg.style.display = 'block';
-        passInput.value = '';
-        passInput.focus();
       }
     });
 
-    // Logout / Lock
     logoutBtn.addEventListener('click', () => {
-      sessionStorage.removeItem(AUTH_KEY);
+      sessionStorage.removeItem(TOKEN_KEY);
       if (userInput) userInput.value = '';
       passInput.value = '';
       checkAuthSession();
     });
 
-    // Change Passcode and Email/Username inside Dashboard
     document.getElementById('btn-change-pass').addEventListener('click', async () => {
-      const current = prompt('Enter your CURRENT administrator password:');
-      if (!current) return;
-      const currentHash = await hashPassword(current.trim());
-      const targetHash = await getStoredPassHash();
-
-      if (currentHash !== targetHash) {
-        alert('❌ Current password is incorrect.');
+      const newPass = prompt('Enter your NEW Supabase administrator password (min 6 characters):');
+      if (!newPass || newPass.trim().length < 6) {
+        if (newPass !== null) alert('Password must be at least 6 characters long.');
         return;
       }
-
-      const newPass = prompt('Enter your NEW password (leave blank to keep current):');
-      if (newPass && newPass.trim().length > 0) {
-        if (newPass.trim().length < 6) {
-          alert('Password must be at least 6 characters long.');
-          return;
-        }
-        const newHash = await hashPassword(newPass.trim());
-        localStorage.setItem(PASS_KEY, newHash);
+      const res = await sbFetch('/auth/v1/user', {
+        method: 'PUT',
+        body: JSON.stringify({ password: newPass.trim() })
+      });
+      if (res.ok) {
+        alert('✅ Password updated securely in Supabase!');
+      } else {
+        alert('❌ Could not update password. Please sign in again.');
       }
-
-      const currentUser = getStoredUser();
-      const newUser = prompt(`Enter your NEW Email / Username (Current: ${currentUser}, leave blank to keep unchanged):`);
-      if (newUser && newUser.trim().length > 0) {
-        localStorage.setItem(USER_KEY, newUser.trim().toLowerCase());
-      }
-
-      alert('✅ Security credentials updated successfully! Changes saved.');
     });
 
     // =========================================================================
-    // PORTFOLIO MANAGER LOGIC
+    // SUPABASE PORTFOLIO MANAGER LOGIC
     // =========================================================================
     const urlInput = document.getElementById('proj-url');
     const previewBox = document.getElementById('preview-box');
+    let cachedProjects = [];
 
     function escapeHTML(str) {
       if (!str) return '';
@@ -663,53 +654,50 @@
       }
     });
 
-    // Handle Form Submit
-    document.getElementById('add-project-form').addEventListener('submit', (e) => {
+    document.getElementById('add-project-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('proj-title').value.trim();
       const url = document.getElementById('proj-url').value.trim();
       const category = document.getElementById('proj-category').value;
       const desc = document.getElementById('proj-desc').value.trim() || 'Custom engineered platform with sub-100ms speed and responsive architecture.';
-
       if (!title || !url) return;
 
-      const newProj = {
-        id: 'proj_' + Date.now(),
-        title: title,
-        url: url,
-        category: category,
-        desc: desc,
-        preview: getHeroPreviewUrl(url)
-      };
+      const res = await sbFetch('/rest/v1/portfolio_projects', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({
+          title,
+          url,
+          category,
+          description: desc,
+          preview: getHeroPreviewUrl(url),
+          pinned: false
+        })
+      });
 
-      const projects = PortfolioManager.getProjects();
-      // Insert right after any pinned projects so pinned works stay at the top
-      const firstUnpinned = projects.findIndex(p => !p.pinned);
-      if (firstUnpinned === -1) {
-        projects.push(newProj);
+      if (res.ok) {
+        await renderAdminList();
+        document.getElementById('add-project-form').reset();
+        setAdminPreviewPlaceholder('Enter a live website URL above to see the homepage hero preview');
+        alert('✨ Project saved to Supabase! It is now live for all visitors on your About page.');
       } else {
-        projects.splice(firstUnpinned, 0, newProj);
+        alert('❌ Failed to save project. Please make sure you are signed in.');
       }
-      PortfolioManager.saveProjects(projects);
-
-      renderAdminList();
-      document.getElementById('add-project-form').reset();
-      previewBox.innerHTML = `<span class="preview-placeholder">Enter a live website URL above to see the homepage hero preview</span>`;
-      alert('✨ Project added successfully! Visit About & Portfolio page to see it live.');
     });
 
-    function renderAdminList() {
-      const projects = PortfolioManager.getProjects();
+    async function renderAdminList() {
       const listEl = document.getElementById('admin-projects-list');
       const countEl = document.getElementById('proj-count');
-      countEl.textContent = projects.length;
+      const res = await sbFetch('/rest/v1/portfolio_projects?select=*&order=pinned.desc,created_at.desc');
+      cachedProjects = res.ok ? await res.json() : [];
+      countEl.textContent = cachedProjects.length;
 
-      if (!projects.length) {
+      if (!cachedProjects.length) {
         listEl.innerHTML = `<div style="text-align:center; padding:2.5rem; color:rgba(255,255,255,0.45); font-family:var(--font-mono); font-size:0.85rem;">No projects added yet. Use the form on the left to add your first client website!</div>`;
         return;
       }
 
-      listEl.innerHTML = projects.map((p, index) => {
+      listEl.innerHTML = cachedProjects.map((p) => {
         const safeTitle = escapeHTML(p.title);
         const safeUrl = encodeURI(p.url || '#');
         const safeCat = escapeHTML(p.category === 'fullstack' ? 'portfolio' : (p.category || 'WORK'));
@@ -726,41 +714,67 @@
             <span class="air-badge">${safeCat.toUpperCase()}</span>
           </div>
           <div style="display:flex; gap:0.45rem; flex-wrap:wrap; align-items:center;">
-            <button type="button" class="btn-delete-proj" style="${isPinned ? 'background:rgba(250,204,21,0.22); border-color:#facc15; color:#fde047;' : 'background:rgba(168,85,247,0.16); border-color:rgba(168,85,247,0.45); color:#e9d5ff;'}" onclick="togglePinProject(${index})">${isPinned ? 'PINNED ★' : 'PIN TOP'}</button>
-            <button type="button" class="btn-delete-proj" onclick="deleteProject(${index})">DELETE</button>
+            <button type="button" class="btn-delete-proj" style="${isPinned ? 'background:rgba(250,204,21,0.22); border-color:#facc15; color:#fde047;' : 'background:rgba(168,85,247,0.16); border-color:rgba(168,85,247,0.45); color:#e9d5ff;'}" onclick="togglePinProject(${p.id}, ${isPinned})">${isPinned ? 'PINNED ★' : 'PIN TOP'}</button>
+            <button type="button" class="btn-delete-proj" onclick="deleteProject(${p.id})">DELETE</button>
           </div>
         </div>
       `;
       }).join('');
     }
 
-    window.togglePinProject = function(index) {
-      const projects = PortfolioManager.getProjects();
-      if (!projects[index]) return;
-      projects[index].pinned = !projects[index].pinned;
-      projects.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-      PortfolioManager.saveProjects(projects);
-      renderAdminList();
+    async function renderInquiriesList() {
+      const listEl = document.getElementById('admin-inquiries-list');
+      const countEl = document.getElementById('inq-count');
+      if (!listEl || !countEl) return;
+      const res = await sbFetch('/rest/v1/contact_inquiries?select=*&order=created_at.desc');
+      const rows = res.ok ? await res.json() : [];
+      countEl.textContent = rows.length;
+      if (!rows.length) {
+        listEl.innerHTML = `<div style="text-align:center; padding:2rem; color:rgba(255,255,255,0.45); font-family:var(--font-mono); font-size:0.85rem;">No client inquiries yet.</div>`;
+        return;
+      }
+      listEl.innerHTML = rows.map((q) => `
+        <div class="admin-item-row" style="grid-template-columns: 1fr auto;">
+          <div class="air-info">
+            <h4>${escapeHTML(q.name)} — <span style="color:#f472b6;">${escapeHTML(q.email)}</span></h4>
+            <p style="margin-bottom:0.35rem;">${escapeHTML(q.service)} | ${escapeHTML(q.budget)}</p>
+            <p style="color:rgba(255,255,255,0.78);">${escapeHTML(q.details)}</p>
+          </div>
+          <div>
+            <button type="button" class="btn-delete-proj" onclick="deleteInquiry(${q.id})">DELETE</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.togglePinProject = async function(id, currentPinned) {
+      await sbFetch(`/rest/v1/portfolio_projects?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ pinned: !currentPinned })
+      });
+      await renderAdminList();
     };
 
-    window.deleteProject = function(index) {
+    window.deleteProject = async function(id) {
       if (confirm('Are you sure you want to remove this project from your portfolio?')) {
-        const projects = PortfolioManager.getProjects();
-        projects.splice(index, 1);
-        PortfolioManager.saveProjects(projects);
-        renderAdminList();
+        await sbFetch(`/rest/v1/portfolio_projects?id=eq.${id}`, { method: 'DELETE' });
+        await renderAdminList();
       }
     };
 
-    document.getElementById('btn-reset-default').addEventListener('click', () => {
-      if (confirm('Reset to standard portfolio sample works?')) {
-        PortfolioManager.resetToDefaults();
-        renderAdminList();
+    window.deleteInquiry = async function(id) {
+      if (confirm('Remove this inquiry?')) {
+        await sbFetch(`/rest/v1/contact_inquiries?id=eq.${id}`, { method: 'DELETE' });
+        await renderInquiriesList();
       }
+    };
+
+    document.getElementById('btn-reset-default').addEventListener('click', async () => {
+      alert('Use the Add / Delete / Pin buttons above to manage your live Supabase portfolio.');
     });
 
     document.getElementById('btn-export-json').addEventListener('click', () => {
-      const data = JSON.stringify(PortfolioManager.getProjects(), null, 2);
+      const data = JSON.stringify(cachedProjects, null, 2);
       const blob = new Blob([data], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);

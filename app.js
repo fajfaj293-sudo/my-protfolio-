@@ -1412,8 +1412,41 @@ function initBubbleGlassButtons() {
 // ============================================================================
 // 10. DYNAMIC PORTFOLIO MANAGER & AUTO-HERO PREVIEW ENGINE
 // ============================================================================
+const SUPABASE_URL = 'https://ydszdsuerudmjrbzdnuc.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlkc3pkc3VlcnVkbWpyYnpkbnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2NTM2NjUsImV4cCI6MjExMTIyOTY2NX0.i1rb9oLcVkolLyeGMrW6CTZnjta5LnBOP5kJa9H2bqg';
+
+window.SUPABASE_CONFIG = { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY };
+
 const PortfolioManager = {
   STORAGE_KEY: 'fazlul_portfolio_projects_v2',
+
+  async fetchProjects() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/portfolio_projects?select=*&order=pinned.desc,created_at.desc`, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        if (Array.isArray(rows)) {
+          return rows.map((r) => ({
+            id: r.id,
+            title: r.title,
+            url: r.url,
+            category: r.category,
+            desc: r.description || '',
+            preview: r.preview || '',
+            pinned: !!r.pinned
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase fetch fallback to local:', e);
+    }
+    return this.getProjects();
+  },
 
   getDefaults() {
     return [
@@ -1480,11 +1513,11 @@ function escapeHTML(str) {
     .replace(/'/g, '&#039;');
 }
 
-function initDynamicPortfolio() {
+async function initDynamicPortfolio() {
   const grid = document.getElementById('portfolio-projects-grid');
   if (!grid) return;
 
-  const projects = PortfolioManager.getProjects().slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  const projects = (await PortfolioManager.fetchProjects()).slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
   // If no projects added yet, show a clean showcase placeholder (no public admin link)
   if (!projects.length) {
@@ -1605,8 +1638,32 @@ function initContactForm() {
     window.open(waUrl, '_blank');
   }
 
+  async function saveInquiryToSupabase(data) {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/contact_inquiries`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({
+          name: data.name || '',
+          email: data.email || '',
+          service: data.service || '',
+          budget: data.budget || '',
+          details: data.details || ''
+        })
+      });
+    } catch (e) {
+      console.warn('Could not save inquiry to Supabase:', e);
+    }
+  }
+
   async function sendEmail(data) {
     const { name, email, service, budget, details } = data;
+    await saveInquiryToSupabase(data);
     return fetch('https://formsubmit.co/ajax/fazlulbusiness1@gmail.com', {
       method: 'POST',
       headers: {
@@ -1633,6 +1690,7 @@ function initContactForm() {
         toast.innerHTML = '<div style="padding: 0.9rem 1.2rem; border-radius: 14px; background: rgba(239, 68, 68, 0.2); border: 1.5px solid #ef4444; color: #fff; font-size: 0.85rem; margin-top: 1rem;">⚠️ Please enter your Name, Email, and Project Details before opening WhatsApp.</div>';
         return;
       }
+      saveInquiryToSupabase(data);
       sendToWhatsApp(data);
       toast.style.display = 'block';
       toast.innerHTML = '<div style="padding: 1rem 1.4rem; border-radius: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; color: #fff; font-size: 0.88rem; margin-top: 1rem;">💬 Opening WhatsApp chat with Fazlul Haque (+880 1302-927167)...</div>';
@@ -1681,6 +1739,7 @@ function initContactForm() {
     try {
       await sendEmail(data);
       // Also open WhatsApp if user is on mobile/has whatsapp
+      saveInquiryToSupabase(data);
       sendToWhatsApp(data);
 
       toast.innerHTML = `
@@ -1693,6 +1752,7 @@ function initContactForm() {
       `;
       form.reset();
     } catch (err) {
+      saveInquiryToSupabase(data);
       sendToWhatsApp(data);
       toast.innerHTML = `
         <div style="padding: 1.2rem 1.5rem; border-radius: 16px; background: rgba(16, 185, 129, 0.22); border: 1.5px solid #10b981; color: #ffffff; font-family: var(--font-mono); font-size: 0.88rem; margin-top: 1.2rem;">
