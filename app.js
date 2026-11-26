@@ -580,16 +580,18 @@ function initComposerStudio() {
   const secVal = document.getElementById('sec-val');
   const genBtn = document.getElementById('generate-solution-btn');
 
-  inspPills.forEach((pill) => {
-    pill.addEventListener('click', () => {
-      inspPills.forEach((p) => p.classList.remove('active'));
-      pill.classList.add('active');
-      const key = pill.getAttribute('data-pain-key') || 'lag';
-      const data = prompts[key] || prompts.lag;
-      if (input) input.value = data.input;
-      if (toast) toast.innerHTML = `<strong>✓ Solution Blueprint:</strong> ${data.toast}`;
-    });
-  });
+  const speedMetric = document.getElementById('bc-speed-metric');
+  const secMetric = document.getElementById('bc-sec-metric');
+
+  function updateBlueprintConsole(data) {
+    if (toast && data) toast.innerHTML = `<strong>✓ Solution Blueprint:</strong> ${data.toast}`;
+    if (speedMetric && speedRange) {
+      speedMetric.textContent = `Sub-100ms (${speedRange.value}% Optimized)`;
+    }
+    if (secMetric && secRange) {
+      secMetric.textContent = `WAF Lockdown (${secRange.value}/100 Grade)`;
+    }
+  }
 
   filterCols.forEach((group) => {
     const btns = group.querySelectorAll('.f-pill');
@@ -604,24 +606,14 @@ function initComposerStudio() {
   if (speedRange && speedVal) {
     speedRange.addEventListener('input', () => {
       speedVal.textContent = `${speedRange.value}%`;
+      updateBlueprintConsole(null);
     });
   }
   if (secRange && secVal) {
     secRange.addEventListener('input', () => {
       secVal.textContent = `${secRange.value} / 100`;
+      updateBlueprintConsole(null);
     });
-  }
-  const speedMetric = document.getElementById('bc-speed-metric');
-  const secMetric = document.getElementById('bc-sec-metric');
-
-  function updateBlueprintConsole(data) {
-    if (toast) toast.textContent = data.toast;
-    if (speedMetric && speedRange) {
-      speedMetric.textContent = `Sub-100ms (${speedRange.value}% Optimized)`;
-    }
-    if (secMetric && secRange) {
-      secMetric.textContent = `WAF Lockdown (${secRange.value}/100 Grade)`;
-    }
   }
 
   inspPills.forEach((pill) => {
