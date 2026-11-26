@@ -3679,6 +3679,13 @@ a.channel-item:hover .ci-arrow {
     padding: 1.15rem 1rem !important;
     border-radius: 20px !important;
   }
+  .faq-chain-stage {
+    transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease !important;
+  }
+  .faq-item.is-open .faq-hanging-assembly {
+    will-change: transform, opacity;
+    animation: pendulumDropSwing 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  }
   .faq-suspension-rig {
     padding: 0 1.2rem;
   }
@@ -4513,11 +4520,12 @@ a.channel-item:hover .ci-arrow {
     border-radius: 12px !important;
   }
 
-  /* When video is in front on mobile, shut down background star/cube canvases for maximum smoothness (spider stays parked peacefully) */
+  /* When video is in front on mobile, shut down background star/cube/spider canvases for maximum smoothness */
   body.mobile-video-active #realms-star-canvas,
   body.mobile-video-active #footer-star-canvas,
-  body.mobile-video-active .cube-viewport,
-  body.mobile-video-active .cube-canvas {
+  body.mobile-video-active #voyage-3d-cube,
+  body.mobile-video-active .cube-floating-stage,
+  body.mobile-video-active #cursor-spider-canvas {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;

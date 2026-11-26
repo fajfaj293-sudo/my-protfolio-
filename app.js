@@ -393,16 +393,17 @@ function initContinuousZoomStory() {
   }
 
   function scrubToTime(t) {
+    const isMob = window.innerWidth <= 768;
     const videoDuration = (video.duration && !isNaN(video.duration) && video.duration > 1) ? video.duration : 14.43;
     const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
     
     // Fine sub-frame precision: skip redundant seeks
-    if (Math.abs(video.currentTime - boundedTime) < 0.012) return;
+    if (Math.abs(video.currentTime - boundedTime) < (isMob ? 0.02 : 0.012)) return;
 
     const now = performance.now();
 
-    // Fast 45ms watchdog: prevents decoder lockup
-    if (isSeeking && (now - lastSeekStart > 45)) {
+    // Watchdog: prevents decoder lockup (90ms on mobile to avoid hardware decoder thrashing, 45ms on desktop)
+    if (isSeeking && (now - lastSeekStart > (isMob ? 90 : 45))) {
       isSeeking = false;
     }
 
@@ -437,6 +438,7 @@ function initContinuousZoomStory() {
     if (window.__mobileVideoActive !== isVideoInFront) {
       window.__mobileVideoActive = isVideoInFront;
       document.body.classList.toggle('mobile-video-active', isVideoInFront);
+      window.dispatchEvent(new CustomEvent('mobile-video-state', { detail: { active: isVideoInFront } }));
     }
   }
 
@@ -1054,7 +1056,7 @@ function initFloating3DCube() {
   const W = canvas.width;
   const H = canvas.height;
 
-  let cubeInView = true;
+  let cubeInView = false;
   let cubeRafId = null;
 
   function startCubeLoop() {
@@ -1940,10 +1942,25 @@ function initCursorSpider() {
   let stepTimer = 0;
   let activeGaitGroup = 0;
 
+  let spiderRafId = null;
+
+  window.addEventListener('mobile-video-state', (e) => {
+    if (!e.detail.active && !spiderRafId) {
+      lastTime = performance.now();
+      spiderRafId = requestAnimationFrame(renderSpider);
+    }
+  });
+
   function renderSpider(now) {
     const isVideoPaused = isMobile && !!window.__mobileVideoActive;
 
-    if (!isVideoPaused && typeof handleSpiderIdleWander === "function") {
+    if (isVideoPaused) {
+      ctx.clearRect(0, 0, w, h);
+      spiderRafId = null;
+      return;
+    }
+
+    if (typeof handleSpiderIdleWander === "function") {
       handleSpiderIdleWander(now);
     }
     const dt = Math.min(Math.max((now - lastTime) / 1000, 0.001), 0.04);
@@ -2294,9 +2311,9 @@ function initCursorSpider() {
     ctx.restore(); // Restores DRAW SPIDER BODY
     ctx.restore(); // Restores Top-level canvas state save
 
-    requestAnimationFrame(renderSpider);
+    spiderRafId = requestAnimationFrame(renderSpider);
   }
-  requestAnimationFrame(renderSpider);
+  spiderRafId = requestAnimationFrame(renderSpider);
 }
 
 /* ==========================================================================
