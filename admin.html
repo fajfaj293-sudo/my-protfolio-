@@ -12,7 +12,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
   <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
 
-  <link rel="stylesheet" href="styles.css?v=50.0" />
+  <link rel="stylesheet" href="styles.css?v=51.0" />
 
   <style>
     /* Security Overlay & Lock Screen */
@@ -435,7 +435,7 @@
               <option value="wordpress">WordPress &amp; Elementor</option>
               <option value="woocommerce">WooCommerce Store</option>
               <option value="speed">Speed &amp; Security</option>
-              <option value="fullstack">React / Next.js / SaaS</option>
+              <option value="portfolio">Portfolio Websites</option>
               <option value="custom">Custom Web Development</option>
             </select>
           </div>
@@ -483,7 +483,7 @@
 
   </main>
 
-  <script src="app.js?v=50.0"></script>
+  <script src="app.js?v=51.0"></script>
   <script>
     // =========================================================================
     // SECURITY LOGIN & SESSION GUARD (EMAIL + PASSWORD)
@@ -683,7 +683,13 @@
       };
 
       const projects = PortfolioManager.getProjects();
-      projects.unshift(newProj);
+      // Insert right after any pinned projects so pinned works stay at the top
+      const firstUnpinned = projects.findIndex(p => !p.pinned);
+      if (firstUnpinned === -1) {
+        projects.push(newProj);
+      } else {
+        projects.splice(firstUnpinned, 0, newProj);
+      }
       PortfolioManager.saveProjects(projects);
 
       renderAdminList();
@@ -706,25 +712,36 @@
       listEl.innerHTML = projects.map((p, index) => {
         const safeTitle = escapeHTML(p.title);
         const safeUrl = encodeURI(p.url || '#');
-        const safeCat = escapeHTML(p.category || 'WORK');
+        const safeCat = escapeHTML(p.category === 'fullstack' ? 'portfolio' : (p.category || 'WORK'));
         const previewSrc = encodeURI(p.preview || getHeroPreviewUrl(p.url));
+        const isPinned = !!p.pinned;
         return `
-        <div class="admin-item-row">
+        <div class="admin-item-row" style="${isPinned ? 'border-color: rgba(250, 204, 21, 0.55); background: rgba(250, 204, 21, 0.06);' : ''}">
           <div class="air-thumb">
             <img src="${previewSrc}" alt="${safeTitle}" onerror="this.src='assets/scene1.webp';" />
           </div>
           <div class="air-info">
-            <h4>${safeTitle}</h4>
+            <h4>${isPinned ? '📌 ' : ''}${safeTitle}</h4>
             <p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color:#f472b6; text-decoration:none;">${safeUrl} ↗</a></p>
             <span class="air-badge">${safeCat.toUpperCase()}</span>
           </div>
-          <div>
+          <div style="display:flex; gap:0.45rem; flex-wrap:wrap; align-items:center;">
+            <button type="button" class="btn-delete-proj" style="${isPinned ? 'background:rgba(250,204,21,0.22); border-color:#facc15; color:#fde047;' : 'background:rgba(168,85,247,0.16); border-color:rgba(168,85,247,0.45); color:#e9d5ff;'}" onclick="togglePinProject(${index})">${isPinned ? 'PINNED ★' : 'PIN TOP'}</button>
             <button type="button" class="btn-delete-proj" onclick="deleteProject(${index})">DELETE</button>
           </div>
         </div>
       `;
       }).join('');
     }
+
+    window.togglePinProject = function(index) {
+      const projects = PortfolioManager.getProjects();
+      if (!projects[index]) return;
+      projects[index].pinned = !projects[index].pinned;
+      projects.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+      PortfolioManager.saveProjects(projects);
+      renderAdminList();
+    };
 
     window.deleteProject = function(index) {
       if (confirm('Are you sure you want to remove this project from your portfolio?')) {

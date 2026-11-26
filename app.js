@@ -1435,11 +1435,11 @@ const PortfolioManager = {
       },
       {
         id: 'proj_3',
-        title: 'Next.js 15 Full-Stack Cloud Experience',
-        url: 'https://nextjs.org',
-        category: 'fullstack',
-        desc: 'Full-stack React framework with instant server-side rendering and edge routing.',
-        preview: 'https://image.thum.io/get/width/1000/crop/650/noanimate/https://nextjs.org'
+        title: 'Bespoke Portfolio Showcase Platform',
+        url: 'https://fazlul-haque-portfolio.onrender.com',
+        category: 'portfolio',
+        desc: 'Interactive portfolio architecture with sub-100ms loading, smooth animations, and responsive design.',
+        preview: 'assets/hero-fazlul.webp'
       }
     ];
   },
@@ -1484,19 +1484,16 @@ function initDynamicPortfolio() {
   const grid = document.getElementById('portfolio-projects-grid');
   if (!grid) return;
 
-  const projects = PortfolioManager.getProjects();
+  const projects = PortfolioManager.getProjects().slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
-  // If no projects added yet, show an inviting prompt to add the first work
+  // If no projects added yet, show a clean showcase placeholder (no public admin link)
   if (!projects.length) {
     grid.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 4.5rem 2rem; border-radius: 28px; background: rgba(255,255,255,0.03); border: 1.5px dashed rgba(244,114,182,0.4); backdrop-filter: blur(16px);">
-        <h3 style="font-family: var(--font-serif); font-size: 1.8rem; color: #fff; margin-bottom: 0.8rem;">Your Portfolio Showcase is Ready</h3>
-        <p style="font-size: 0.95rem; color: rgba(255,255,255,0.7); max-width: 580px; margin: 0 auto 2rem; line-height: 1.6;">
-          You haven't added any client website links yet. Click below to open your Admin Panel, paste your client site URLs, and their homepage hero screenshots will appear here automatically!
+        <h3 style="font-family: var(--font-serif); font-size: 1.8rem; color: #fff; margin-bottom: 0.8rem;">Curated Portfolio Showcase</h3>
+        <p style="font-size: 0.95rem; color: rgba(255,255,255,0.7); max-width: 580px; margin: 0 auto; line-height: 1.6;">
+          Featured client platforms and live portfolio websites are being curated for this showcase.
         </p>
-        <a href="admin.html" class="btn-shine pill-btn-purple bubble-glass-btn" style="padding: 0.9rem 2rem;">
-          <span class="btn-label-text">⚙️ OPEN ADMIN PANEL / ADD FIRST WORK ↗</span>
-        </a>
       </div>
     `;
     return;
@@ -1510,23 +1507,26 @@ function initDynamicPortfolio() {
       'wordpress': 'WordPress & Elementor',
       'woocommerce': 'WooCommerce',
       'speed': 'Speed & Security',
-      'fullstack': 'React / Next.js',
+      'portfolio': 'Portfolio',
+      'fullstack': 'Portfolio',
       'custom': 'Custom Architecture'
     };
-    const catName = categoryLabels[p.category] || (p.category ? p.category.toUpperCase() : 'CUSTOM ARCHITECTURE');
+    const normalizedCat = p.category === 'fullstack' ? 'portfolio' : (p.category || 'all');
+    const catName = categoryLabels[normalizedCat] || (p.category ? p.category.toUpperCase() : 'CUSTOM ARCHITECTURE');
     const safeTitle = escapeHTML(p.title);
     const safeDesc = escapeHTML(p.desc || 'Custom engineered client platform featuring sub-100ms performance, hardened security, and responsive luxury aesthetics.');
     const safeUrl = encodeURI(rawUrl);
     const safePreview = encodeURI(previewUrl);
-    const safeCategory = escapeHTML(p.category || 'all');
+    const safeCategory = escapeHTML(normalizedCat);
     const safeCatName = escapeHTML(catName);
+    const speedBadgeText = p.pinned ? '★ Featured Live' : '⚡ Sub-100ms Live';
 
     return `
       <article class="portfolio-project-card shine-card" data-category="${safeCategory}">
         <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="ppc-thumb-link" aria-label="Visit ${safeTitle} live">
           <div class="ppc-thumb">
             <img src="${safePreview}" alt="${safeTitle} Homepage Preview" class="ppc-hero-preview-img" onerror="this.onerror=null; this.src='assets/scene1.webp';" loading="lazy" />
-            <span class="ppc-speed-badge">⚡ Sub-100ms Live</span>
+            <span class="ppc-speed-badge">${speedBadgeText}</span>
             <span class="ppc-category-tag">${safeCatName}</span>
           </div>
         </a>
