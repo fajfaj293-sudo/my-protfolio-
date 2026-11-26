@@ -4116,6 +4116,11 @@ a.channel-item:hover .ci-arrow {
 
 @media (max-width: 768px) {
 
+  html,
+  body {
+    overflow-x: clip !important;
+  }
+
   /* Responsive Hero Image, Title & Subtitle on Mobile: Shorter height & zoomed out */
   .hero-fullscreen {
     height: 78vh !important;
@@ -4167,6 +4172,7 @@ a.channel-item:hover .ci-arrow {
     min-height: unset !important;
     position: relative !important;
     padding: 1.5rem 0 2rem !important;
+    overflow-x: clip !important;
   }
   .realms-sticky-stage {
     position: relative !important;
