@@ -398,12 +398,12 @@ function initContinuousZoomStory() {
     const boundedTime = Math.max(0, Math.min(videoDuration - 0.02, t));
     
     // Fine sub-frame precision: skip redundant seeks
-    if (Math.abs(video.currentTime - boundedTime) < (isMob ? 0.02 : 0.012)) return;
+    if (Math.abs(video.currentTime - boundedTime) < (isMob ? 0.016 : 0.012)) return;
 
     const now = performance.now();
 
-    // Watchdog: prevents decoder lockup (90ms on mobile to avoid hardware decoder thrashing, 45ms on desktop)
-    if (isSeeking && (now - lastSeekStart > (isMob ? 90 : 45))) {
+    // Watchdog: prevents decoder lockup while keeping mobile frames responsive (~30fps)
+    if (isSeeking && (now - lastSeekStart > (isMob ? 35 : 45))) {
       isSeeking = false;
     }
 
@@ -460,8 +460,8 @@ function initContinuousZoomStory() {
   function renderFrame() {
     const isMobile = window.innerWidth <= 768;
     // Desktop: Responsive 0.38 lerp factor follows mouse wheel immediately without sluggish lag
-    // Mobile: 0.25 smooth glide
-    const lerpFactor = isMobile ? 0.25 : 0.38;
+    // Mobile: 0.18 smooth glide to damp touch-scroll jitter
+    const lerpFactor = isMobile ? 0.18 : 0.38;
     smoothProgress += (targetProgress - smoothProgress) * lerpFactor;
 
     // 1. Centered Window Zooms & Expands into 100% Fullscreen (State Throttled)
@@ -1970,7 +1970,7 @@ function initCursorSpider() {
     const toCursorY = mouse.y - spider.y;
     const distToCursor = Math.hypot(toCursorX, toCursorY);
 
-    if (!isVideoPaused && distToCursor > 18) {
+    if (distToCursor > 18) {
       spider.targetAngle = Math.atan2(toCursorY, toCursorX);
     }
 
@@ -1983,7 +1983,7 @@ function initCursorSpider() {
     const startDist = isMobile ? 32 : 45;
     const stopDist = isMobile ? 10 : 14;
 
-    if (!isVideoPaused && mouse.active) {
+    if (mouse.active) {
       if (!spider.isWalking) {
         if (distToCursor > startDist) {
           spider.isWalking = true;
